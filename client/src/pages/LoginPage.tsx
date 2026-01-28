@@ -16,7 +16,8 @@ export default function LoginPage() {
         setIsLoading(true);
         setError('');
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || '';
+            const rawApiUrl = import.meta.env.VITE_API_URL || '';
+            const apiUrl = rawApiUrl.replace(/\/$/, '');
             const res = await fetch(`${apiUrl}/api/auth/login`, {
                 method: 'POST',
                 headers: {

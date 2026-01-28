@@ -41,9 +41,13 @@ const authLimiter = rateLimit({
 });
 
 // App configuration
+const allowedOrigin = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : '*';
+
 app.use(cors({
-    origin: process.env.CLIENT_URL || '*',
-    credentials: true
+    origin: allowedOrigin,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(morgan('dev'));
