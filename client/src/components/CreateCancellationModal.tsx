@@ -20,7 +20,6 @@ export default function CreateCancellationModal({ isOpen, onClose, onSuccess }: 
 
     const [policyTypes, setPolicyTypes] = useState<{ id: string, name: string }[]>([]);
     const [branches, setBranches] = useState<{ id: string, name: string }[]>([]);
-    const [userRole, setUserRole] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -39,7 +38,6 @@ export default function CreateCancellationModal({ isOpen, onClose, onSuccess }: 
             const userStr = localStorage.getItem('user');
             if (userStr) {
                 const user = JSON.parse(userStr);
-                setUserRole(user.role);
                 if (user.branchId) setBranchId(user.branchId);
             }
 
