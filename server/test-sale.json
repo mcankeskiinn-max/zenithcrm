@@ -1,0 +1,8 @@
+{
+    "customerName": "Test Client",
+    "amount": 1250,
+    "branchId": "b24332a2-82a4-4336-959b-a4c5b59ebd32",
+    "policyTypeId": "13d25a67-c011-4548-85e1-9780015b0496",
+    "status": "ACTIVE",
+    "policyNumber": "POL-TEST-001"
+}

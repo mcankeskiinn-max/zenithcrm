@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sigorta_crm_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sigorta_admin
+      POSTGRES_PASSWORD: sigorta_2024_secure_pass
+      POSTGRES_DB: sigorta_crm
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: sigorta_crm_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass redis_secure_pass_2024
+
+volumes:
+  postgres_data:
+  redis_data:

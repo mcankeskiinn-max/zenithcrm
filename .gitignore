@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.log
+
+# Production
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/
+*.tmp
+
+# Database
+*.db
+*.sqlite
+
+# Prisma
+prisma/migrations/migration_lock.toml
+
+# Test artifacts
+testsprite_tests/
+test_results*.log
+test-summary.json
