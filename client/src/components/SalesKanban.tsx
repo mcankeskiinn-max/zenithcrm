@@ -68,7 +68,12 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
                                                 <FileText size={20} />
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-gray-900 leading-tight">{sale.customerName}</h4>
+                                                <h4
+                                                    className="font-bold text-gray-900 leading-tight hover:text-emerald-600 cursor-pointer"
+                                                    onClick={(e) => { e.stopPropagation(); window.location.href = `/customers/${sale.customer?.id || ''}` }}
+                                                >
+                                                    {sale.customer?.name || sale.customerName}
+                                                </h4>
                                                 <p className="text-[11px] text-gray-400 font-medium mt-1">{sale.policyNumber}</p>
                                             </div>
                                         </div>

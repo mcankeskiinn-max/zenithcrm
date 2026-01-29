@@ -31,6 +31,7 @@ interface Sale {
     employee?: { id?: string; name: string };
     branch?: { id?: string; name: string };
     policyType?: { id?: string; name: string };
+    customer?: { id: string; name: string; phone?: string; email?: string };
     _count?: { documents: number };
 }
 
@@ -243,7 +244,7 @@ export default function SalesPage() {
     };
 
     const filteredSales = Array.isArray(sales) ? sales.filter(s => {
-        const cName = s.customerName || '';
+        const cName = s.customer?.name || s.customerName || '';
         const pNum = s.policyNumber || '';
         return cName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             pNum.toLowerCase().includes(searchTerm.toLowerCase());
@@ -356,7 +357,12 @@ export default function SalesPage() {
                                                     <FileText size={20} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-900 leading-tight">{sale.customerName}</p>
+                                                    <p
+                                                        className="font-bold text-gray-900 leading-tight hover:text-emerald-600 cursor-pointer"
+                                                        onClick={() => window.location.href = `/customers/${sale.customer?.id || ''}`}
+                                                    >
+                                                        {sale.customer?.name || sale.customerName}
+                                                    </p>
                                                     <p className="text-[11px] text-gray-400 font-medium mt-1">{sale.policyNumber}</p>
                                                 </div>
                                             </div>

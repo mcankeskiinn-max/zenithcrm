@@ -47,6 +47,7 @@ export const getSales = async (req: Request, res: Response) => {
                 employee: { select: { id: true, name: true } },
                 branch: { select: { id: true, name: true } },
                 policyType: { select: { id: true, name: true } },
+                customer: { select: { id: true, name: true, phone: true, email: true } },
                 _count: {
                     select: { documents: true }
                 }
@@ -63,7 +64,7 @@ export const getSales = async (req: Request, res: Response) => {
 
 // Create a new sale
 export const createSale = async (req: Request, res: Response) => {
-    const { amount, policyNumber, customerName, branchId, policyTypeId, employeeId, status, cancelReason } = req.body;
+    const { amount, policyNumber, customerName, customerPhone, customerEmail, branchId, policyTypeId, employeeId, status, cancelReason, customerId } = req.body;
     const currentUser = req.user!;
 
     // Default to logged-in user
@@ -90,8 +91,41 @@ export const createSale = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Poliçe tipi (Branş) seçilmelidir.' });
         }
 
+        // Create or find customer
+        let finalCustomerId = customerId;
+
+        if (!finalCustomerId && customerName) {
+            // Check if customer exists
+            const existingCustomer = await prisma.customer.findFirst({
+                where: {
+                    name: customerName,
+                    OR: [
+                        { email: customerEmail || undefined },
+                        { phone: customerPhone || undefined }
+                    ]
+                }
+            });
+
+            if (existingCustomer) {
+                finalCustomerId = existingCustomer.id;
+            } else {
+                const newCustomer = await prisma.customer.create({
+                    data: {
+                        name: customerName,
+                        email: customerEmail,
+                        phone: customerPhone
+                    }
+                });
+                finalCustomerId = newCustomer.id;
+            }
+        }
+
+        if (!finalCustomerId) {
+            return res.status(400).json({ error: 'Müşteri bilgisi (ID veya isim) gereklidir.' });
+        }
+
         const saleData: any = {
-            customerName,
+            customerId: finalCustomerId,
             amount: Number(amount),
             status: status || 'ACTIVE',
             employeeId: sellerId,
@@ -152,19 +186,34 @@ export const createSale = async (req: Request, res: Response) => {
 // Update sale
 export const updateSale = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { customerName, policyNumber, amount, employeeId, branchId, policyTypeId, status, cancelReason } = req.body;
+    const { customerName, customerPhone, customerEmail, policyNumber, amount, employeeId, branchId, policyTypeId, status, cancelReason, customerId } = req.body;
     const currentUser = req.user!;
 
     try {
         const updateData: any = {};
 
-        if (customerName !== undefined) updateData.customerName = customerName;
+        if (customerName !== undefined) {
+            // For now, allow updating the customer record linked to this sale
+            // but in a more robust system, we might just link to a different CustomerId
+            const sale = await prisma.sale.findUnique({ where: { id }, include: { customer: true } });
+            if (sale?.customerId) {
+                await prisma.customer.update({
+                    where: { id: sale.customerId },
+                    data: {
+                        name: customerName,
+                        email: customerEmail,
+                        phone: customerPhone
+                    }
+                });
+            }
+        }
         if (policyNumber !== undefined) updateData.policyNumber = policyNumber;
         if (amount !== undefined) updateData.amount = Number(amount);
         if (employeeId) updateData.employeeId = employeeId;
         if (policyTypeId) updateData.policyTypeId = policyTypeId;
         if (status !== undefined) updateData.status = status;
         if (cancelReason !== undefined) updateData.cancelReason = cancelReason;
+        if (customerId) updateData.customerId = customerId;
 
         // Restriction: Non-admins cannot change branch
         if (currentUser.role === Role.ADMIN) {

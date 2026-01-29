@@ -181,7 +181,22 @@ export const getDashboardStats = async (req: Request, res: Response) => {
                 cancellationCount
             },
             chartData: finalChartData,
-            cancellationBreakdown
+            cancellationBreakdown,
+            upcomingRenewals: await prisma.sale.findMany({
+                where: {
+                    ...where,
+                    status: 'ACTIVE',
+                    endDate: {
+                        gte: new Date(),
+                        lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                    }
+                },
+                include: {
+                    customer: { select: { id: true, name: true } }
+                },
+                orderBy: { endDate: 'asc' },
+                take: 5
+            })
         });
 
     } catch (error) {

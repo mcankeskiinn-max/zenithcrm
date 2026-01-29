@@ -5,8 +5,11 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     TrendingUp,
-    RefreshCw
+    RefreshCw,
+    ShieldAlert,
+    ChevronRight
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
     ResponsiveContainer,
     LineChart,
@@ -31,6 +34,14 @@ interface Stats {
     };
     chartData: Array<{ name: string; income: number; expenses: number }>;
     cancellationBreakdown: Array<{ name: string; value: number; count: number }>;
+    upcomingRenewals: Array<{
+        id: string;
+        policyNumber: string;
+        endDate: string;
+        amount: number;
+        customer: { id: string; name: string } | null;
+        customerName: string;
+    }>;
 }
 
 const COLORS = ['#EF4444', '#F59E0B', '#3B82F6', '#8B5CF6', '#10B981', '#6366F1'];
@@ -234,6 +245,93 @@ export default function Dashboard() {
                                 <span className="text-sm font-bold text-gray-900 pl-4">%{((item.value / (data?.cards.cancellationLoss || 1)) * 100).toFixed(1)}</span>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Smart Renewal Widget */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                <div className="lg:col-span-3 custom-card p-8 border-none overflow-hidden relative">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                                <ShieldAlert size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">Yaklaşan Yenilemeler</h3>
+                                <p className="text-xs text-gray-400 font-medium mt-1 uppercase tracking-widest">Önümüzdeki 30 Gün İçinde Bitiş Bekleyen Poliçeler</p>
+                            </div>
+                        </div>
+                        <Link to="/sales" className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 group">
+                            Tümünü Gör
+                            <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                    </div>
+
+                    <div className="overflow-x-auto -mx-8 px-8">
+                        <table className="w-full text-left">
+                            <thead className="bg-gray-50/50">
+                                <tr>
+                                    <th className="px-5 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Müşteri & Poliçe</th>
+                                    <th className="px-5 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Bitiş Tarihi</th>
+                                    <th className="px-5 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {(!data?.upcomingRenewals || data.upcomingRenewals.length === 0) ? (
+                                    <tr><td colSpan={3} className="p-10 text-center text-gray-300 text-sm italic font-medium">Yakın zamanda yenilenecek poliçe bulunmuyor.</td></tr>
+                                ) : data.upcomingRenewals.map((renewal) => {
+                                    const daysLeft = Math.ceil((new Date(renewal.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                    return (
+                                        <tr key={renewal.id} className="hover:bg-gray-50/50 transition-colors group">
+                                            <td className="px-5 py-4">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-gray-900 group-hover:text-amber-600 transition-colors">{renewal.customer?.name || renewal.customerName}</span>
+                                                    <span className="text-[10px] font-medium text-gray-400 mt-0.5">{renewal.policyNumber || 'No Yok'}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4 text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="text-sm font-bold text-gray-700">{new Date(renewal.endDate).toLocaleDateString('tr-TR')}</span>
+                                                    <span className={`text-[9px] font-black uppercase tracking-tighter mt-0.5 ${daysLeft <= 7 ? 'text-red-500' : 'text-amber-500'}`}>
+                                                        {daysLeft} GÜN KALDI
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4 text-right">
+                                                <button
+                                                    onClick={() => window.location.href = `/customers/${renewal.customer?.id || ''}`}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-gray-400 hover:bg-emerald-600 hover:text-white rounded-lg text-[10px] font-bold transition-all"
+                                                >
+                                                    Müşteri Dosyası
+                                                    <ChevronRight size={12} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div className="lg:col-span-1 bg-gradient-to-br from-amber-500 to-orange-600 rounded-[32px] p-8 text-white flex flex-col justify-between shadow-xl shadow-amber-100">
+                    <div>
+                        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
+                            <TrendingUp size={24} />
+                        </div>
+                        <h3 className="text-2xl font-black mb-2 uppercase tracking-tighter">Yenileme Fırsatı</h3>
+                        <p className="text-amber-50/80 text-sm font-medium leading-relaxed">Bu ay yenilenmesi gereken <span className="text-white font-bold">{data?.upcomingRenewals?.length || 0}</span> poliçe sizi bekliyor. Toplam prim potansiyelini değerlendirin.</p>
+                    </div>
+
+                    <div className="pt-8">
+                        <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest mb-2 opacity-60">
+                            <span>Hedef Başarımı</span>
+                            <span>%65</span>
+                        </div>
+                        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                            <div className="h-full bg-white w-[65%] rounded-full shadow-sm" />
+                        </div>
                     </div>
                 </div>
             </div>

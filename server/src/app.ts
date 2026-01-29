@@ -18,6 +18,7 @@ import notificationRoutes from './routes/notification.routes';
 import documentRoutes from './routes/document.routes';
 import reportRoutes from './routes/report.routes';
 import auditRoutes from './routes/audit.routes';
+import customerRoutes from './routes/customer.routes';
 import prisma from './prisma';
 
 
@@ -81,5 +82,6 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/customers', customerRoutes);
 
 export default app;

@@ -24,6 +24,7 @@ const menuItems = [
     { icon: TrendingUp, label: 'Satış Analizi', path: '/dashboard/sales', section: 'DASHBOARD' },
     { icon: AlertTriangle, label: 'İptal Analizi', path: '/dashboard/cancellations', section: 'DASHBOARD' },
     { icon: FileText, label: 'Portföy Yönetimi', path: '/sales', section: 'MENÜ' },
+    { icon: Users, label: 'Müşteriler', path: '/customers', section: 'MENÜ' },
     { icon: Activity, label: 'Gelişmiş Analiz', path: '/analytics', section: 'MENÜ' },
     { icon: CheckSquare, label: 'Görevler', path: '/tasks', section: 'MENÜ' },
     { icon: MessageSquare, label: 'Mesajlar', path: '/messaging', section: 'MENÜ' },
@@ -58,7 +59,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const filteredMenuItems = menuItems.filter(item => {
         if (!user || !user.role) return false;
         if (user.role === 'EMPLOYEE') {
-            return ['Genel Bakış', 'Satış Analizi', 'İptal Analizi', 'Portföy Yönetimi', 'Görevler', 'Mesajlar'].includes(item.label);
+            return ['Genel Bakış', 'Satış Analizi', 'İptal Analizi', 'Portföy Yönetimi', 'Müşteriler', 'Görevler', 'Mesajlar'].includes(item.label);
         }
         return true;
     });

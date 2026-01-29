@@ -16,6 +16,8 @@ import SalesDashboard from './pages/SalesDashboard';
 import CancellationDashboard from './pages/CancellationDashboard';
 import MessagingPage from './pages/MessagingPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import CustomersPage from './pages/CustomersPage';
+import CustomerProfilePage from './pages/CustomerProfilePage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -44,6 +46,8 @@ function App() {
           <Route path="commission-rules" element={<CommissionRulesPage />} />
           <Route path="messaging" element={<MessagingPage />} />
           <Route path="audit" element={<AuditLogsPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="customers/:id" element={<CustomerProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
