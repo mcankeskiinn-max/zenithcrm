@@ -1,13 +1,14 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
 import { Role } from '../utils/constants';
+import { ForecastEngine } from '../services/forecast.service';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user!;
         const isAdmin = user.role === Role.ADMIN;
 
-        const where: any = {};
+        const where: { branchId?: string; employeeId?: string } = {};
 
         // ADMIN sees EVERYTHING (no where clause for branch)
         if (!isAdmin) {
@@ -31,7 +32,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
                 where: { ...where, status: 'ACTIVE' },
                 _sum: { amount: true }
             });
-            totalSales = totalSalesAgg._sum.amount ? (totalSalesAgg._sum.amount as any).toNumber() : 0;
+            totalSales = totalSalesAgg._sum.amount ? Number(totalSalesAgg._sum.amount) : 0;
         } catch (e) { }
 
         // 2. Active Policies
@@ -57,7 +58,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
                 where,
                 _sum: { amount: true }
             });
-            totalCommission = totalCommissionAgg._sum.amount ? (totalCommissionAgg._sum.amount as any).toNumber() : 0;
+            totalCommission = totalCommissionAgg._sum.amount ? Number(totalCommissionAgg._sum.amount) : 0;
         } catch (e) { }
 
         // 5. Cancellation Stats
@@ -69,12 +70,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
                 _sum: { amount: true },
                 _count: true
             });
-            cancellationLoss = cancellationsAgg._sum.amount ? (cancellationsAgg._sum.amount as any).toNumber() : 0;
+            cancellationLoss = cancellationsAgg._sum.amount ? Number(cancellationsAgg._sum.amount) : 0;
             cancellationCount = cancellationsAgg._count;
         } catch (e) { }
 
         // 6. Cancellation Reasons Distribution
-        let cancellationBreakdown: any[] = [];
+        let cancellationBreakdown: { name: string; count: number; value: number }[] = [];
         try {
             const cancellationReasons = await prisma.sale.groupBy({
                 by: ['cancelReason'],
@@ -86,14 +87,14 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             cancellationBreakdown = cancellationReasons.map(r => ({
                 name: r.cancelReason || 'Belirtilmemiş',
                 count: r._count.id,
-                value: r._sum.amount ? (r._sum.amount as any).toNumber() : 0
+                value: r._sum.amount ? Number(r._sum.amount) : 0
             }));
         } catch (e) { }
 
         // 7. Dynamic Range & Granularity Chart Data
         const rangeStr = (req.query.range as string) || '6';
         const range = parseInt(rangeStr) || 6;
-        const chartData: any[] = [];
+        const chartData: { name: string; income: number; expenses: number; key: string }[] = [];
 
         try {
             const now = new Date();
@@ -182,6 +183,13 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             },
             chartData: finalChartData,
             cancellationBreakdown,
+            forecast: await ForecastEngine.calculateForecast(where.branchId, where.employeeId),
+            targetProgress: await ForecastEngine.getTargetProgress(
+                new Date().getMonth() + 1,
+                new Date().getFullYear(),
+                where.branchId,
+                where.employeeId
+            ),
             upcomingRenewals: await prisma.sale.findMany({
                 where: {
                     ...where,
@@ -201,5 +209,62 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
+    }
+};
+
+export const setSalesTarget = async (req: Request, res: Response) => {
+    try {
+        const { amount, month, year, userId, branchId } = req.body;
+        const currentUser = req.user!;
+
+        let targetBranchId = branchId;
+        // Enforce Manager's branch
+        if (currentUser.role === Role.MANAGER) {
+            targetBranchId = currentUser.branchId;
+        }
+
+        if (!amount || isNaN(parseFloat(amount))) {
+            return res.status(400).json({ error: 'Invalid amount' });
+        }
+
+        if (targetBranchId) {
+            const branchExists = await prisma.branch.findUnique({
+                where: { id: targetBranchId }
+            });
+            if (!branchExists) {
+                return res.status(400).json({ error: 'Bağlı olduğunuz şube sistemde bulunamadı. Lütfen yöneticinizle iletişime geçin.' });
+            }
+        }
+
+        const query = {
+            month: parseInt(month),
+            year: parseInt(year),
+            userId: userId || null, // Default to null if not provided (Branch Target)
+            branchId: targetBranchId || null
+        };
+
+        const existing = await prisma.salesTarget.findFirst({
+            where: query
+        });
+
+        let target;
+        if (existing) {
+            target = await prisma.salesTarget.update({
+                where: { id: existing.id },
+                data: { amount: parseFloat(amount) }
+            });
+        } else {
+            target = await prisma.salesTarget.create({
+                data: {
+                    ...query,
+                    amount: parseFloat(amount)
+                }
+            });
+        }
+
+        res.json(target);
+    } catch (error: unknown) {
+        console.error('Set Target Error:', error);
+        res.status(500).json({ error: 'Failed to set target' });
     }
 };

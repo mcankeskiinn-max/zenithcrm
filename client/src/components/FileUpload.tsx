@@ -108,9 +108,9 @@ export function FileUpload({ saleId, onUploadComplete }: FileUploadProps) {
                 className={cn(
                     "border-2 border-dashed rounded-xl p-8 transition-all text-center",
                     isDragging
-                        ? "border-emerald-500 bg-emerald-50"
-                        : "border-gray-200 hover:border-emerald-200 hover:bg-gray-50",
-                    uploadStatus === 'error' && "border-red-200 bg-red-50"
+                        ? "border-emerald-500 bg-emerald-500/10"
+                        : "border-border hover:border-emerald-500/30 hover:bg-muted",
+                    uploadStatus === 'error' && "border-red-500/20 bg-red-500/10"
                 )}
             >
                 <input
@@ -124,24 +124,24 @@ export function FileUpload({ saleId, onUploadComplete }: FileUploadProps) {
                 <div className="flex flex-col items-center gap-3">
                     {uploadStatus === 'success' ? (
                         <>
-                            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-                                <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                             </div>
-                            <p className="text-sm font-medium text-emerald-700">Dosya başarıyla yüklendi!</p>
+                            <p className="text-sm font-medium text-emerald-500">Dosya başarıyla yüklendi!</p>
                         </>
                     ) : file ? (
                         <>
-                            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center relative">
-                                <FileText className="w-6 h-6 text-emerald-600" />
+                            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center relative">
+                                <FileText className="w-6 h-6 text-emerald-500" />
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setFile(null); }}
-                                    className="absolute -top-1 -right-1 bg-white rounded-full border shadow-sm p-0.5 hover:bg-red-50 hover:text-red-500 transition-colors"
+                                    className="absolute -top-1 -right-1 bg-card rounded-full border border-border shadow-sm p-0.5 hover:bg-red-500/10 hover:text-red-500 transition-colors"
                                 >
                                     <X className="w-3 h-3" />
                                 </button>
                             </div>
-                            <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                            <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            <p className="text-sm font-medium text-foreground">{file.name}</p>
+                            <p className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
 
                             <Button
                                 onClick={handleUpload}
@@ -160,18 +160,18 @@ export function FileUpload({ saleId, onUploadComplete }: FileUploadProps) {
                         </>
                     ) : (
                         <>
-                            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                                <Upload className="w-6 h-6 text-gray-400" />
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                                <Upload className="w-6 h-6 text-muted-foreground" />
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-foreground">
                                     Dosyayı buraya sürükleyin
                                 </p>
-                                <p className="text-xs text-gray-500">
-                                    veya seçmek için <button onClick={() => fileInputRef.current?.click()} className="text-emerald-600 hover:underline">tıklayın</button>
+                                <p className="text-xs text-muted-foreground">
+                                    veya seçmek için <button onClick={() => fileInputRef.current?.click()} className="text-emerald-500 hover:underline">tıklayın</button>
                                 </p>
                             </div>
-                            <p className="text-xs text-gray-400 mt-2">
+                            <p className="text-xs text-muted-foreground mt-2">
                                 PDF, JPG, PNG (Max 5MB)
                             </p>
                         </>
@@ -180,7 +180,7 @@ export function FileUpload({ saleId, onUploadComplete }: FileUploadProps) {
             </div>
 
             {(uploadStatus === 'error' || error) && (
-                <div className="mt-3 flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 animate-in fade-in slide-in-from-top-1">
+                <div className="mt-3 flex items-center gap-2 text-sm text-red-500 bg-red-500/10 p-3 rounded-lg border border-red-500/20 animate-in fade-in slide-in-from-top-1">
                     <AlertCircle className="w-4 h-4" />
                     {error || 'Yükleme başarısız oldu. Lütfen tekrar deneyin.'}
                 </div>

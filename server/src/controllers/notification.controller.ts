@@ -14,9 +14,9 @@ interface NotificationUI {
 
 export const getNotifications = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).user.id;
-        const userRole = (req as any).user.role;
-        const branchId = (req as any).user.branchId;
+        const userId = req.user!.id;
+        const userRole = req.user!.role;
+        const branchId = req.user!.branchId;
 
         const notifications: NotificationUI[] = [];
         const now = new Date();
@@ -45,7 +45,12 @@ export const getNotifications = async (req: Request, res: Response) => {
         });
 
         // 2. Expiring Policies (Sales)
-        const salesWhere: any = {
+        const salesWhere: {
+            endDate: { gt: Date; lte: Date };
+            status: 'ACTIVE';
+            employeeId?: string;
+            branchId?: string;
+        } = {
             endDate: {
                 gt: now,
                 lte: next30Days
@@ -138,7 +143,7 @@ export const getNotifications = async (req: Request, res: Response) => {
 export const markAsRead = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const userId = (req as any).user.id;
+        const userId = req.user!.id;
 
         await prisma.notification.updateMany({
             where: { id, userId },

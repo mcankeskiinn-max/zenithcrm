@@ -1,15 +1,21 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import prisma from '../prisma';
 import * as XLSX from 'xlsx';
 import { startOfDay, endOfDay } from 'date-fns';
+import { SaleStatus } from '@prisma/client';
 
 export const exportSalesToExcel = async (req: Request, res: Response) => {
     try {
         const { startDate, endDate, branchId, policyTypeId, status } = req.query;
-        const user = (req as any).user;
+        const user = req.user!;
 
         // Base where clause
-        const where: any = {};
+        const where: {
+            saleDate?: { gte: Date; lte: Date };
+            branchId?: string;
+            policyTypeId?: string;
+            status?: SaleStatus;
+        } = {};
 
         // Date filter
         if (startDate && endDate) {
@@ -33,7 +39,7 @@ export const exportSalesToExcel = async (req: Request, res: Response) => {
 
         // Status filter
         if (status) {
-            where.status = status as string;
+            where.status = status as SaleStatus;
         }
 
         const sales = await prisma.sale.findMany({
@@ -44,16 +50,16 @@ export const exportSalesToExcel = async (req: Request, res: Response) => {
                 employee: { select: { name: true } }
             },
             orderBy: { saleDate: 'desc' }
-        });
+        }) as any[];
 
         // Format data for Excel
         const data = sales.map(sale => ({
             'Satış Tarihi': sale.saleDate ? new Date(sale.saleDate).toLocaleDateString('tr-TR') : '-',
             'Müşteri Adı': sale.customerName,
             'Poliçe No': sale.policyNumber || '-',
-            'Branş': sale.policyType.name,
-            'Şube': sale.branch.name,
-            'Personel': sale.employee.name,
+            'Branş': sale.policyType?.name || '-',
+            'Şube': sale.branch?.name || '-',
+            'Personel': sale.employee?.name || '-',
             'Net Prim (₺)': Number(sale.amount),
             'Durum': sale.status,
             'Vade Başlangıç': sale.startDate ? new Date(sale.startDate).toLocaleDateString('tr-TR') : '-',

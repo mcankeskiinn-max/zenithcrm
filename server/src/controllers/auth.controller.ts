@@ -54,7 +54,7 @@ export const login = async (req: Request, res: Response) => {
         if (!isPasswordValid) {
             const newFailedAttempts = user.failedLoginAttempts + 1;
 
-            const updateData: any = {
+            const updateData: { failedLoginAttempts: number; lockedUntil?: Date } = {
                 failedLoginAttempts: newFailedAttempts
             };
 
@@ -241,7 +241,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         const { name, email } = req.body;
         const userId = req.user!.id;
 
-        const data: any = {};
+        const data: { name?: string; email?: string } = {};
         if (name) data.name = name;
         if (email) {
             const existing = await prisma.user.findFirst({

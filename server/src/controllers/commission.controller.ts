@@ -19,8 +19,9 @@ export const calculateCommission = async (req: Request, res: Response) => {
             sale.createdAt
         );
         res.json({ success: true, amount });
-    } catch (error: any) {
-        res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(400).json({ error: message });
     }
 };
 
@@ -34,8 +35,9 @@ export const simulateCommission = async (req: Request, res: Response) => {
             date ? new Date(date) : new Date()
         );
         res.json(result);
-    } catch (error: any) {
-        res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(400).json({ error: message });
     }
 };
 
@@ -55,8 +57,9 @@ export const createRule = async (req: Request, res: Response) => {
             }
         });
         res.json(rule);
-    } catch (error: any) {
-        res.status(500).json({ error: 'Failed to create rule', details: error.message });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: 'Failed to create rule', details: message });
     }
 };
 

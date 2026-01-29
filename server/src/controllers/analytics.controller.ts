@@ -4,10 +4,10 @@ import { Role } from '../utils/constants';
 
 export const getMonthlyPerformance = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user!;
         const isAdmin = user.role === 'ADMIN' || user.role === 'MANAGER';
 
-        const where: any = { status: 'ACTIVE' };
+        const where: { status: 'ACTIVE'; employeeId?: string } = { status: 'ACTIVE' };
         if (!isAdmin) {
             where.employeeId = user.id;
         }
@@ -42,7 +42,7 @@ export const getMonthlyPerformance = async (req: Request, res: Response) => {
         sales.forEach(sale => {
             const monthKey = new Date(sale.createdAt).toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
             if (monthlyData[monthKey]) {
-                monthlyData[monthKey].total += (sale.amount as any).toNumber();
+                monthlyData[monthKey].total += Number(sale.amount);
                 monthlyData[monthKey].count += 1;
             }
         });

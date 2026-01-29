@@ -9,18 +9,21 @@ declare global {
             user?: {
                 id: string;
                 email: string;
-                role: Role; // Use Role enum type
+                role: Role;
                 branchId?: string;
             };
         }
     }
 }
 
-export const authenticate = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+interface DecodedToken {
+    userId: string;
+    email: string;
+    role: Role;
+    branchId?: string;
+}
+
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -32,7 +35,7 @@ export const authenticate = async (
 
         const token = authHeader.substring(7);
 
-        let decoded: any;
+        let decoded: DecodedToken;
         try {
             const secret = process.env.JWT_SECRET;
             if (!secret) {
@@ -40,15 +43,17 @@ export const authenticate = async (
                 return res.status(500).json({ error: 'Internal server error' });
             }
 
-
-            decoded = jwt.verify(token, secret);
-        } catch (error: any) {
-            console.error('JWT Verify Error:', error.message);
-            if (error.name === 'TokenExpiredError') {
+            decoded = jwt.verify(token, secret) as DecodedToken;
+        } catch (error: unknown) {
+            const err = error as any;
+            if (err.name === 'TokenExpiredError') {
                 return res.status(401).json({
                     error: 'Token expired',
                     code: 'TOKEN_EXPIRED'
                 });
+            }
+            if (err instanceof Error) {
+                console.error('JWT Verify Error:', err.message);
             }
             return res.status(401).json({
                 error: 'Invalid token',

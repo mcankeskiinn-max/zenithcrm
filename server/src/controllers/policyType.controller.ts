@@ -8,8 +8,9 @@ export const getPolicyTypes = async (req: Request, res: Response) => {
             orderBy: { name: 'asc' }
         });
         res.json(types);
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal server error';
+        res.status(500).json({ error: message });
     }
 };
 
@@ -19,16 +20,18 @@ export const createPolicyType = async (req: Request, res: Response) => {
         const type = await prisma.policyType.create({
             data: { name }
         });
-        const user = (req as any).user;
-        await logAudit({
-            userId: user.id,
-            action: 'CREATE',
-            resource: 'PolicyType',
-            resourceId: type.id,
-            details: { name }
-        });
+        const user = req.user;
+        if (user) {
+            await logAudit({
+                userId: user.id,
+                action: 'CREATE',
+                resource: 'PolicyType',
+                resourceId: type.id,
+                details: { name }
+            });
+        }
         res.status(201).json(type);
-    } catch (error: any) {
+    } catch (error: unknown) {
         res.status(400).json({ error: 'Bu poliçe tipi zaten mevcut veya geçersiz.' });
     }
 };
@@ -43,16 +46,19 @@ export const deletePolicyType = async (req: Request, res: Response) => {
         }
 
         await prisma.policyType.delete({ where: { id } });
-        const user = (req as any).user;
-        await logAudit({
-            userId: user.id,
-            action: 'DELETE',
-            resource: 'PolicyType',
-            resourceId: id
-        });
+        const user = req.user;
+        if (user) {
+            await logAudit({
+                userId: user.id,
+                action: 'DELETE',
+                resource: 'PolicyType',
+                resourceId: id
+            });
+        }
         res.json({ success: true });
-    } catch (error: any) {
-        res.status(400).json({ error: error.message });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(400).json({ error: message });
     }
 };
 export const updatePolicyType = async (req: Request, res: Response) => {
@@ -63,16 +69,18 @@ export const updatePolicyType = async (req: Request, res: Response) => {
             where: { id },
             data: { name }
         });
-        const user = (req as any).user;
-        await logAudit({
-            userId: user.id,
-            action: 'UPDATE',
-            resource: 'PolicyType',
-            resourceId: id,
-            details: { name }
-        });
+        const user = req.user;
+        if (user) {
+            await logAudit({
+                userId: user.id,
+                action: 'UPDATE',
+                resource: 'PolicyType',
+                resourceId: id,
+                details: { name }
+            });
+        }
         res.json(type);
-    } catch (error: any) {
+    } catch (error: unknown) {
         res.status(400).json({ error: 'Güncelleme başarısız veya geçersiz branş adı.' });
     }
 };

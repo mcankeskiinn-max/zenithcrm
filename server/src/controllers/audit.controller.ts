@@ -3,7 +3,9 @@ import prisma from '../prisma';
 
 export const getAuditLogs = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user;
+        if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
         const { page = 1, limit = 50, action, resource, userId } = req.query;
 
         // Only ADMIN can see all logs. MANAGER can see their branch's logs (if we filter by branch)
@@ -15,13 +17,13 @@ export const getAuditLogs = async (req: Request, res: Response) => {
         const skip = (Number(page) - 1) * Number(limit);
         const take = Number(limit);
 
-        const where: any = {};
+        const where: { action?: string; resource?: string; userId?: string; user?: { branchId: string } } = {};
         if (action) where.action = action as string;
         if (resource) where.resource = resource as string;
         if (userId) where.userId = userId as string;
 
         // If Manager, only show logs for users in their branch
-        if (user.role === 'MANAGER') {
+        if (user.role === 'MANAGER' && user.branchId) {
             where.user = {
                 branchId: user.branchId
             };

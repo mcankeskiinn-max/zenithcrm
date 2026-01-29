@@ -13,6 +13,8 @@ interface CreateSaleModalProps {
 
 export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSaleModalProps) {
     const [customerName, setCustomerName] = useState('');
+    const [customerPhone, setCustomerPhone] = useState('');
+    const [customerEmail, setCustomerEmail] = useState('');
     const [policyNumber, setPolicyNumber] = useState('');
     const [amount, setAmount] = useState('');
     const [branchId, setBranchId] = useState('');
@@ -80,6 +82,8 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
 
             const res = await axios.post('/api/sales', {
                 customerName,
+                customerPhone,
+                customerEmail,
                 policyNumber,
                 amount: Number(amount),
                 branchId,
@@ -104,8 +108,9 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
 
     const handleClose = () => {
         setCustomerName('');
+        setCustomerPhone('');
+        setCustomerEmail('');
         setPolicyNumber('');
-        setAmount('');
         setAmount('');
         setStep('form');
         setCreatedSaleId(null);
@@ -115,21 +120,21 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-                <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-emerald-50/50">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+            <div className="bg-card w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-border">
+                <div className="p-8 border-b border-border flex items-center justify-between bg-emerald-500/5">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-sm">
                             <TrendingUp size={24} />
                         </div>
                         <div>
-                            <h3 className="text-2xl font-bold text-gray-900">Yeni Satış Girişi</h3>
-                            <p className="text-sm text-gray-500 font-medium">Yeni poliçe bilgilerini eksiksiz giriniz.</p>
+                            <h3 className="text-2xl font-bold text-foreground">Yeni Satış Girişi</h3>
+                            <p className="text-sm text-muted-foreground font-medium">Yeni poliçe bilgilerini eksiksiz giriniz.</p>
                         </div>
                     </div>
                     <button
                         onClick={handleClose}
-                        className="p-3 bg-white text-gray-400 hover:text-gray-600 rounded-2xl border border-gray-100 shadow-sm transition-all"
+                        className="p-3 bg-muted text-muted-foreground hover:text-foreground rounded-2xl border border-border shadow-sm transition-all"
                     >
                         <X size={20} />
                     </button>
@@ -139,40 +144,58 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                     <form onSubmit={handleSubmit} className="p-8 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Müşteri Adı</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Müşteri Adı</label>
                                 <Input
                                     placeholder="Ahmet Yılmaz"
-                                    className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Poliçe Numarası</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Müşteri Telefon</label>
+                                <Input
+                                    placeholder="05..."
+                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                    value={customerPhone}
+                                    onChange={(e) => setCustomerPhone(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Müşteri E-posta</label>
+                                <Input
+                                    placeholder="ornek@mail.com"
+                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                    value={customerEmail}
+                                    onChange={(e) => setCustomerEmail(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Numarası</label>
                                 <Input
                                     placeholder="POL-2024-001"
-                                    className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                     value={policyNumber}
                                     onChange={(e) => setPolicyNumber(e.target.value)}
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Tutar (₺)</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Tutar (₺)</label>
                                 <Input
                                     type="number"
                                     placeholder="0.00"
-                                    className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Branş</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Branş</label>
                                 <select
-                                    className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                    className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-foreground focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
                                     value={policyTypeId}
                                     onChange={(e) => setPolicyTypeId(e.target.value)}
                                     required
@@ -183,9 +206,9 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                             </div>
                             {userRole === 'ADMIN' ? (
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Şube</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Şube</label>
                                     <select
-                                        className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                        className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-foreground focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
                                         value={branchId}
                                         onChange={(e) => setBranchId(e.target.value)}
                                         required
@@ -196,17 +219,17 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                                 </div>
                             ) : (
                                 <div className="space-y-2 opacity-60">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Kendi Şubeniz</label>
-                                    <div className="h-12 bg-gray-100 flex items-center px-4 rounded-xl text-sm font-bold text-gray-600">
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Kendi Şubeniz</label>
+                                    <div className="h-12 bg-muted flex items-center px-4 rounded-xl text-sm font-bold text-foreground">
                                         {branches.find(b => b.id === branchId)?.name || 'Şube Yükleniyor...'}
                                     </div>
                                 </div>
                             )}
                             {userRole !== 'EMPLOYEE' && (
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Personel</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Personel</label>
                                     <select
-                                        className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                        className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-foreground focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
                                         value={employeeId}
                                         onChange={(e) => setEmployeeId(e.target.value)}
                                     >
@@ -221,7 +244,7 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="flex-1 h-14 rounded-2xl font-bold text-gray-500 hover:bg-gray-50 border-gray-100 transition-all"
+                                className="flex-1 h-14 rounded-2xl font-bold text-muted-foreground hover:bg-muted border-border transition-all"
                                 onClick={handleClose}
                             >
                                 Vazgeç
@@ -229,7 +252,7 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-[2] h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5"
+                                className="flex-[2] h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5"
                             >
                                 {loading ? 'Kaydediliyor...' : 'Satışı Kaydet'}
                             </Button>
@@ -237,22 +260,22 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                     </form>
                 ) : (
                     <div className="p-8 flex flex-col items-center justify-center space-y-6 animate-in fade-in zoom-in duration-300">
-                        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-2">
+                        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-2">
                             <CheckCircle2 size={32} />
                         </div>
                         <div className="text-center space-y-2">
-                            <h3 className="text-2xl font-bold text-gray-900">Satış Başarıyla Oluşturuldu!</h3>
-                            <p className="text-gray-500">Dilerseniz şimdi bu satışa ait dosyaları yükleyebilirsiniz.</p>
+                            <h3 className="text-2xl font-bold text-foreground">Satış Başarıyla Oluşturuldu!</h3>
+                            <p className="text-muted-foreground">Dilerseniz şimdi bu satışa ait dosyaları yükleyebilirsiniz.</p>
                         </div>
 
-                        <div className="w-full bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                        <div className="w-full bg-muted p-6 rounded-2xl border border-border">
                             <FileUpload saleId={createdSaleId!} />
                         </div>
 
                         <div className="flex w-full pt-4">
                             <Button
                                 onClick={handleClose}
-                                className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-xl transition-all"
+                                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20"
                             >
                                 İşlemi Tamamla
                             </Button>

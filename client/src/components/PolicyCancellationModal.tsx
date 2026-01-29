@@ -73,44 +73,44 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
     if (!isOpen || !policy) return null;
 
     return (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-                <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-red-50/50">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+            <div className="bg-card w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300 border border-border">
+                <div className="p-8 border-b border-border flex items-center justify-between bg-red-500/5">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shadow-sm">
                             <AlertTriangle size={24} />
                         </div>
                         <div>
-                            <h3 className="text-2xl font-bold text-gray-900">Poliçeyi İptal Et</h3>
-                            <p className="text-sm text-gray-500 font-medium">#{policy.policyNumber} - {policy.customerName}</p>
+                            <h3 className="text-2xl font-bold text-foreground">Poliçeyi İptal Et</h3>
+                            <p className="text-sm text-muted-foreground font-medium">#{policy.policyNumber} - {policy.customerName}</p>
                         </div>
                     </div>
                     <button
                         onClick={handleClose}
-                        className="p-3 bg-white text-gray-400 hover:text-gray-600 rounded-2xl border border-gray-100 shadow-sm transition-all"
+                        className="p-3 bg-muted text-muted-foreground hover:text-foreground rounded-2xl border border-border shadow-sm transition-all"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-emerald-600 shadow-sm">
+                    <div className="bg-muted p-4 rounded-2xl border border-border flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center text-emerald-500 shadow-sm">
                             <ShieldCheck size={20} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Poliçe Branşı</p>
-                            <p className="text-sm font-bold text-gray-700">{policy.policyType?.name || 'Belirtilmemiş'}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Poliçe Branşı</p>
+                            <p className="text-sm font-bold text-foreground">{policy.policyType?.name || 'Belirtilmemiş'}</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-6">
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">İade/İptal Tutarı (₺)</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">İade/İptal Tutarı (₺)</label>
                             <Input
                                 type="number"
                                 placeholder="0.00"
-                                className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-red-500/5 transition-all"
+                                className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-red-500/5 transition-all text-sm font-medium"
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 required
@@ -118,9 +118,9 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">İptal Nedeni</label>
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">İptal Nedeni</label>
                             <select
-                                className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-red-500/5 transition-all appearance-none"
+                                className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-foreground focus:ring-4 focus:ring-red-500/5 transition-all appearance-none"
                                 value={cancelReason}
                                 onChange={(e) => setCancelReason(e.target.value)}
                                 required
@@ -140,7 +140,7 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
                         <Button
                             type="button"
                             variant="outline"
-                            className="flex-1 h-14 rounded-2xl font-bold text-gray-500 hover:bg-gray-50 border-gray-100 transition-all"
+                            className="flex-1 h-14 rounded-2xl font-bold text-muted-foreground hover:bg-muted border-border transition-all"
                             onClick={handleClose}
                         >
                             Vazgeç
@@ -148,7 +148,7 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="flex-[2] h-14 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-200 transition-all hover:-translate-y-0.5"
+                            className="flex-[2] h-14 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-500/20 transition-all hover:-translate-y-0.5"
                         >
                             {loading ? 'İşleniyor...' : 'İptali Onayla'}
                         </Button>

@@ -5,14 +5,14 @@ import { Role } from '../utils/constants';
 // List tasks
 export const getTasks = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user!;
         const isAdmin = user.role === Role.ADMIN;
         const isManager = user.role === Role.MANAGER;
 
-        const where: any = {};
+        const where: { assignedTo?: { branchId?: string }; assignedToId?: string } = {};
 
         // Branch Manager restriction: only their branch
-        if (isManager) {
+        if (isManager && user.branchId) {
             where.assignedTo = { branchId: user.branchId };
         }
         // Employee restriction: only their own tasks
@@ -38,7 +38,7 @@ export const getTasks = async (req: Request, res: Response) => {
 // Create task
 export const createTask = async (req: Request, res: Response) => {
     const { title, description, dueDate, assignedToId } = req.body;
-    const currentUser = (req as any).user;
+    const currentUser = req.user!;
 
     try {
         // Check if assignedTo user belongs to the same branch if current user is Manager
@@ -69,7 +69,7 @@ export const createTask = async (req: Request, res: Response) => {
 export const updateTask = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { title, description, dueDate, isCompleted, assignedToId } = req.body;
-    const currentUser = (req as any).user;
+    const currentUser = req.user!;
 
     try {
         const existingTask = await prisma.task.findUnique({
@@ -104,7 +104,13 @@ export const updateTask = async (req: Request, res: Response) => {
             }
         }
 
-        const updateData: any = {};
+        const updateData: {
+            title?: string;
+            description?: string;
+            dueDate?: Date;
+            isCompleted?: boolean;
+            assignedToId?: string;
+        } = {};
         if (title !== undefined) updateData.title = title;
         if (description !== undefined) updateData.description = description;
         if (dueDate !== undefined) updateData.dueDate = new Date(dueDate);
@@ -126,7 +132,7 @@ export const updateTask = async (req: Request, res: Response) => {
 // Delete task
 export const deleteTask = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const currentUser = (req as any).user;
+    const currentUser = req.user!;
 
     try {
         const existingTask = await prisma.task.findUnique({

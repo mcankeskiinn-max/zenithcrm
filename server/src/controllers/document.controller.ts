@@ -4,47 +4,47 @@ import path from 'path';
 import fs from 'fs';
 
 export const uploadDocument = async (req: Request, res: Response) => {
-    const anyReq = req as any;
     try {
-        console.log('[UPLOAD] Initializing upload for saleId:', anyReq.body?.saleId);
+        console.log('[UPLOAD] Initializing upload for saleId:', req.body?.saleId);
 
-        if (!anyReq.file) {
+        if (!req.file) {
             console.error('[UPLOAD] No file received by multer');
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        const { saleId } = anyReq.body;
+        const { saleId } = req.body;
         if (!saleId) {
             console.error('[UPLOAD] saleId missing in request body');
             // Clean up file if no saleId
-            if (anyReq.file) fs.unlinkSync(anyReq.file.path);
+            if (req.file) fs.unlinkSync(req.file.path);
             return res.status(400).json({ error: 'Sale ID is required' });
         }
 
-        console.log('[UPLOAD] Creating database record for:', anyReq.file.originalname);
+        console.log('[UPLOAD] Creating database record for:', req.file.originalname);
         const document = await prisma.document.create({
             data: {
-                filename: anyReq.file.originalname,
-                path: anyReq.file.filename,
-                mimetype: anyReq.file.mimetype,
-                size: anyReq.file.size,
+                filename: req.file.originalname,
+                path: req.file.filename,
+                mimetype: req.file.mimetype,
+                size: req.file.size,
                 saleId
             }
         });
 
         console.log('[UPLOAD] Success:', document.id);
         res.status(201).json(document);
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('[UPLOAD] Critical error:', error);
         // Clean up file on error
-        if (anyReq.file) {
+        if (req.file) {
             try {
-                fs.unlinkSync(anyReq.file.path);
+                fs.unlinkSync(req.file.path);
             } catch (unlinkError) {
                 console.error('[UPLOAD] Failed to cleanup file after error:', unlinkError);
             }
         }
-        res.status(500).json({ error: 'Failed to upload document: ' + (error instanceof Error ? error.message : String(error)) });
+        const message = error instanceof Error ? error.message : String(error);
+        res.status(500).json({ error: 'Failed to upload document: ' + message });
     }
 };
 

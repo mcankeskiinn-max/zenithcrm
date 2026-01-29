@@ -98,44 +98,44 @@ export default function PolicyTypesPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Poliçe Branşları</h1>
-                    <p className="text-sm text-gray-500 font-medium mt-1">Sistemdeki tüm branş kategorilerini yönetin</p>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Poliçe Branşları</h1>
+                    <p className="text-sm text-muted-foreground font-medium mt-1">Sistemdeki tüm branş kategorilerini yönetin</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left: Form */}
                 <div className="space-y-6">
-                    <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
+                    <div className="bg-card p-8 rounded-[32px] border border-border shadow-sm">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
                                 <Plus size={24} />
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900">Yeni Branş</h3>
-                                <p className="text-xs text-gray-400 font-medium tracking-wide">Yeni bir kategori ekleyin</p>
+                                <h3 className="text-lg font-bold text-foreground">Yeni Branş</h3>
+                                <p className="text-xs text-muted-foreground font-medium tracking-wide">Yeni bir kategori ekleyin</p>
                             </div>
                         </div>
 
                         <form onSubmit={handleCreate} className="space-y-5">
                             <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Branş Adı</label>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Branş Adı</label>
                                 <Input
                                     value={newTypeName}
                                     onChange={(e) => setNewTypeName(e.target.value)}
                                     placeholder="Örn: Kasko, Sağlık, Konut"
-                                    className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all text-sm font-bold"
+                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all text-sm font-bold text-foreground placeholder:text-muted-foreground/50"
                                     required
                                 />
                             </div>
-                            <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 mt-2">
+                            <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5 mt-2">
                                 Branşı Oluştur
                             </Button>
                         </form>
                     </div>
 
                     {/* Stats Card */}
-                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-[32px] text-white relative overflow-hidden shadow-xl">
+                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-950 dark:to-gray-900 p-8 rounded-[32px] text-white relative overflow-hidden shadow-xl">
                         <ShieldCheck size={120} className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none" />
                         <h4 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-1">Toplam Branş</h4>
                         <p className="text-4xl font-extrabold">{policyTypes.length}</p>
@@ -148,58 +148,58 @@ export default function PolicyTypesPage() {
                 {/* Right: List */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Search bar */}
-                    <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
+                    <div className="bg-card p-4 rounded-2xl border border-border shadow-sm flex items-center gap-4">
                         <div className="flex-1 relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" size={18} />
                             <input
                                 type="text"
                                 placeholder="Branş adına göre ara..."
-                                className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-none rounded-xl outline-none text-sm text-gray-700 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                className="w-full pl-11 pr-4 py-2.5 bg-muted border-none rounded-xl outline-none text-sm text-foreground focus:bg-card focus:ring-4 focus:ring-emerald-500/5 transition-all placeholder:text-muted-foreground/50"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button className="p-2.5 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-all">
+                        <button className="p-2.5 bg-muted text-muted-foreground rounded-xl hover:bg-muted/80 transition-all">
                             <MoreHorizontal size={20} />
                         </button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {loading ? (
-                            <div className="col-span-full py-20 text-center animate-pulse text-gray-400 font-bold">Yükleniyor...</div>
+                            <div className="col-span-full py-20 text-center animate-pulse text-muted-foreground font-bold">Yükleniyor...</div>
                         ) : filteredTypes.length === 0 ? (
-                            <div className="col-span-full bg-white p-20 rounded-[32px] border border-dashed border-gray-200 text-center">
-                                <ShieldCheck size={48} className="mx-auto text-gray-200 mb-4" />
-                                <p className="text-gray-400 font-bold">Branş bulunamadı.</p>
+                            <div className="col-span-full bg-card p-20 rounded-[32px] border border-dashed border-border text-center">
+                                <ShieldCheck size={48} className="mx-auto text-muted-foreground/20 mb-4" />
+                                <p className="text-muted-foreground font-bold">Branş bulunamadı.</p>
                             </div>
                         ) : filteredTypes.map((type) => (
-                            <div key={type.id} className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                            <div key={type.id} className="bg-card p-6 rounded-[24px] border border-border shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
                                 <div className="flex items-center justify-between relative z-10">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                                        <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
                                             <Hash size={20} />
                                         </div>
-                                        <h4 className="font-bold text-gray-900 leading-tight">{type.name}</h4>
+                                        <h4 className="font-bold text-foreground leading-tight">{type.name}</h4>
                                     </div>
 
                                     <button
                                         onClick={() => handleDelete(type.id)}
-                                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                        className="p-2 text-muted-foreground/30 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                                     >
                                         <Trash2 size={18} />
                                     </button>
                                 </div>
 
-                                <div className="mt-6 flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest border-t border-gray-50 pt-4 relative z-10">
+                                <div className="mt-6 flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest border-t border-border pt-4 relative z-10">
                                     <button
                                         onClick={() => handleEdit(type)}
                                         className="hover:text-emerald-500 transition-colors"
                                     >
                                         Düzenle
                                     </button>
-                                    <span className="text-gray-300 group-hover:text-emerald-500 transition-colors">Detaylar &rarr;</span>
+                                    <span className="text-muted-foreground/30 group-hover:text-emerald-500 transition-colors">Detaylar &rarr;</span>
                                 </div>
                             </div>
                         ))}
@@ -209,22 +209,22 @@ export default function PolicyTypesPage() {
 
             {/* Edit Modal */}
             {showEditModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-card w-full max-w-sm rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-border">
                         <div className="p-8">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
                                         <Hash size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-gray-900">Branş Düzenle</h3>
-                                        <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Kategori Adını Güncelle</p>
+                                        <h3 className="text-xl font-bold text-foreground">Branş Düzenle</h3>
+                                        <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">Kategori Adını Güncelle</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowEditModal(false)}
-                                    className="w-10 h-10 rounded-xl hover:bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+                                    className="w-10 h-10 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -232,11 +232,11 @@ export default function PolicyTypesPage() {
 
                             <form onSubmit={handleUpdate} className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Branş Adı</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Branş Adı</label>
                                     <Input
                                         value={editName}
                                         onChange={(e) => setEditName(e.target.value)}
-                                        className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all text-sm font-bold"
+                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all text-sm font-bold text-foreground"
                                         required
                                     />
                                 </div>
@@ -246,13 +246,13 @@ export default function PolicyTypesPage() {
                                         type="button"
                                         variant="outline"
                                         onClick={() => setShowEditModal(false)}
-                                        className="flex-1 h-12 border-none bg-gray-50 hover:bg-gray-100 text-gray-600 font-bold rounded-xl"
+                                        className="flex-1 h-12 border-none bg-muted hover:bg-muted/80 text-muted-foreground font-bold rounded-xl"
                                     >
                                         Vazgeç
                                     </Button>
                                     <Button
                                         type="submit"
-                                        className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5"
+                                        className="flex-1 h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5"
                                     >
                                         Güncelle
                                     </Button>

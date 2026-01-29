@@ -19,6 +19,10 @@ import documentRoutes from './routes/document.routes';
 import reportRoutes from './routes/report.routes';
 import auditRoutes from './routes/audit.routes';
 import customerRoutes from './routes/customer.routes';
+import payrollRoutes from './routes/payroll.routes';
+import revenueRoutes from './routes/revenue.routes';
+import quoteRoutes from './routes/quote.routes';
+import ocrRoutes from './routes/ocr.routes';
 import prisma from './prisma';
 
 
@@ -42,10 +46,33 @@ const authLimiter = rateLimit({
 });
 
 // App configuration
-const allowedOrigin = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : '*';
+console.log('CORS Setup - ENV CORS_ORIGIN:', process.env.CORS_ORIGIN);
+console.log('CORS Setup - ENV CLIENT_URL:', process.env.CLIENT_URL);
+
+// Hardcode allow list for debugging purposes, combined with env
+// Note: when using credentials: true, 'origin' cannot be '*'
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5173/',
+    'http://127.0.0.1:5173',
+    process.env.CORS_ORIGIN,
+    process.env.CLIENT_URL
+].filter(Boolean) as string[];
+
+console.log('CORS Setup - Allowed Origins:', allowedOrigins);
 
 app.use(cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
+            callback(null, true);
+        } else {
+            console.warn('CORS Blocked Origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -63,8 +90,9 @@ app.get('/', async (req, res) => {
         const branchCount = await prisma.branch.count();
         const ptCount = await prisma.policyType.count();
         res.json({ message: 'Sigorta CRM API is running', branchCount, ptCount });
-    } catch (err: any) {
-        res.status(500).json({ error: err.message });
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Internal server error';
+        res.status(500).json({ error: message });
     }
 });
 
@@ -83,5 +111,9 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/payroll', payrollRoutes);
+app.use('/api/revenue', revenueRoutes);
+app.use('/api/quotes', quoteRoutes);
+app.use('/api/ocr', ocrRoutes);
 
 export default app;

@@ -20,7 +20,7 @@ export const getSales = async (req: Request, res: Response) => {
 
         const { branchId, policyTypeId } = req.query;
 
-        const where: any = {};
+        const where: { branchId?: string; policyTypeId?: string; employeeId?: string } = {};
         if (branchId && typeof branchId === 'string' && branchId.length > 10) where.branchId = branchId;
         if (policyTypeId && typeof policyTypeId === 'string' && policyTypeId.length > 10) where.policyTypeId = policyTypeId;
 
@@ -124,14 +124,38 @@ export const createSale = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Müşteri bilgisi (ID veya isim) gereklidir.' });
         }
 
-        const saleData: any = {
+        // Automatic Date Calculation for Renewals
+        const sDate = req.body.startDate ? new Date(req.body.startDate) : new Date();
+        const eDate = req.body.endDate ? new Date(req.body.endDate) : new Date(sDate.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+        const saleData: {
+            customerId: string;
+            customerName: string;
+            customerPhone?: string | null;
+            customerEmail?: string | null;
+            amount: number;
+            status: SaleStatus;
+            employeeId: string;
+            branchId: string;
+            policyTypeId: string;
+            cancelReason: string | null;
+            startDate: Date;
+            endDate: Date;
+            saleDate: Date;
+        } = {
             customerId: finalCustomerId,
+            customerName: customerName || (await prisma.customer.findUnique({ where: { id: finalCustomerId } }))?.name || 'Unknown',
+            customerPhone: customerPhone || null,
+            customerEmail: customerEmail || null,
             amount: Number(amount),
-            status: status || 'ACTIVE',
+            status: (status as SaleStatus) || 'ACTIVE',
             employeeId: sellerId,
             branchId: targetBranchId,
             policyTypeId,
-            cancelReason: cancelReason || null
+            cancelReason: cancelReason || null,
+            startDate: sDate,
+            endDate: eDate,
+            saleDate: req.body.saleDate ? new Date(req.body.saleDate) : new Date()
         };
 
         let sale;
@@ -173,12 +197,14 @@ export const createSale = async (req: Request, res: Response) => {
         });
 
         res.status(201).json({ ...sale, commission: commissionAmount });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[CreateSale] Critical Failure:', error);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        const code = (error as any)?.code;
         res.status(500).json({
             error: 'Failed to create sale',
-            details: error.message,
-            code: error.code // Prisma error code if available
+            details: message,
+            code
         });
     }
 };
@@ -190,7 +216,16 @@ export const updateSale = async (req: Request, res: Response) => {
     const currentUser = req.user!;
 
     try {
-        const updateData: any = {};
+        const updateData: {
+            policyNumber?: string;
+            amount?: number;
+            employeeId?: string;
+            policyTypeId?: string;
+            status?: SaleStatus;
+            cancelReason?: string | null;
+            customerId?: string;
+            branchId?: string;
+        } = {};
 
         if (customerName !== undefined) {
             // For now, allow updating the customer record linked to this sale
@@ -211,7 +246,7 @@ export const updateSale = async (req: Request, res: Response) => {
         if (amount !== undefined) updateData.amount = Number(amount);
         if (employeeId) updateData.employeeId = employeeId;
         if (policyTypeId) updateData.policyTypeId = policyTypeId;
-        if (status !== undefined) updateData.status = status;
+        if (status !== undefined) updateData.status = status as SaleStatus;
         if (cancelReason !== undefined) updateData.cancelReason = cancelReason;
         if (customerId) updateData.customerId = customerId;
 
@@ -234,7 +269,7 @@ export const updateSale = async (req: Request, res: Response) => {
         });
 
         // RECALCULATE COMMISSION ON UPDATE
-        const commissionAmount = await determineCommission(sale.id, (sale.amount as any).toNumber(), sale.branchId, sale.policyTypeId, sale.employeeId);
+        const commissionAmount = await determineCommission(sale.id, Number(sale.amount), sale.branchId, sale.policyTypeId, sale.employeeId);
 
         // Audit Log
         await logAudit({

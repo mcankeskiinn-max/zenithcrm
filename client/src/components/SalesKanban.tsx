@@ -30,7 +30,7 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
     };
 
     return (
-        <div className="flex gap-6 h-full min-h-[600px] p-6 bg-gray-50/30 overflow-x-auto">
+        <div className="flex gap-6 h-full min-h-[600px] p-6 bg-background/50 overflow-x-auto">
             {statusColumns.map((column) => (
                 <div
                     key={column.id}
@@ -41,12 +41,12 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
                     <div className="flex items-center justify-between mb-4 px-2">
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${column.color}`}></div>
-                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest">{column.label}</h3>
-                            <span className="bg-white border border-gray-100 text-gray-500 px-2 py-0.5 rounded-lg text-xs font-bold shadow-sm">
+                            <h3 className="text-sm font-bold text-foreground/70 uppercase tracking-widest">{column.label}</h3>
+                            <span className="bg-card border border-border text-muted-foreground px-2 py-0.5 rounded-lg text-xs font-bold shadow-sm">
                                 {sales.filter(s => s.status === column.id).length}
                             </span>
                         </div>
-                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <button className="text-muted-foreground hover:text-foreground transition-colors">
                             <MoreVertical size={16} />
                         </button>
                     </div>
@@ -60,31 +60,31 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
                                     draggable
                                     onDragStart={(e) => handleDragStart(e, sale.id)}
                                     onClick={() => onEdit(sale)}
-                                    className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-grab active:cursor-grabbing group"
+                                    className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-grab active:cursor-grabbing group"
                                 >
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                                            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-emerald-500/10 group-hover:text-emerald-500 transition-colors">
                                                 <FileText size={20} />
                                             </div>
                                             <div>
                                                 <h4
-                                                    className="font-bold text-gray-900 leading-tight hover:text-emerald-600 cursor-pointer"
+                                                    className="font-bold text-foreground leading-tight hover:text-emerald-500 cursor-pointer"
                                                     onClick={(e) => { e.stopPropagation(); window.location.href = `/customers/${sale.customer?.id || ''}` }}
                                                 >
                                                     {sale.customer?.name || sale.customerName}
                                                 </h4>
-                                                <p className="text-[11px] text-gray-400 font-medium mt-1">{sale.policyNumber}</p>
+                                                <p className="text-[11px] text-muted-foreground font-medium mt-1">{sale.policyNumber}</p>
                                             </div>
                                         </div>
                                         <button
                                             onClick={(e) => { e.stopPropagation(); onShowDocs(sale.id); }}
-                                            className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors relative"
+                                            className="p-1.5 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition-colors relative"
                                             title="Belgeler"
                                         >
                                             <Upload size={14} />
                                             {sale._count && sale._count.documents > 0 && (
-                                                <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-white">
+                                                <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center border border-card">
                                                     {sale._count.documents}
                                                 </span>
                                             )}
@@ -93,25 +93,25 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
 
                                     <div className="mb-4">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-lg font-extrabold text-gray-900">₺{sale.amount.toLocaleString()}</span>
-                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                                            <span className="text-lg font-extrabold text-foreground">₺{sale.amount.toLocaleString()}</span>
+                                            <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">
                                                 {sale.policyType?.name || 'Genel'}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="pt-4 border-t border-gray-50 flex items-center justify-between">
+                                    <div className="pt-4 border-t border-border flex items-center justify-between">
                                         <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-600">
-                                                <Building2 size={12} className="text-gray-400" />
+                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/80">
+                                                <Building2 size={12} className="text-muted-foreground/50" />
                                                 {sale.branch?.name}
                                             </div>
-                                            <div className="flex items-center gap-1.5 text-[9px] font-medium text-gray-500 italic">
-                                                <User size={12} className="text-gray-400" />
+                                            <div className="flex items-center gap-1.5 text-[9px] font-medium text-muted-foreground italic">
+                                                <User size={12} className="text-muted-foreground/50" />
                                                 {sale.employee?.name}
                                             </div>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full bg-gray-50 border-2 border-white flex items-center justify-center text-[10px] font-bold text-gray-500">
+                                        <div className="w-8 h-8 rounded-full bg-muted border-2 border-card flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                                             {sale.employee?.name?.charAt(0) || 'U'}
                                         </div>
                                     </div>
@@ -120,7 +120,7 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
 
                         {/* Placeholder for empty column */}
                         {sales.filter(s => s.status === column.id).length === 0 && (
-                            <div className="h-32 border-2 border-dashed border-gray-100 rounded-3xl flex items-center justify-center text-gray-300 text-xs font-medium bg-gray-50/50">
+                            <div className="h-32 border-2 border-dashed border-border rounded-3xl flex items-center justify-center text-muted-foreground/20 text-xs font-medium bg-muted/30">
                                 Buraya sürükleyin
                             </div>
                         )}

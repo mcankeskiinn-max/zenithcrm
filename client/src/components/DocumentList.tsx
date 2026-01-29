@@ -67,24 +67,24 @@ export function DocumentList({ saleId, refreshTrigger }: DocumentListProps) {
     };
 
     if (loading) {
-        return <div className="py-4 text-center text-sm text-gray-500">Belgeler yükleniyor...</div>;
+        return <div className="py-4 text-center text-sm text-muted-foreground font-medium">Belgeler yükleniyor...</div>;
     }
 
     if (documents.length === 0) {
-        return <div className="py-4 text-center text-sm text-gray-400 italic">Henüz belge yüklenmemiş.</div>;
+        return <div className="py-4 text-center text-sm text-muted-foreground italic">Henüz belge yüklenmemiş.</div>;
     }
 
     return (
         <div className="space-y-3 mt-4">
             {documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 group hover:border-emerald-200 transition-colors">
+                <div key={doc.id} className="flex items-center justify-between p-3 bg-muted rounded-xl border border-border group hover:border-emerald-500/30 transition-colors">
                     <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-emerald-600 shadow-sm">
+                        <div className="w-10 h-10 rounded-lg bg-card flex items-center justify-center text-emerald-600 shadow-sm">
                             <FileText size={20} />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate" title={doc.filename}>{doc.filename}</p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-sm font-medium text-foreground truncate" title={doc.filename}>{doc.filename}</p>
+                            <p className="text-xs text-muted-foreground">
                                 {formatFileSize(doc.size)} • {new Date(doc.uploadedAt).toLocaleDateString('tr-TR')}
                             </p>
                         </div>
@@ -94,7 +94,7 @@ export function DocumentList({ saleId, refreshTrigger }: DocumentListProps) {
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg"
                             onClick={() => window.open(`http://localhost:3000/uploads/${doc.path}`, '_blank')}
                             title="Görüntüle"
                         >
@@ -103,7 +103,7 @@ export function DocumentList({ saleId, refreshTrigger }: DocumentListProps) {
                         <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg"
                             onClick={() => handleDelete(doc.id)}
                             disabled={deletingId === doc.id}
                             title="Sil"

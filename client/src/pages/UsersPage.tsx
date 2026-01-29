@@ -110,69 +110,69 @@ export default function UsersPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Kullanıcı Yönetimi</h1>
-                    <p className="text-sm text-gray-500 font-medium mt-1">Sistem erişimi olan personelleri ve rollerini yönetin</p>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Kullanıcı Yönetimi</h1>
+                    <p className="text-sm text-muted-foreground font-medium mt-1">Sistem erişimi olan personelleri ve rollerini yönetin</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left: Add User Form */}
                 <div className="space-y-6">
-                    <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="bg-card p-8 rounded-[40px] border border-border shadow-sm relative overflow-hidden">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-200">
                                 <UserPlus size={24} />
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900 leading-tight">Yeni Personel</h3>
-                                <p className="text-xs text-gray-400 font-medium tracking-wide">Erişim yetkilendirmesi tanımlayın</p>
+                                <h3 className="text-xl font-bold text-foreground leading-tight">Yeni Personel</h3>
+                                <p className="text-xs text-muted-foreground font-medium tracking-wide">Erişim yetkilendirmesi tanımlayın</p>
                             </div>
                         </div>
 
                         <form onSubmit={handleCreate} className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tam İsim</label>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Tam İsim</label>
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Örn: Ahmet Yılmaz"
-                                    className="h-12 bg-gray-50 border-none rounded-xl text-sm font-bold"
+                                    className="h-12 bg-muted border-none rounded-xl text-sm font-bold"
                                     required
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">E-Posta</label>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">E-Posta</label>
                                 <div className="relative">
-                                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         placeholder="ahmet@zenithcrm.com"
-                                        className="h-12 bg-gray-50 border-none rounded-xl pl-11 text-sm font-bold"
+                                        className="h-12 bg-muted border-none rounded-xl pl-11 text-sm font-bold"
                                         required
                                     />
                                 </div>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Geçici Şifre</label>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Geçici Şifre</label>
                                 <div className="relative">
-                                    <Fingerprint size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <Fingerprint size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
                                     <Input
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="Min. 6 karakter"
-                                        className="h-12 bg-gray-50 border-none rounded-xl pl-11 text-sm font-bold"
+                                        className="h-12 bg-muted border-none rounded-xl pl-11 text-sm font-bold"
                                         required
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Yetki Rolü</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Yetki Rolü</label>
                                     <select
-                                        className="w-full h-12 bg-gray-50 border-none rounded-xl px-4 outline-none text-sm font-bold text-gray-700"
+                                        className="w-full h-12 bg-muted border-none rounded-xl px-4 outline-none text-sm font-bold text-gray-700"
                                         value={role}
                                         onChange={(e) => setRole(e.target.value)}
                                     >
@@ -182,9 +182,9 @@ export default function UsersPage() {
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Bağlı Şube</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Bağlı Şube</label>
                                     <select
-                                        className="w-full h-12 bg-gray-50 border-none rounded-xl px-4 outline-none text-sm font-bold text-gray-700"
+                                        className="w-full h-12 bg-muted border-none rounded-xl px-4 outline-none text-sm font-bold text-gray-700"
                                         value={branchId}
                                         onChange={(e) => setBranchId(e.target.value)}
                                     >
@@ -204,7 +204,7 @@ export default function UsersPage() {
                     <div className="bg-gray-900 p-8 rounded-[40px] text-white relative overflow-hidden shadow-xl">
                         <Shield size={120} className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none" />
                         <h4 className="text-sm font-bold text-emerald-400 tracking-widest uppercase mb-1">Güvenlik Kontrolü</h4>
-                        <p className="text-gray-400 text-xs font-medium leading-relaxed">
+                        <p className="text-muted-foreground text-xs font-medium leading-relaxed">
                             Yeni kullanıcılar oluşturulduğunda şifrelerini ilk girişte değiştirmeleri önerilir. Sadece gerekli yetkileri atadığınızdan emin olun.
                         </p>
                     </div>
@@ -213,18 +213,18 @@ export default function UsersPage() {
                 {/* Right: User List */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Search Bar */}
-                    <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+                    <div className="bg-card p-4 rounded-3xl border border-border shadow-sm flex items-center gap-4">
                         <div className="flex-1 relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" size={18} />
                             <input
                                 type="text"
                                 placeholder="İsim veya e-posta ile ara..."
-                                className="w-full pl-11 pr-4 py-2 bg-gray-50 border-none rounded-xl outline-none text-sm text-gray-700 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                className="w-full pl-11 pr-4 py-2 bg-muted border-none rounded-xl outline-none text-sm text-gray-700 focus:bg-card focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button className="p-2.5 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-all">
+                        <button className="p-2.5 bg-muted text-gray-600 rounded-xl hover:bg-gray-100 transition-all">
                             <MoreHorizontal size={20} />
                         </button>
                     </div>
@@ -232,24 +232,24 @@ export default function UsersPage() {
                     {/* Unified User Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {loading ? (
-                            <div className="col-span-full py-20 text-center animate-pulse text-gray-400 font-bold uppercase tracking-widest">Yükleniyor...</div>
+                            <div className="col-span-full py-20 text-center animate-pulse text-muted-foreground font-bold uppercase tracking-widest">Yükleniyor...</div>
                         ) : filteredUsers.length === 0 ? (
-                            <div className="col-span-full bg-white p-20 rounded-[40px] border border-dashed border-gray-200 text-center">
+                            <div className="col-span-full bg-card p-20 rounded-[40px] border border-dashed border-gray-200 text-center">
                                 <User size={48} className="mx-auto text-gray-200 mb-4" />
-                                <p className="text-gray-400 font-bold">Sonuç bulunamadı.</p>
+                                <p className="text-muted-foreground font-bold">Sonuç bulunamadı.</p>
                             </div>
                         ) : filteredUsers.map((user) => (
-                            <div key={user.id} className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                            <div key={user.id} className="bg-card p-6 rounded-[32px] border border-border shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
 
                                 <div className="flex items-start justify-between relative z-10">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-600 group-hover:text-white transition-all font-black text-xl shadow-inner">
+                                        <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-emerald-600 group-hover:text-white transition-all font-black text-xl shadow-inner">
                                             {user.name.charAt(0)}
                                         </div>
                                         <div className="space-y-1">
-                                            <h4 className="font-bold text-gray-900 leading-tight truncate max-w-[150px]">{user.name}</h4>
-                                            <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                                            <h4 className="font-bold text-foreground leading-tight truncate max-w-[150px]">{user.name}</h4>
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
                                                 <Mail size={12} />
                                                 <span className="truncate max-w-[150px]">{user.email}</span>
                                             </div>
@@ -275,8 +275,8 @@ export default function UsersPage() {
 
                                 <div className="mt-8 flex items-center justify-between border-t border-gray-50 pt-5 relative z-10">
                                     <div className="flex items-center gap-1.5">
-                                        <Building2 size={12} className="text-gray-400" />
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{user.branch?.name || 'GENEL'}</span>
+                                        <Building2 size={12} className="text-muted-foreground" />
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{user.branch?.name || 'GENEL'}</span>
                                     </div>
                                     {getRoleBadge(user.role)}
                                 </div>

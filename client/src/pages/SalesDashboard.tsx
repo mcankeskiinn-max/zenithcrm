@@ -63,20 +63,20 @@ export default function SalesDashboard() {
     const MetricCard = ({ title, value, icon: Icon, trend, color, prefix = '' }: any) => (
         <div className="custom-card p-6 border-none">
             <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</span>
-                <div className="p-2.5 rounded-xl bg-gray-50 text-gray-400">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{title}</span>
+                <div className="p-2.5 rounded-xl bg-muted text-muted-foreground">
                     <Icon size={20} />
                 </div>
             </div>
             <div className="flex items-end justify-between">
                 <div>
-                    <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <h3 className="text-3xl font-extrabold text-foreground tracking-tight">
                         {loading ? '...' : `${prefix}${value?.toLocaleString() || '0'}`}
                     </h3>
                     <div className={`flex items-center gap-1 mt-2 text-emerald-600 font-bold text-xs`}>
                         <ArrowUpRight size={14} />
                         <span>%{trend}</span>
-                        <span className="text-gray-400 font-medium ml-1">geçen aya göre</span>
+                        <span className="text-muted-foreground font-medium ml-1">geçen aya göre</span>
                     </div>
                 </div>
                 <div className="h-12 w-24">
@@ -94,11 +94,11 @@ export default function SalesDashboard() {
         <div className="p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div className="flex flex-col">
-                    <h2 className="text-2xl font-bold text-gray-900">Satış Analizi</h2>
-                    <p className="text-sm text-gray-500 font-medium">Gelir ve poliçe üretim detayları</p>
+                    <h2 className="text-2xl font-bold text-foreground">Satış Analizi</h2>
+                    <p className="text-sm text-muted-foreground font-medium">Gelir ve poliçe üretim detayları</p>
                 </div>
                 <div className="flex flex-col md:flex-row items-center gap-4">
-                    <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex bg-card p-1 rounded-2xl border border-border shadow-sm">
                         {[
                             { label: '1 Ay', value: '1' },
                             { label: '3 Ay', value: '3' },
@@ -108,7 +108,7 @@ export default function SalesDashboard() {
                             <button
                                 key={p.value}
                                 onClick={() => setRange(p.value)}
-                                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${range === p.value ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${range === p.value ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200' : 'text-muted-foreground hover:text-gray-600 hover:bg-muted'}`}
                             >
                                 {p.label}
                             </button>
@@ -160,8 +160,8 @@ export default function SalesDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="custom-card p-8 border-none lg:col-span-2">
                     <div className="mb-8">
-                        <h3 className="text-xl font-bold text-gray-900">Satış Performansı</h3>
-                        <p className="text-xs text-gray-400 font-medium mt-1 uppercase tracking-widest">Aylık Brüt Gelir Dağılımı</p>
+                        <h3 className="text-xl font-bold text-foreground">Satış Performansı</h3>
+                        <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">Aylık Brüt Gelir Dağılımı</p>
                     </div>
                     <div className="h-[350px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -197,7 +197,7 @@ export default function SalesDashboard() {
                 <div className="space-y-6">
                     <div className="custom-card p-6 border-none bg-emerald-600 text-white">
                         <div className="flex items-center gap-4 mb-4">
-                            <div className="p-3 rounded-2xl bg-white/10">
+                            <div className="p-3 rounded-2xl bg-card/10">
                                 <CheckCircle2 size={24} />
                             </div>
                             <div>
@@ -205,17 +205,17 @@ export default function SalesDashboard() {
                                 <p className="text-xs text-white/70">Aylık hedefinizin %85'ine ulaştınız.</p>
                             </div>
                         </div>
-                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-6">
-                            <div className="h-full bg-white w-[85%]" />
+                        <div className="w-full h-2 bg-card/10 rounded-full overflow-hidden mb-6">
+                            <div className="h-full bg-card w-[85%]" />
                         </div>
-                        <button className="w-full py-3 rounded-xl bg-white text-emerald-700 font-bold text-sm hover:bg-emerald-50 transition-all">
+                        <button className="w-full py-3 rounded-xl bg-card text-emerald-700 font-bold text-sm hover:bg-emerald-50 transition-all">
                             Detaylı Rapor
                         </button>
                     </div>
 
                     <div className="custom-card p-6 border-none h-fit">
-                        <h4 className="font-bold text-gray-900 mb-4">Verimlilik İpucu</h4>
-                        <p className="text-sm text-gray-500 leading-relaxed">
+                        <h4 className="font-bold text-foreground mb-4">Verimlilik İpucu</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                             Poliçe yenileme tarihlerinden 30 gün önce müşterilerinizle iletişime geçmek, portföy tutma oranınızı %15'e kadar artırabilir.
                         </p>
                     </div>

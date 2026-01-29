@@ -83,9 +83,9 @@ export default function AnalyticsPage() {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-gray-100 shadow-xl">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</p>
-                    <p className="text-sm font-bold text-gray-900">
+                <div className="bg-card/90 backdrop-blur-md p-4 rounded-2xl border border-border shadow-xl">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">{label}</p>
+                    <p className="text-sm font-bold text-foreground">
                         {payload[0].name}: <span className="text-emerald-600">
                             {typeof payload[0].value === 'number' ?
                                 (payload[0].name.includes('Tutarı') ? `₺${payload[0].value.toLocaleString()}` : payload[0].value)
@@ -103,13 +103,13 @@ export default function AnalyticsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Performans Analizi</h1>
-                    <p className="text-sm text-gray-500 font-medium mt-1">Veri odaklı büyüme ve strateji geliştirme</p>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Performans Analizi</h1>
+                    <p className="text-sm text-muted-foreground font-medium mt-1">Veri odaklı büyüme ve strateji geliştirme</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-100 shadow-sm">
-                        <Calendar size={14} className="text-gray-400" />
+                    <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border shadow-sm">
+                        <Calendar size={14} className="text-muted-foreground" />
                         <input
                             type="date"
                             value={startDate}
@@ -138,15 +138,15 @@ export default function AnalyticsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Monthly Volume */}
-                <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden group">
+                <div className="bg-card p-8 rounded-[40px] border border-border shadow-sm relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                                 <TrendingUp size={20} />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Satış Hacmi</h3>
+                            <h3 className="text-lg font-bold text-foreground">Satış Hacmi</h3>
                         </div>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Son 6 Ay</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Son 6 Ay</span>
                     </div>
 
                     <div className="h-[350px] w-full">
@@ -180,15 +180,15 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Sales Count Trend */}
-                <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden group">
+                <div className="bg-card p-8 rounded-[40px] border border-border shadow-sm relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                                 <Activity size={20} />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Satış Adedi</h3>
+                            <h3 className="text-lg font-bold text-foreground">Satış Adedi</h3>
                         </div>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Trend Analizi</span>
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Trend Analizi</span>
                     </div>
 
                     <div className="h-[350px] w-full">
@@ -224,16 +224,16 @@ export default function AnalyticsPage() {
 
                 {/* Branch comparison (Admin Only) */}
                 {userRole === 'SUPER_ADMIN' && (
-                    <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden">
+                    <div className="lg:col-span-2 bg-card p-8 rounded-[40px] border border-border shadow-sm relative overflow-hidden">
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
                                     <Building2 size={20} />
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-900">Şube Performans Ligi</h3>
+                                <h3 className="text-lg font-bold text-foreground">Şube Performans Ligi</h3>
                             </div>
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
+                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground">
                                     <Target size={12} />
                                     HEDEF %85
                                 </div>

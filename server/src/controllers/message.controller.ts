@@ -4,7 +4,7 @@ import prisma from '../prisma';
 export const sendMessage = async (req: Request, res: Response) => {
     try {
         const { receiverId, content } = req.body;
-        const senderId = (req as any).user.id;
+        const senderId = req.user!.id;
 
         if (!receiverId || !content) {
             return res.status(400).json({ error: 'ReceiverId and content are required' });
@@ -31,7 +31,7 @@ export const sendMessage = async (req: Request, res: Response) => {
 
 export const getConversations = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user!;
         const userId = user.id;
 
         const users = await prisma.user.findMany({
@@ -85,7 +85,7 @@ export const getConversations = async (req: Request, res: Response) => {
 export const getMessages = async (req: Request, res: Response) => {
     try {
         const { userId: otherUserId } = req.params;
-        const userId = (req as any).user.id;
+        const userId = req.user!.id;
 
         const messages = await prisma.message.findMany({
             where: {
@@ -115,13 +115,13 @@ export const getMessages = async (req: Request, res: Response) => {
 
 export const getAllSystemConversations = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user!;
         if (user.role !== 'ADMIN' && user.role !== 'MANAGER') {
             return res.status(403).json({ error: 'Access denied' });
         }
 
-        const where: any = {};
-        if (user.role === 'MANAGER') {
+        const where: { branchId?: string } = {};
+        if (user.role === 'MANAGER' && user.branchId) {
             where.branchId = user.branchId;
         }
 

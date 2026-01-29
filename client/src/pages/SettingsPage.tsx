@@ -102,8 +102,8 @@ export default function SettingsPage() {
         <div className="p-8 space-y-8 animate-in fade-in duration-700">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Ayarlar</h1>
-                <p className="text-sm text-gray-500 font-medium mt-1">Hesap ve sistem seçeneklerini buradan yönetebilirsiniz</p>
+                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Ayarlar</h1>
+                <p className="text-sm text-muted-foreground font-medium mt-1">Hesap ve sistem seçeneklerini buradan yönetebilirsiniz</p>
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8">
@@ -119,8 +119,8 @@ export default function SettingsPage() {
                                     setMessage({ type: '', text: '' });
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === tab.id
-                                        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
-                                        : "text-gray-500 hover:bg-white hover:text-gray-900"
+                                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
+                                    : "text-muted-foreground hover:bg-card hover:text-foreground"
                                     }`}
                             >
                                 <Icon size={18} />
@@ -141,13 +141,13 @@ export default function SettingsPage() {
                     )}
 
                     {activeTab === 'profile' && (
-                        <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm space-y-8">
+                        <div className="bg-card p-8 rounded-[40px] border border-border shadow-sm space-y-8">
                             <div className="flex items-center gap-4">
                                 <div className="w-20 h-20 rounded-3xl bg-emerald-100 flex items-center justify-center text-emerald-700 text-3xl font-bold shadow-inner">
                                     {user?.name?.charAt(0) || 'U'}
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-gray-900">{user?.name}</h3>
+                                    <h3 className="text-xl font-bold text-foreground">{user?.name}</h3>
                                     <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{user?.role} • {user?.branch?.name || 'Genel Merkez'}</p>
                                 </div>
                             </div>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
                                             <Input
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
-                                                className="h-12 bg-gray-50 border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                                className="h-12 bg-muted border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                                 placeholder="Adınız Soyadınız"
                                             />
                                         </div>
@@ -174,7 +174,7 @@ export default function SettingsPage() {
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                className="h-12 bg-gray-50 border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                                className="h-12 bg-muted border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                                 placeholder="ornek@zenithcrm.com"
                                             />
                                         </div>
@@ -194,12 +194,12 @@ export default function SettingsPage() {
                     )}
 
                     {activeTab === 'security' && (
-                        <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm space-y-8">
+                        <div className="bg-card p-8 rounded-[40px] border border-border shadow-sm space-y-8">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                                     <Key size={20} />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900">Şifre Değiştir</h3>
+                                <h3 className="text-xl font-bold text-foreground">Şifre Değiştir</h3>
                             </div>
 
                             <form onSubmit={handleChangePassword} className="space-y-6">
@@ -211,7 +211,7 @@ export default function SettingsPage() {
                                             type="password"
                                             value={currentPassword}
                                             onChange={(e) => setCurrentPassword(e.target.value)}
-                                            className="h-12 bg-gray-50 border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all"
+                                            className="h-12 bg-muted border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -226,7 +226,7 @@ export default function SettingsPage() {
                                                 type="password"
                                                 value={newPassword}
                                                 onChange={(e) => setNewPassword(e.target.value)}
-                                                className="h-12 bg-gray-50 border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                                className="h-12 bg-muted border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                                 placeholder="••••••••"
                                             />
                                         </div>
@@ -239,7 +239,7 @@ export default function SettingsPage() {
                                                 type="password"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                                className="h-12 bg-gray-50 border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                                className="h-12 bg-muted border-none rounded-2xl pl-12 text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                                 placeholder="••••••••"
                                             />
                                         </div>
@@ -259,12 +259,12 @@ export default function SettingsPage() {
                     )}
 
                     {(activeTab === 'notifications' || activeTab === 'preferences') && (
-                        <div className="bg-white p-12 rounded-[40px] border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center space-y-4">
-                            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-300">
+                        <div className="bg-card p-12 rounded-[40px] border border-border shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-gray-300">
                                 <Smartphone size={32} />
                             </div>
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900">Çok Yakında</h3>
+                                <h3 className="text-lg font-bold text-foreground">Çok Yakında</h3>
                                 <p className="text-sm text-gray-400 max-w-xs">Bu özellik geliştirme aşamasındadır. ZenithCRM deneyiminizi zenginleştirmek için çalışıyoruz.</p>
                             </div>
                         </div>

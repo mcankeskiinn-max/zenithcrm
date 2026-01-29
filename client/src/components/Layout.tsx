@@ -74,40 +74,40 @@ export default function Layout() {
         ];
 
     return (
-        <div className="flex h-screen bg-gray-50/50 overflow-hidden">
+        <div className="flex h-screen bg-background overflow-hidden transition-colors duration-300">
             <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Top Nav */}
-                <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 z-20">
+                <header className="h-20 bg-card border-b border-border flex items-center justify-between px-4 md:px-8 z-20 transition-colors duration-300">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="p-2 -ml-2 text-gray-400 hover:text-gray-900 lg:hidden"
+                            className="p-2 -ml-2 text-muted-foreground hover:text-foreground lg:hidden"
                         >
                             <Menu size={24} />
                         </button>
                         <div className="flex flex-col">
-                            <h2 className="text-lg md:text-xl font-bold text-gray-900 truncate max-w-[150px] md:max-w-none">{pageTitle}</h2>
-                            <p className="hidden md:block text-xs text-gray-500 font-medium tracking-wide">Yönetim Paneli / {location.pathname.substring(1).split('/')[0]}</p>
+                            <h2 className="text-lg md:text-xl font-bold text-foreground truncate max-w-[150px] md:max-w-none">{pageTitle}</h2>
+                            <p className="hidden md:block text-xs text-muted-foreground font-medium tracking-wide">Yönetim Paneli / {location.pathname.substring(1).split('/')[0]}</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3 md:gap-8">
                         {/* Search Bar */}
-                        <div className="hidden xl:flex items-center gap-3 px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl w-80 group focus-within:bg-white focus-within:border-emerald-200 focus-within:ring-4 focus-within:ring-emerald-500/5 transition-all duration-300">
-                            <Search className="h-4 w-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+                        <div className="hidden xl:flex items-center gap-3 px-4 py-2.5 bg-secondary border border-border rounded-xl w-80 group focus-within:bg-card focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/5 transition-all duration-300">
+                            <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <input
                                 type="text"
                                 placeholder="Müşteri, poliçe veya görev ara..."
-                                className="bg-transparent border-none outline-none text-sm text-gray-700 w-full placeholder:text-gray-400"
+                                className="bg-transparent border-none outline-none text-sm text-foreground w-full placeholder:text-muted-foreground"
                             />
                         </div>
 
-                        <div className="flex items-center gap-2 md:gap-4 border-l border-1 border-gray-100 pl-4 md:pl-8">
+                        <div className="flex items-center gap-2 md:gap-4 border-l border-border pl-4 md:pl-8">
                             <div className="relative">
                                 <button
                                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                    className="h-9 md:h-10 px-3 md:px-4 bg-emerald-600 text-white rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 active:translate-y-0"
+                                    className="h-9 md:h-10 px-3 md:px-4 bg-primary text-primary-foreground rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 active:translate-y-0"
                                 >
                                     <Plus size={18} />
                                     <span className="hidden sm:inline">Yeni Kayıt</span>
@@ -120,7 +120,7 @@ export default function Layout() {
                                             className="fixed inset-0 z-10"
                                             onClick={() => setIsMenuOpen(false)}
                                         />
-                                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="absolute right-0 mt-2 w-56 bg-card rounded-2xl shadow-2xl border border-border py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
                                             {menuActions.map((action, idx) => {
                                                 const Icon = action.icon;
                                                 return (
@@ -131,9 +131,9 @@ export default function Layout() {
                                                             if (action.onClick) action.onClick();
                                                             setIsMenuOpen(false);
                                                         }}
-                                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 transition-all"
+                                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-muted-foreground hover:bg-primary/5 hover:text-primary transition-all"
                                                     >
-                                                        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-100 group-hover:text-emerald-600">
+                                                        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary">
                                                             <Icon size={16} />
                                                         </div>
                                                         {action.label}
@@ -149,31 +149,31 @@ export default function Layout() {
                                 <div className="relative" ref={notificationRef}>
                                     <button
                                         onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                        className={`relative p-2.5 rounded-xl transition-all ${isNotificationOpen ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-emerald-600 hover:bg-emerald-50'}`}
+                                        className={`relative p-2.5 rounded-xl transition-all ${isNotificationOpen ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}
                                     >
                                         <Bell className="h-5 w-5" />
                                         {notifications.length > 0 && (
-                                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-400 border-2 border-white rounded-full"></span>
+                                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-destructive border-2 border-background rounded-full"></span>
                                         )}
                                     </button>
 
                                     {isNotificationOpen && (
                                         <>
                                             <div className="fixed inset-0 z-10" onClick={() => setIsNotificationOpen(false)} />
-                                            <div className="absolute right-0 mt-2 w-[350px] bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
-                                                <div className="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
-                                                    <h4 className="text-sm font-bold text-gray-900">Bildirimler</h4>
-                                                    <span className="text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">
+                                            <div className="absolute right-0 mt-2 w-[350px] bg-card rounded-2xl shadow-2xl border border-border py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                                                    <h4 className="text-sm font-bold text-foreground">Bildirimler</h4>
+                                                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                                                         {notifications.length} Yeni
                                                     </span>
                                                 </div>
                                                 <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                                                     {notifications.length === 0 ? (
                                                         <div className="p-8 text-center">
-                                                            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                                                <Bell className="h-6 w-6 text-gray-300" />
+                                                            <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                                                <Bell className="h-6 w-6 text-muted-foreground/30" />
                                                             </div>
-                                                            <p className="text-xs text-gray-400 font-medium">Herhangi bir bildirim yok</p>
+                                                            <p className="text-xs text-muted-foreground font-medium">Herhangi bir bildirim yok</p>
                                                         </div>
                                                     ) : (
                                                         notifications.map((notif) => (
@@ -183,25 +183,25 @@ export default function Layout() {
                                                                     navigate(notif.link);
                                                                     setIsNotificationOpen(false);
                                                                 }}
-                                                                className="w-full text-left p-4 hover:bg-gray-50 transition-all border-b border-gray-50 last:border-0 flex gap-3 group"
+                                                                className="w-full text-left p-4 hover:bg-muted/50 transition-all border-b border-border last:border-0 flex gap-3 group"
                                                             >
-                                                                <div className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${notif.priority === 'HIGH' ? 'bg-red-400' : 'bg-emerald-400'}`}></div>
+                                                                <div className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${notif.priority === 'HIGH' ? 'bg-destructive' : 'bg-primary'}`}></div>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-gray-900 group-hover:text-emerald-600 transition-colors uppercase tracking-tight">{notif.title}</p>
-                                                                    <p className="text-[11px] text-gray-500 font-medium leading-relaxed mt-0.5 line-clamp-2">{notif.message}</p>
-                                                                    <p className="text-[9px] text-gray-400 font-bold mt-1.5">{format(new Date(notif.date), 'd MMMM HH:mm', { locale: tr })}</p>
+                                                                    <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors uppercase tracking-tight">{notif.title}</p>
+                                                                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed mt-0.5 line-clamp-2">{notif.message}</p>
+                                                                    <p className="text-[9px] text-muted-foreground/50 font-bold mt-1.5">{format(new Date(notif.date), 'd MMMM HH:mm', { locale: tr })}</p>
                                                                 </div>
                                                             </button>
                                                         ))
                                                     )}
                                                 </div>
-                                                <div className="p-2 border-t border-gray-50">
+                                                <div className="p-2 border-t border-border">
                                                     <button
                                                         onClick={() => {
                                                             navigate('/tasks');
                                                             setIsNotificationOpen(false);
                                                         }}
-                                                        className="w-full py-2 text-[10px] font-bold text-gray-400 hover:text-emerald-600 transition-all text-center uppercase tracking-widest"
+                                                        className="w-full py-2 text-[10px] font-bold text-muted-foreground hover:text-primary transition-all text-center uppercase tracking-widest"
                                                     >
                                                         Tümünü Gör
                                                     </button>
@@ -214,16 +214,16 @@ export default function Layout() {
                                 <div className="relative group">
                                     <div
                                         onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-                                        className="flex items-center gap-3 ml-4 p-1.5 hover:bg-gray-100 rounded-xl cursor-pointer transition-all border border-transparent hover:border-gray-200"
+                                        className="flex items-center gap-3 ml-4 p-1.5 hover:bg-muted rounded-xl cursor-pointer transition-all border border-transparent hover:border-border"
                                     >
-                                        <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 text-xs font-bold">
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
                                             {user?.name?.charAt(0) || 'U'}
                                         </div>
                                         <div className="hidden lg:block text-left">
-                                            <p className="text-xs font-bold text-gray-900 leading-tight">{user?.name}</p>
-                                            <p className="text-[10px] text-gray-500 font-medium">{user?.role === 'ADMIN' ? 'Sistem Yöneticisi' : user?.role}</p>
+                                            <p className="text-xs font-bold text-foreground leading-tight">{user?.name}</p>
+                                            <p className="text-[10px] text-muted-foreground font-medium">{user?.role === 'ADMIN' ? 'Sistem Yöneticisi' : user?.role}</p>
                                         </div>
-                                        <ChevronDown size={14} className={`text-gray-400 ml-1 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={14} className={`text-muted-foreground ml-1 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                                     </div>
 
                                     {isProfileMenuOpen && (
@@ -232,25 +232,25 @@ export default function Layout() {
                                                 className="fixed inset-0 z-10"
                                                 onClick={() => setIsProfileMenuOpen(false)}
                                             />
-                                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
+                                            <div className="absolute right-0 mt-2 w-48 bg-card rounded-2xl shadow-2xl border border-border py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
                                                 <button
                                                     onClick={() => {
                                                         navigate('/settings');
                                                         setIsProfileMenuOpen(false);
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 hover:text-emerald-600 transition-all"
+                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted hover:text-primary transition-all"
                                                 >
-                                                    <SettingsIcon size={16} className="text-gray-400" />
+                                                    <SettingsIcon size={16} className="text-muted-foreground" />
                                                     Ayarlar
                                                 </button>
-                                                <div className="h-px bg-gray-50 my-1 mx-2"></div>
+                                                <div className="h-px bg-border my-1 mx-2"></div>
                                                 <button
                                                     onClick={() => {
                                                         localStorage.removeItem('token');
                                                         localStorage.removeItem('user');
                                                         window.location.href = '/login';
                                                     }}
-                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
+                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/10 transition-all"
                                                 >
                                                     <LogOut size={16} />
                                                     Çıkış Yap

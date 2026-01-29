@@ -2,14 +2,15 @@ import { Request, Response } from 'express';
 import prisma from '../prisma';
 import bcrypt from 'bcryptjs';
 import { logAudit } from '../utils/audit.util';
+import { Role } from '../utils/constants';
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
         const { branchId, role } = req.query;
 
-        const where: any = {};
+        const where: { branchId?: string; role?: Role } = {};
         if (branchId) where.branchId = String(branchId);
-        if (role) where.role = role as any;
+        if (role) where.role = role as Role;
 
         const users = await prisma.user.findMany({
             where,
@@ -76,9 +77,16 @@ export const updateUser = async (req: Request, res: Response) => {
     const { name, role, branchId, password, isActive } = req.body;
 
     try {
-        const data: any = {};
+        const data: {
+            name?: string;
+            role?: Role;
+            branchId?: string | null;
+            isActive?: boolean;
+            password?: string;
+            passwordChangedAt?: Date;
+        } = {};
         if (name) data.name = name;
-        if (role) data.role = role as any;
+        if (role) data.role = role as Role;
         if (branchId !== undefined) data.branchId = branchId;
         if (isActive !== undefined) data.isActive = isActive;
 

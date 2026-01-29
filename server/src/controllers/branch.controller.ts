@@ -15,7 +15,7 @@ export const getBranches = async (req: Request, res: Response) => {
         // Prisma PostgreSQL handles Json fields as objects automatically
         const formattedBranches = branches.map(branch => ({
             ...branch,
-            settings: branch.settings || {}
+            settings: (branch.settings as { commissionRate?: number }) || {}
         }));
 
         res.json(formattedBranches);

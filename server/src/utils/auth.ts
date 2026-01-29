@@ -11,7 +11,7 @@ export const comparePassword = async (password: string, hash: string) => {
     return await bcrypt.compare(password, hash);
 };
 
-export const generateToken = (payload: any) => {
+export const generateToken = (payload: Record<string, unknown>) => {
     return jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
 };
 

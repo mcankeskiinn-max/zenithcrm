@@ -88,14 +88,14 @@ export default function CancellationDashboard() {
     const MetricCard = ({ title, value, icon: Icon, color, prefix = '', suffix = '' }: any) => (
         <div className="custom-card p-6 border-none">
             <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</span>
-                <div className="p-2.5 rounded-xl bg-gray-50 text-gray-400">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{title}</span>
+                <div className="p-2.5 rounded-xl bg-muted text-muted-foreground">
                     <Icon size={20} />
                 </div>
             </div>
             <div className="flex items-end justify-between">
                 <div>
-                    <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    <h3 className="text-3xl font-extrabold text-foreground tracking-tight">
                         {loading ? '...' : `${prefix}${value?.toLocaleString() || '0'}${suffix}`}
                     </h3>
                     <div className={`flex items-center gap-1 mt-2 text-red-600 font-bold text-xs`}>
@@ -118,11 +118,11 @@ export default function CancellationDashboard() {
         <div className="p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div className="flex flex-col">
-                    <h2 className="text-2xl font-bold text-gray-900">İptal Analizi</h2>
-                    <p className="text-sm text-gray-500 font-medium">Poliçe iptalleri ve nedenleri detaylı raporu</p>
+                    <h2 className="text-2xl font-bold text-foreground">İptal Analizi</h2>
+                    <p className="text-sm text-muted-foreground font-medium">Poliçe iptalleri ve nedenleri detaylı raporu</p>
                 </div>
                 <div className="flex flex-col md:flex-row items-center gap-4">
-                    <div className="flex bg-white p-1 rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex bg-card p-1 rounded-2xl border border-border shadow-sm">
                         {[
                             { label: '1 Ay', value: '1' },
                             { label: '3 Ay', value: '3' },
@@ -132,7 +132,7 @@ export default function CancellationDashboard() {
                             <button
                                 key={p.value}
                                 onClick={() => setRange(p.value)}
-                                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${range === p.value ? 'bg-red-600 text-white shadow-md shadow-red-200' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'}`}
+                                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${range === p.value ? 'bg-red-600 text-white shadow-md shadow-red-200' : 'text-muted-foreground hover:text-gray-600 hover:bg-muted'}`}
                             >
                                 {p.label}
                             </button>
@@ -176,13 +176,13 @@ export default function CancellationDashboard() {
                 {/* Cancellation Reasons */}
                 <div className="custom-card p-8 border-none flex flex-col">
                     <div className="mb-8 text-center">
-                        <h3 className="text-xl font-bold text-gray-900">İptal Nedenleri</h3>
-                        <p className="text-xs text-gray-400 font-medium mt-1 uppercase tracking-widest">Dağılım Analizi</p>
+                        <h3 className="text-xl font-bold text-foreground">İptal Nedenleri</h3>
+                        <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">Dağılım Analizi</p>
                     </div>
                     <div className="h-[250px] w-full flex items-center justify-center relative">
                         <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                            <span className="text-3xl font-extrabold text-gray-900">₺{(data?.cards.cancellationLoss || 0).toLocaleString()}</span>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kayıp</span>
+                            <span className="text-3xl font-extrabold text-foreground">₺{(data?.cards.cancellationLoss || 0).toLocaleString()}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Kayıp</span>
                         </div>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -205,14 +205,14 @@ export default function CancellationDashboard() {
                     </div>
                     <div className="space-y-4 mt-8">
                         {(data?.cancellationBreakdown || []).map((item, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
+                            <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted border border-border">
                                 <div className="flex items-center gap-3">
                                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
                                     <span className="text-xs font-bold text-gray-700">{item.name}</span>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs font-bold text-gray-900">₺{item.value?.toLocaleString()}</p>
-                                    <p className="text-[10px] text-gray-400">{item.count} Poliçe</p>
+                                    <p className="text-xs font-bold text-foreground">₺{item.value?.toLocaleString()}</p>
+                                    <p className="text-[10px] text-muted-foreground">{item.count} Poliçe</p>
                                 </div>
                             </div>
                         ))}
@@ -223,8 +223,8 @@ export default function CancellationDashboard() {
                 <div className="custom-card p-8 border-none lg:col-span-2">
                     <div className="flex items-center justify-between mb-8">
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900">Kayıp Zaman Çizelgesi</h3>
-                            <p className="text-xs text-gray-400 font-medium mt-1 uppercase tracking-widest">Aylık İptal Trendi</p>
+                            <h3 className="text-xl font-bold text-foreground">Kayıp Zaman Çizelgesi</h3>
+                            <p className="text-xs text-muted-foreground font-medium mt-1 uppercase tracking-widest">Aylık İptal Trendi</p>
                         </div>
                         <div className="p-2 rounded-lg bg-red-50 text-red-600">
                             <History size={20} />
@@ -270,18 +270,18 @@ export default function CancellationDashboard() {
 
             {/* Active Policies List for Direct Cancellation */}
             <div className="mt-8">
-                <div className="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
+                <div className="bg-card p-8 rounded-[32px] border border-border shadow-sm">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900">Poliçe Listesi</h3>
-                            <p className="text-sm text-gray-500 font-medium">Aktif ve iptal edilmiş tüm poliçeleri buradan yönetebilirsiniz</p>
+                            <h3 className="text-xl font-bold text-foreground">Poliçe Listesi</h3>
+                            <p className="text-sm text-muted-foreground font-medium">Aktif ve iptal edilmiş tüm poliçeleri buradan yönetebilirsiniz</p>
                         </div>
                         <div className="relative w-full md:w-80">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                             <input
                                 type="text"
                                 placeholder="Poliçe no veya müşteri ara..."
-                                className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-none rounded-2xl outline-none text-sm focus:ring-4 focus:ring-red-500/5 transition-all"
+                                className="w-full pl-11 pr-4 py-2.5 bg-muted border-none rounded-2xl outline-none text-sm focus:ring-4 focus:ring-red-500/5 transition-all"
                                 value={policySearch}
                                 onChange={(e) => setPolicySearch(e.target.value)}
                             />
@@ -292,10 +292,10 @@ export default function CancellationDashboard() {
                         <table className="w-full">
                             <thead>
                                 <tr className="text-left border-b border-gray-50">
-                                    <th className="pb-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest pl-2">Poliçe / Müşteri</th>
-                                    <th className="pb-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Branş / Şube</th>
-                                    <th className="pb-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Tutar</th>
-                                    <th className="pb-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-right pr-2">İşlem</th>
+                                    <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-2">Poliçe / Müşteri</th>
+                                    <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Branş / Şube</th>
+                                    <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Tutar</th>
+                                    <th className="pb-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right pr-2">İşlem</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -306,22 +306,22 @@ export default function CancellationDashboard() {
                                     )
                                     .slice(0, 10)
                                     .map((policy) => (
-                                        <tr key={policy.id} className="group hover:bg-gray-50/50 transition-colors">
+                                        <tr key={policy.id} className="group hover:bg-muted/50 transition-colors">
                                             <td className="py-4 pl-2">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-white group-hover:text-red-500 transition-all shadow-sm">
+                                                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-card group-hover:text-red-500 transition-all shadow-sm">
                                                         <Hash size={18} />
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <p className="text-sm font-bold text-gray-900">{policy.policyNumber}</p>
+                                                            <p className="text-sm font-bold text-foreground">{policy.policyNumber}</p>
                                                             {policy.status === 'CANCELLED' && (
                                                                 <span className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] font-bold rounded-full uppercase tracking-tighter border border-red-100 animate-pulse">
                                                                     İptal Edildi
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-gray-500">{policy.customerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{policy.customerName}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -331,14 +331,14 @@ export default function CancellationDashboard() {
                                                         <ShieldCheck size={12} className="text-emerald-500" />
                                                         {policy.policyType?.name}
                                                     </span>
-                                                    <span className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
+                                                    <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
                                                         <Building size={10} />
                                                         {policy.branch?.name}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td className="py-4">
-                                                <span className="text-sm font-bold text-gray-900">₺{policy.amount.toLocaleString()}</span>
+                                                <span className="text-sm font-bold text-foreground">₺{policy.amount.toLocaleString()}</span>
                                             </td>
                                             <td className="py-4 text-right pr-2">
                                                 {policy.status === 'CANCELLED' ? (
@@ -382,7 +382,7 @@ export default function CancellationDashboard() {
                         </table>
                         {activePolicies.length === 0 && !loading && (
                             <div className="py-12 text-center">
-                                <p className="text-gray-400 font-medium">Henüz aktif poliçe bulunmuyor.</p>
+                                <p className="text-muted-foreground font-medium">Henüz aktif poliçe bulunmuyor.</p>
                             </div>
                         )}
                     </div>

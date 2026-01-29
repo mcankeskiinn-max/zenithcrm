@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { FileUpload } from '@/components/FileUpload';
 import { DocumentList } from '@/components/DocumentList';
+import { OCRUploader } from '@/components/OCRUploader';
 
 interface Sale {
     id: string;
@@ -152,6 +153,13 @@ export default function SalesPage() {
         }
     };
 
+    const handleOCRComplete = (data: any) => {
+        if (data.policyNumber) setPolicyNumber(data.policyNumber);
+        if (data.amount) setAmount(data.amount.toString());
+        if (data.customerName) setCustomerName(data.customerName);
+        // You can add more mappings here
+    };
+
     const resetForm = () => {
         setCustomerName('');
         setPolicyNumber('');
@@ -257,22 +265,22 @@ export default function SalesPage() {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Poliçeler ve Satışlar</h1>
-                    <p className="text-sm text-gray-500 font-medium mt-1">Müşteri portföyünüzü ve satış sürecinizi yönetin</p>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Poliçeler ve Satışlar</h1>
+                    <p className="text-sm text-muted-foreground font-medium mt-1">Müşteri portföyünüzü ve satış sürecinizi yönetin</p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="flex bg-white border border-gray-100 p-1 rounded-2xl shadow-sm">
+                    <div className="flex bg-card border border-border p-1 rounded-2xl shadow-sm">
                         <button
                             onClick={() => setViewMode('kanban')}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'kanban' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-gray-400 hover:text-gray-600'}`}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'kanban' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-muted-foreground hover:text-gray-600'}`}
                         >
                             <LayoutGrid size={18} />
                             Kanban
                         </button>
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'list' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-gray-400 hover:text-gray-600'}`}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'list' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' : 'text-muted-foreground hover:text-gray-600'}`}
                         >
                             <LayoutList size={18} />
                             Liste
@@ -286,37 +294,37 @@ export default function SalesPage() {
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="flex flex-col md:flex-row md:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 bg-card p-4 rounded-2xl border border-border shadow-sm">
                 <div className="flex-1 relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" size={18} />
                     <input
                         type="text"
                         placeholder="Müşteri adı veya poliçe no ile ara..."
-                        className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-none rounded-xl outline-none text-sm text-gray-700 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                        className="w-full pl-11 pr-4 py-2.5 bg-muted border-none rounded-xl outline-none text-sm text-gray-700 focus:bg-card focus:ring-4 focus:ring-emerald-500/5 transition-all"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="px-4 py-2.5 bg-gray-50 text-gray-600 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-100 transition-all border border-transparent">
+                    <button className="px-4 py-2.5 bg-muted text-gray-600 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-gray-100 transition-all border border-transparent">
                         <Filter size={18} />
                         Filtrele
                         <ChevronDown size={14} />
                     </button>
-                    <button className="p-2.5 bg-gray-50 text-gray-600 rounded-xl hover:bg-gray-100 transition-all">
+                    <button className="p-2.5 bg-muted text-gray-600 rounded-xl hover:bg-gray-100 transition-all">
                         <MoreHorizontal size={20} />
                     </button>
                 </div>
             </div>
 
             {/* Content Display */}
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm min-h-[400px] overflow-hidden">
+            <div className="bg-card rounded-3xl border border-border shadow-sm min-h-[400px] overflow-hidden">
                 {viewMode === 'kanban' ? (
                     <div className="h-full">
                         {loading ? (
                             <div className="flex flex-col items-center justify-center h-96 gap-4">
                                 <div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
-                                <p className="text-sm font-bold text-gray-400">Yükleniyor...</p>
+                                <p className="text-sm font-bold text-muted-foreground">Yükleniyor...</p>
                             </div>
                         ) : (
                             <SalesKanban
@@ -331,58 +339,58 @@ export default function SalesPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="border-b border-gray-50 bg-gray-50/50">
-                                    <th className="p-5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Müşteri & Poliçe</th>
-                                    <th className="p-5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Tutar</th>
-                                    <th className="p-5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Branş</th>
-                                    <th className="p-5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Şube & Personel</th>
-                                    <th className="p-5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">Durum</th>
-                                    <th className="p-5 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-right">İşlemler</th>
+                                <tr className="border-b border-gray-50 bg-muted/50">
+                                    <th className="p-5 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Müşteri & Poliçe</th>
+                                    <th className="p-5 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Tutar</th>
+                                    <th className="p-5 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Branş</th>
+                                    <th className="p-5 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Şube & Personel</th>
+                                    <th className="p-5 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Durum</th>
+                                    <th className="p-5 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">İşlemler</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {loading ? (
-                                    <tr><td colSpan={6} className="p-10 text-center text-gray-400 font-medium italic">Yükleniyor...</td></tr>
+                                    <tr><td colSpan={6} className="p-10 text-center text-muted-foreground font-medium italic">Yükleniyor...</td></tr>
                                 ) : filteredSales.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="p-10 text-center text-gray-400 font-medium italic">
+                                        <td colSpan={6} className="p-10 text-center text-muted-foreground font-medium italic">
                                             {sales.length === 0 ? 'Hiç kayıt bulunamadı. Veritabanı boş olabilir.' : 'Aramanızla eşleşen kayıt bulunamadı.'}
                                         </td>
                                     </tr>
                                 ) : filteredSales.map((sale) => (
-                                    <tr key={sale.id} className="hover:bg-gray-50/50 transition-colors group">
+                                    <tr key={sale.id} className="hover:bg-muted/50 transition-colors group">
                                         <td className="p-5">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+                                                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
                                                     <FileText size={20} />
                                                 </div>
                                                 <div>
                                                     <p
-                                                        className="font-bold text-gray-900 leading-tight hover:text-emerald-600 cursor-pointer"
+                                                        className="font-bold text-foreground leading-tight hover:text-emerald-600 cursor-pointer"
                                                         onClick={() => window.location.href = `/customers/${sale.customer?.id || ''}`}
                                                     >
                                                         {sale.customer?.name || sale.customerName}
                                                     </p>
-                                                    <p className="text-[11px] text-gray-400 font-medium mt-1">{sale.policyNumber}</p>
+                                                    <p className="text-[11px] text-muted-foreground font-medium mt-1">{sale.policyNumber}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="p-5">
-                                            <span className="font-bold text-gray-900">₺{sale.amount.toLocaleString()}</span>
+                                            <span className="font-bold text-foreground">₺{sale.amount.toLocaleString()}</span>
                                         </td>
                                         <td className="p-5">
-                                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">
+                                            <span className="text-xs font-bold text-muted-foreground bg-gray-100 px-2 py-1 rounded-lg">
                                                 {sale.policyType?.name}
                                             </span>
                                         </td>
                                         <td className="p-5">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700">
-                                                    <Building2 size={12} className="text-gray-400" />
+                                                    <Building2 size={12} className="text-muted-foreground" />
                                                     {sale.branch?.name}
                                                 </div>
-                                                <div className="flex items-center gap-1.5 text-[10px] font-medium text-gray-500">
-                                                    <User size={12} className="text-gray-400" />
+                                                <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                                                    <User size={12} className="text-muted-foreground" />
                                                     {sale.employee?.name}
                                                 </div>
                                             </div>
@@ -394,14 +402,14 @@ export default function SalesPage() {
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => handleEdit(sale)}
-                                                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                                                    className="p-2 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
                                                     title="Düzenle"
                                                 >
                                                     <Edit2 size={16} />
                                                 </button>
                                                 <button
                                                     onClick={() => setShowDocsId(sale.id)}
-                                                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all relative"
+                                                    className="p-2 text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all relative"
                                                     title="Belgeler"
                                                 >
                                                     <FileText size={16} />
@@ -413,7 +421,7 @@ export default function SalesPage() {
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(sale.id)}
-                                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                    className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
                                                     title="Sil"
                                                 >
                                                     <Trash2 size={16} />
@@ -431,56 +439,68 @@ export default function SalesPage() {
             {/* Redesigned Modal Layout (Reusable) */}
             {(showCreateModal || showEditModal) && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-                        <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                    <div className="bg-card w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+                        <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-muted/50">
                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900">{showCreateModal ? 'Yeni Satış Girişi' : 'Kaydı Düzenle'}</h3>
-                                <p className="text-sm text-gray-500 font-medium">Formu eksiksiz doldurduğunuzdan emin olun.</p>
+                                <h3 className="text-2xl font-bold text-foreground">{showCreateModal ? 'Yeni Satış Girişi' : 'Kaydı Düzenle'}</h3>
+                                <p className="text-sm text-muted-foreground font-medium">Formu eksiksiz doldurduğunuzdan emin olun.</p>
                             </div>
                             <button
                                 onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
-                                className="p-3 bg-white text-gray-400 hover:text-gray-600 rounded-2xl border border-gray-100 shadow-sm transition-all"
+                                className="p-3 bg-card text-muted-foreground hover:text-gray-600 rounded-2xl border border-border shadow-sm transition-all"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         <form onSubmit={showCreateModal ? handleCreate : handleUpdate} className="p-8 space-y-6">
+
+                            {/* OCR Section - Only for new sales */}
+                            {showCreateModal && (
+                                <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 mb-6">
+                                    <h4 className="text-sm font-bold text-amber-800 mb-3 flex items-center gap-2">
+                                        <FileText size={16} />
+                                        Otomatik Doldurma (OCR)
+                                    </h4>
+                                    <OCRUploader onScanComplete={handleOCRComplete} />
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Müşteri Adı</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Müşteri Adı</label>
                                     <Input
                                         placeholder="Ahmet Yılmaz"
-                                        className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                         value={customerName}
                                         onChange={(e) => setCustomerName(e.target.value)}
                                         required
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Poliçe Numarası</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Numarası</label>
                                     <Input
                                         placeholder="POL-2024-001"
-                                        className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                         value={policyNumber}
                                         onChange={(e) => setPolicyNumber(e.target.value)}
                                         required
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Tutar (₺)</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Tutar (₺)</label>
                                     <Input
                                         type="number"
-                                        className="h-12 bg-gray-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
                                         required
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Poliçe Branşı</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Branşı</label>
                                     <select
-                                        className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                        className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
                                         value={policyTypeId}
                                         onChange={(e) => setPolicyTypeId(e.target.value)}
                                         required
@@ -490,9 +510,9 @@ export default function SalesPage() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Şube</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Şube</label>
                                     <select
-                                        className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                        className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
                                         value={branchId}
                                         onChange={(e) => setBranchId(e.target.value)}
                                         required
@@ -503,9 +523,9 @@ export default function SalesPage() {
                                 </div>
                                 {userRole !== 'EMPLOYEE' && (
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Personel</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Personel</label>
                                         <select
-                                            className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                            className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
                                             value={employeeId}
                                             onChange={(e) => setEmployeeId(e.target.value)}
                                         >
@@ -516,9 +536,9 @@ export default function SalesPage() {
                                 )}
                                 {showEditModal && (
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">Durum</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Durum</label>
                                         <select
-                                            className="w-full h-12 bg-gray-50 border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                            className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
                                             value={status}
                                             onChange={(e) => setStatus(e.target.value)}
                                         >
@@ -534,10 +554,10 @@ export default function SalesPage() {
 
                             {/* Document Upload Section (Only in Edit Mode) */}
                             {showEditModal && editingId && (
-                                <div className="mt-8 pt-8 border-t border-gray-100">
+                                <div className="mt-8 pt-8 border-t border-border">
                                     <div className="flex items-center gap-2 mb-4">
                                         <Upload className="w-5 h-5 text-emerald-600" />
-                                        <h4 className="text-lg font-bold text-gray-900">Belgeler & Dosyalar</h4>
+                                        <h4 className="text-lg font-bold text-foreground">Belgeler & Dosyalar</h4>
                                     </div>
                                     <FileUpload saleId={editingId} onUploadComplete={() => {
                                         setRefreshDocs(prev => prev + 1);
@@ -550,7 +570,7 @@ export default function SalesPage() {
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    className="flex-1 h-14 rounded-2xl font-bold text-gray-500 hover:bg-gray-50 border-gray-100 transition-all"
+                                    className="flex-1 h-14 rounded-2xl font-bold text-muted-foreground hover:bg-muted border-border transition-all"
                                     onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
                                 >
                                     İptal
@@ -569,15 +589,15 @@ export default function SalesPage() {
             {/* Quick Document View Modal */}
             {showDocsId && (
                 <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-                        <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                    <div className="bg-card w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+                        <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-muted/50">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900">Satış Belgeleri</h3>
-                                <p className="text-sm text-gray-500 font-medium">{sales.find(s => s.id === showDocsId)?.customerName}</p>
+                                <h3 className="text-xl font-bold text-foreground">Satış Belgeleri</h3>
+                                <p className="text-sm text-muted-foreground font-medium">{sales.find(s => s.id === showDocsId)?.customerName}</p>
                             </div>
                             <button
                                 onClick={() => setShowDocsId(null)}
-                                className="p-3 bg-white text-gray-400 hover:text-gray-600 rounded-2xl border border-gray-100 shadow-sm transition-all"
+                                className="p-3 bg-card text-muted-foreground hover:text-gray-600 rounded-2xl border border-border shadow-sm transition-all"
                             >
                                 <X size={20} />
                             </button>

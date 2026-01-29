@@ -1,14 +1,15 @@
----
-name: feature-adviser
-description: Analyzes the project and provides architectural or feature suggestions without writing code.
----
+# Feature Advisor Skill
 
-# Project Feature Adviser
+Sistem fonksiyonlarını genişletmek, kullanıcı deneyimini iyileştirmek ve iş değerini artırmak için stratejik öneriler sunar.
 
-This skill is designed to act as a consultant for the Sigorta CRM project. When referenced, it should:
+## Çalışma Prensibi:
+1. **Mevcut Durum Analizi:** `task.md` ve veritabanı şemasını inceleyerek neyin eksik olduğunu belirle.
+2. **İş Değeri Odaklılık:** Önerilen her özellik için "Neden yapmalıyız?" sorusuna yanıt ver.
+3. **Teknik Fizibilite:** Önerilerin mevcut teknoloji yığınına (React, Node, Prisma) uygunluğunu kontrol et.
+4. **Modülerlik:** Özellikleri aşamalı (Faz) olarak planla.
 
-1.  **Analyze Context**: frequent patterns, existing architecture (React + Node/Express + Prisma), and user goals.
-2.  **Suggest Improvements**: Propose features, refactors, or best practices appropriate for a CRM.
-3.  **No Code Implementation**: Focus on *what* and *why*, not the implementation details.
-
-[User to add specific areas of focus or constraints]
+## Öneri Formatı:
+- **Özellik Adı:** Kısa ve öz.
+- **Problem/İhtiyaç:** Kullanıcının hangi acısını dindiriyor?
+- **Çözüm:** Teknik ve fonksiyonel özet.
+- **KPI:** Başarı nasıl ölçülecek?

@@ -6,7 +6,14 @@ import { Role } from '../utils/constants';
 export const getCustomers = async (req: Request, res: Response) => {
     try {
         const { search } = req.query;
-        const where: any = {};
+        const where: {
+            OR?: Array<{
+                name?: { contains: string; mode: 'insensitive' };
+                email?: { contains: string; mode: 'insensitive' };
+                phone?: { contains: string; mode: 'insensitive' };
+                identityNumber?: { contains: string; mode: 'insensitive' };
+            }>;
+        } = {};
 
         if (search && typeof search === 'string') {
             where.OR = [
@@ -37,6 +44,7 @@ export const getCustomers = async (req: Request, res: Response) => {
 // Customer 360 View - Get detailed profile
 export const getCustomerProfile = async (req: Request, res: Response) => {
     const { id } = req.params;
+    const currentUser = req.user!;
     try {
         const customer = await prisma.customer.findUnique({
             where: { id },
@@ -62,6 +70,17 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Müşteri bulunamadı.' });
         }
 
+        // --- SECURITY CHECK ---
+        // If not Admin, check if customer has any relationship with the user's branch
+        if (currentUser.role !== Role.ADMIN) {
+            const hasAccess = customer.sales.some(s => s.branchId === currentUser.branchId) ||
+                customer.tasks.some(t => t.assignedToId === currentUser.id);
+
+            if (!hasAccess) {
+                return res.status(403).json({ error: 'Bu müşteri bilgilerini görüntüleme yetkiniz yok.' });
+            }
+        }
+
         // Calculate loyalty score (dummy logic for now: sales count * 10, max 100)
         const score = Math.min(customer.sales.length * 10, 100);
 
@@ -83,8 +102,8 @@ export const createCustomer = async (req: Request, res: Response) => {
             data: { name, email, phone, identityNumber, address, notes }
         });
         res.status(201).json(customer);
-    } catch (error: any) {
-        if (error.code === 'P2002') {
+    } catch (error: unknown) {
+        if ((error as any).code === 'P2002') {
             return res.status(400).json({ error: 'Bu TCKN ile kayıtlı başka bir müşteri bulunmaktadır.' });
         }
         res.status(500).json({ error: 'Server error' });
