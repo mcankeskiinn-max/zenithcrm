@@ -86,14 +86,11 @@ app.use(express.json());
 // app.use('/api/auth/login', authLimiter);
 
 app.get('/', async (req, res) => {
-    try {
-        const branchCount = await prisma.branch.count();
-        const ptCount = await prisma.policyType.count();
-        res.json({ message: 'Sigorta CRM API is running', branchCount, ptCount });
-    } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Internal server error';
-        res.status(500).json({ error: message });
-    }
+    res.json({
+        status: 'ok',
+        message: 'Sigorta CRM API is running',
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.use('/api/auth', authRoutes);
