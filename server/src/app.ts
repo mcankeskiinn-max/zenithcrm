@@ -55,6 +55,8 @@ const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5173/',
     'http://127.0.0.1:5173',
+    'https://zenithcrm-w79r.vercel.app',
+    'https://zenithcrm-w79r-git-main-muratcans-projects-ad29ce1e.vercel.app',
     process.env.CORS_ORIGIN,
     process.env.CLIENT_URL
 ].filter(Boolean) as string[];
