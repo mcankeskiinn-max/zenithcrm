@@ -291,12 +291,19 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            console.log('User NOT found for forgot password:', searchEmail);
-            // Return success message to avoid email enumeration security risk
-            return res.json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi' });
+            console.log('SEARCH_FAIL: User NOT found in database for:', searchEmail);
+            // Check if any users exist to verify DB connection
+            const count = await prisma.user.count();
+            console.log('Total users in DB:', count);
+
+            return res.json({
+                message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
+                debug_status: 'NOT_FOUND_IN_DB',
+                db_total_users: count
+            });
         }
 
-        console.log('User found! Proceeding to generate token for:', user.email);
+        console.log('SEARCH_SUCCESS: User found:', user.email);
 
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 3600000); // 1 hour
@@ -312,7 +319,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
         res.json({
             message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
-            debug_id: 'IDENTIFIER_CODE_V2'
+            debug_id: 'V3_FOUND_AND_SENT',
+            debug_status: 'USER_FOUND'
         });
     } catch (error) {
         console.error('ForgotPassword error:', error);
