@@ -282,14 +282,20 @@ export const forgotPassword = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'E-posta adresi gereklidir' });
         }
 
+        const searchEmail = email.toString().trim().toLowerCase();
+        console.log('Forgot password request for email:', searchEmail);
+
         const user = await prisma.user.findUnique({
-            where: { email: email.toString().trim().toLowerCase() }
+            where: { email: searchEmail }
         });
 
-        // For security, always return the same message
         if (!user) {
+            console.log('User NOT found for forgot password:', searchEmail);
+            // Return success message to avoid email enumeration security risk
             return res.json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi' });
         }
+
+        console.log('User found! Proceeding to generate token for:', user.email);
 
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 3600000); // 1 hour
