@@ -277,6 +277,7 @@ export const getMe = async (req: Request, res: Response) => {
 
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
+        console.log('!!! FORGOT PASSWORD CLICKED !!!');
         const { email } = req.body;
         if (!email) {
             return res.status(400).json({ error: 'E-posta adresi gereklidir' });
@@ -307,9 +308,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
         });
 
         const emailResult = await EmailService.sendResetPasswordEmail(user.email, token);
-        console.log('Email send result for:', user.email, emailResult);
+        console.log('>>> [RESEND_SUCCESS] Result:', JSON.stringify(emailResult));
 
-        res.json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi' });
+        res.json({
+            message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
+            debug_id: 'IDENTIFIER_CODE_V2'
+        });
     } catch (error) {
         console.error('ForgotPassword error:', error);
         res.status(500).json({ error: 'İşlem başarısız oldu' });
