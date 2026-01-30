@@ -24,7 +24,8 @@ export const login = async (req: Request, res: Response) => {
         const email = req.body.email?.toString().trim().toLowerCase();
         const password = req.body.password?.toString().trim();
 
-        console.log('Login attempt for:', email, '(password length:', password?.length, ')');
+        const charCodes = password ? [...password].map(c => c.charCodeAt(0)).join(',') : 'empty';
+        console.log('Login attempt for:', email, '(length:', password?.length, ') CharCodes:', charCodes);
 
         const user = await prisma.user.findUnique({
             where: { email },
