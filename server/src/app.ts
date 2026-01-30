@@ -32,18 +32,18 @@ const app = express();
 app.use(helmet());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // Serve uploads
 
-// Rate limiting
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: { error: 'Too many requests, please try again later.' }
-});
+// Rate limiting - TEMPORARILY DISABLED FOR DEVELOPMENT
+// const apiLimiter = rateLimit({
+//     windowMs: 15 * 60 * 1000,
+//     max: 1000, // Increased from 100 to prevent blocking during normal use
+//     message: { error: 'Too many requests, please try again later.' }
+// });
 
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10, // Slightly more generous than 5 but still strict
-    message: { error: 'Too many login attempts, please try again later.' }
-});
+// const authLimiter = rateLimit({
+//     windowMs: 15 * 60 * 1000,
+//     max: 50, // Increased from 10 to allow for development testing
+//     message: { error: 'Too many login attempts, please try again later.' }
+// });
 
 // App configuration
 console.log('CORS Setup - ENV CORS_ORIGIN:', process.env.CORS_ORIGIN);
@@ -81,9 +81,9 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Apply rate limits
-app.use('/api/', apiLimiter);
-app.use('/api/auth/login', authLimiter);
+// Apply rate limits - TEMPORARILY DISABLED FOR DEVELOPMENT
+// app.use('/api/', apiLimiter);
+// app.use('/api/auth/login', authLimiter);
 
 app.get('/', async (req, res) => {
     try {
