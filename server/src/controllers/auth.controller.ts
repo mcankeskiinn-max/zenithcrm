@@ -277,33 +277,32 @@ export const getMe = async (req: Request, res: Response) => {
 
 export const forgotPassword = async (req: Request, res: Response) => {
     try {
-        console.log('!!! FORGOT PASSWORD CLICKED !!!');
+        console.log('!!! V5_DEBUG: FORGOT PASSWORD REQUEST START !!!');
         const { email } = req.body;
         if (!email) {
             return res.status(400).json({ error: 'E-posta adresi gereklidir' });
         }
 
         const searchEmail = email.toString().trim().toLowerCase();
-        console.log('Forgot password request for email:', searchEmail);
+        console.log('!!! V5_DEBUG: Searching for:', searchEmail);
 
         const user = await prisma.user.findUnique({
             where: { email: searchEmail }
         });
 
         if (!user) {
-            console.log('SEARCH_FAIL: User NOT found in database for:', searchEmail);
-            // Check if any users exist to verify DB connection
-            const count = await prisma.user.count();
-            console.log('Total users in DB:', count);
+            console.log('!!! V5_DEBUG: SEARCH_FAIL - No user with this email found:', searchEmail);
+            const total = await prisma.user.count();
+            console.log('!!! V5_DEBUG: Total users in database currently:', total);
 
             return res.json({
                 message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
-                debug_status: 'NOT_FOUND_IN_DB',
-                db_total_users: count
+                _debug: 'V5_NOT_FOUND',
+                _count: total
             });
         }
 
-        console.log('SEARCH_SUCCESS: User found:', user.email);
+        console.log('!!! V5_DEBUG: SEARCH_SUCCESS - User found:', user.email);
 
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 3600000); // 1 hour
@@ -314,17 +313,21 @@ export const forgotPassword = async (req: Request, res: Response) => {
             create: { email: user.email, token, expiresAt }
         });
 
+        console.log('!!! V5_DEBUG: Calling EmailService.sendResetPasswordEmail...');
         const emailResult = await EmailService.sendResetPasswordEmail(user.email, token);
-        console.log('>>> [RESEND_SUCCESS] Result:', JSON.stringify(emailResult));
+        console.log('!!! V5_DEBUG: EmailService result:', JSON.stringify(emailResult));
 
-        res.json({
+        return res.json({
             message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
-            debug_id: 'V3_FOUND_AND_SENT',
-            debug_status: 'USER_FOUND'
+            _debug: 'V5_SUCCESS_SENT',
+            _timestamp: new Date().toISOString()
         });
     } catch (error) {
-        console.error('ForgotPassword error:', error);
-        res.status(500).json({ error: 'İşlem başarısız oldu' });
+        console.error('!!! V5_DEBUG: ERROR in forgotPassword:', error);
+        return res.status(500).json({
+            error: 'İşlem başarısız oldu',
+            _debug: 'V5_CATCH_ERROR'
+        });
     }
 };
 
