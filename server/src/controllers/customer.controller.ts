@@ -62,7 +62,14 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
                     },
                     orderBy: { dueDate: 'desc' }
                 },
-                documents: true
+                documents: true,
+                _count: {
+                    select: {
+                        sales: true,
+                        tasks: true,
+                        documents: true
+                    }
+                }
             }
         });
 

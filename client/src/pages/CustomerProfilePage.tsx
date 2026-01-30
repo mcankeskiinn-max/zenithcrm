@@ -197,7 +197,7 @@ export default function CustomerProfilePage() {
                                     <TrendingUp size={16} />
                                     <span className="text-xs font-bold">Poliçe Sayısı</span>
                                 </div>
-                                <span className="font-black text-lg">{customer._count.sales}</span>
+                                <span className="font-black text-lg">{customer._count?.sales || 0}</span>
                             </div>
                         </div>
                     </div>
