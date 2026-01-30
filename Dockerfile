@@ -1,5 +1,5 @@
 # Multi-stage build for optimized production image
-FROM node:24-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN npm install -D typescript @types/node
 RUN npx tsc
 
 # Production stage
-FROM node:24-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 

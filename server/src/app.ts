@@ -90,9 +90,8 @@ app.use(express.json());
 app.get('/', async (req, res) => {
     res.json({
         status: 'ok',
-        message: 'Sigorta CRM API is running',
-        version: '1.2.0-debug',
-        api_commit: 'ultra-detailed-logging',
+        message: 'FORCED_UPDATE_V3 - Sigorta CRM API',
+        version: '1.2.3',
         timestamp: new Date().toISOString()
     });
 });
