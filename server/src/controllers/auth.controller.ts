@@ -21,8 +21,10 @@ export const login = async (req: Request, res: Response) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { email, password } = req.body;
-        console.log('Login attempt for:', email);
+        const email = req.body.email?.toString().trim().toLowerCase();
+        const password = req.body.password?.toString().trim();
+
+        console.log('Login attempt for:', email, '(password length:', password?.length, ')');
 
         const user = await prisma.user.findUnique({
             where: { email },
@@ -30,7 +32,7 @@ export const login = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            console.log('User not found:', email);
+            console.log('User NOT found in DB:', email);
             return res.status(401).json({
                 error: 'Invalid credentials',
                 code: 'INVALID_CREDENTIALS'
@@ -38,7 +40,7 @@ export const login = async (req: Request, res: Response) => {
         }
 
         if (!user.isActive) {
-            console.log('User inactive:', email);
+            console.log('User is inactive:', email);
             return res.status(403).json({
                 error: 'Account deactivated',
                 code: 'ACCOUNT_DEACTIVATED'
@@ -46,10 +48,10 @@ export const login = async (req: Request, res: Response) => {
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log('Password valid:', isPasswordValid);
+        console.log('Password comparison result:', isPasswordValid);
 
         if (!isPasswordValid) {
-            // ... (failed attempt logic stays same)
+            console.log('Password mismatch for user:', email);
             return res.status(401).json({
                 error: 'Invalid credentials',
                 code: 'INVALID_CREDENTIALS'
