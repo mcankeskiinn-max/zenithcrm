@@ -44,6 +44,7 @@
     "@supabase/supabase-js": "^2.93.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/nodemailer": "^7.0.9",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
@@ -56,6 +57,7 @@
     "mathjs": "^15.1.0",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.13",
     "pdfkit": "^0.17.2",
     "tesseract.js": "^7.0.0",
     "xlsx": "^0.18.5"

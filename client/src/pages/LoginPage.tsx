@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -146,7 +146,7 @@ export default function LoginPage() {
                                 <input type="checkbox" className="w-4 h-4 rounded border-border bg-muted text-emerald-600 focus:ring-emerald-500 transition-all" />
                                 <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">Beni Hatırla</span>
                             </label>
-                            <a href="#" className="text-sm font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">Şifremi Unuttum</a>
+                            <Link to="/forgot-password" className="text-sm font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">Şifremi Unuttum</Link>
                         </div>
 
                         {error && (

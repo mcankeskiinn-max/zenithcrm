@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import { body, validationResult } from 'express-validator';
 import { Role } from '../utils/constants';
 import { logAudit } from '../utils/audit.util';
+import { EmailService } from '../services/email.service';
+import crypto from 'crypto';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME = 15 * 60 * 1000; // 15 dakika
@@ -270,6 +272,81 @@ export const getMe = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('GetMe error:', error);
         res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'E-posta adresi gereklidir' });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { email: email.toString().trim().toLowerCase() }
+        });
+
+        // For security, always return the same message
+        if (!user) {
+            return res.json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi' });
+        }
+
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 3600000); // 1 hour
+
+        await prisma.passwordResetToken.upsert({
+            where: { email: user.email },
+            update: { token, expiresAt },
+            create: { email: user.email, token, expiresAt }
+        });
+
+        await EmailService.sendResetPasswordEmail(user.email, token);
+
+        res.json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi' });
+    } catch (error) {
+        console.error('ForgotPassword error:', error);
+        res.status(500).json({ error: 'İşlem başarısız oldu' });
+    }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+    try {
+        const { token, password } = req.body;
+
+        if (!token || !password) {
+            return res.status(400).json({ error: 'Token ve yeni şifre gereklidir' });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'Yeni şifre en az 6 karakter olmalıdır' });
+        }
+
+        const resetToken = await prisma.passwordResetToken.findUnique({
+            where: { token }
+        });
+
+        if (!resetToken || resetToken.expiresAt < new Date()) {
+            return res.status(400).json({ error: 'Geçersiz veya süresi dolmuş bağlantı' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await prisma.user.update({
+            where: { email: resetToken.email },
+            data: {
+                password: hashedPassword,
+                passwordChangedAt: new Date()
+            }
+        });
+
+        await prisma.passwordResetToken.delete({
+            where: { token }
+        });
+
+        res.json({ message: 'Şifreniz başarıyla sıfırlandı. Giriş yapabilirsiniz.' });
+    } catch (error) {
+        console.error('ResetPassword error:', error);
+        res.status(500).json({ error: 'İşlem başarısız oldu' });
     }
 };
 

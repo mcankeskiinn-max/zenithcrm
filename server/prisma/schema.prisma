@@ -286,6 +286,18 @@ model SalesTarget {
   @@map("sales_targets")
 }
 
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  email     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+  @@map("password_reset_tokens")
+}
+
 enum Role {
   ADMIN
   MANAGER
