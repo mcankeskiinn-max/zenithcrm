@@ -16,9 +16,13 @@ import {
     ArrowLeft,
     TrendingUp,
     Download,
-    ExternalLink
+    ExternalLink,
+    Edit2,
+    Save,
+    X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface CustomerProfile {
     id: string;
@@ -43,6 +47,15 @@ export default function CustomerProfilePage() {
     const { id } = useParams<{ id: string }>();
     const [customer, setCustomer] = useState<CustomerProfile | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editForm, setEditForm] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        address: '',
+        notes: ''
+    });
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (id) fetchProfile();
@@ -55,10 +68,34 @@ export default function CustomerProfilePage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setCustomer(res.data);
+            setEditForm({
+                name: res.data.name || '',
+                phone: res.data.phone || '',
+                email: res.data.email || '',
+                address: res.data.address || '',
+                notes: res.data.notes || ''
+            });
         } catch (error) {
             console.error('Failed to fetch profile', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        setSaving(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.patch(`/api/customers/${id}`, editForm, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await fetchProfile();
+            setIsEditModalOpen(false);
+        } catch (error) {
+            console.error('Failed to update profile', error);
+            alert('Profil güncellenirken bir hata oluştu.');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -88,17 +125,27 @@ export default function CustomerProfilePage() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header / Breadcrumb */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => window.history.back()}
-                    className="p-3 bg-card border border-border rounded-2xl text-muted-foreground hover:text-emerald-600 hover:border-emerald-100 transition-all shadow-sm"
-                >
-                    <ArrowLeft size={20} />
-                </button>
-                <div>
-                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Müşteri 360 Görünümü</h1>
-                    <p className="text-sm text-muted-foreground font-medium">Bütünsel müşteri verileri ve ilişki yönetimi</p>
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => window.history.back()}
+                        className="p-3 bg-card border border-border rounded-2xl text-muted-foreground hover:text-emerald-600 hover:border-emerald-100 transition-all shadow-sm"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Müşteri 360 Görünümü</h1>
+                        <p className="text-sm text-muted-foreground font-medium">Bütünsel müşteri verileri ve ilişki yönetimi</p>
+                    </div>
                 </div>
+
+                <Button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="h-11 bg-white border border-border text-foreground hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-100 font-bold rounded-2xl shadow-sm transition-all gap-2 px-6"
+                >
+                    <Edit2 size={18} />
+                    Profil Bilgilerini Güncelle
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -330,6 +377,104 @@ export default function CustomerProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-card w-full max-w-lg rounded-[32px] border border-border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-border flex items-center justify-between bg-muted/30">
+                            <div>
+                                <h3 className="text-2xl font-black text-foreground tracking-tight">Profil Bilgilerini Güncelle</h3>
+                                <p className="text-sm text-muted-foreground font-medium">Müşteri temel verilerini düzenleyin</p>
+                            </div>
+                            <button
+                                onClick={() => setIsEditModalOpen(false)}
+                                className="p-2 hover:bg-muted rounded-full text-muted-foreground transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Müşteri Ad Soyad</label>
+                                <Input
+                                    value={editForm.name}
+                                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                    className="h-12 rounded-2xl bg-muted/50 border-none focus:ring-4 focus:ring-emerald-500/5"
+                                    placeholder="İsim giriniz..."
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Telefon</label>
+                                    <Input
+                                        value={editForm.phone}
+                                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                                        className="h-12 rounded-2xl bg-muted/50 border-none focus:ring-4 focus:ring-emerald-500/5"
+                                        placeholder="05..."
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">E-Posta</label>
+                                    <Input
+                                        value={editForm.email}
+                                        onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                                        className="h-12 rounded-2xl bg-muted/50 border-none focus:ring-4 focus:ring-emerald-500/5"
+                                        placeholder="mail@örnek.com"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Adres</label>
+                                <textarea
+                                    value={editForm.address}
+                                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                                    rows={3}
+                                    className="w-full p-4 rounded-2xl bg-muted/50 border-none focus:ring-4 focus:ring-emerald-500/5 outline-none text-sm text-foreground transition-all resize-none"
+                                    placeholder="İkametgah adresi..."
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Özel Notlar</label>
+                                <Input
+                                    value={editForm.notes}
+                                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                                    className="h-12 rounded-2xl bg-muted/50 border-none focus:ring-4 focus:ring-emerald-500/5"
+                                    placeholder="Müşteri hakkında kısa not..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-8 bg-muted/30 border-t border-border flex items-center gap-3">
+                            <Button
+                                onClick={() => setIsEditModalOpen(false)}
+                                variant="ghost"
+                                className="flex-1 h-12 rounded-2xl font-bold text-muted-foreground"
+                            >
+                                İptal Et
+                            </Button>
+                            <Button
+                                onClick={handleSaveProfile}
+                                disabled={saving}
+                                className="flex-[2] h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 active:translate-y-0 gap-2"
+                            >
+                                {saving ? (
+                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        <Save size={18} />
+                                        Değişiklikleri Kaydet
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
