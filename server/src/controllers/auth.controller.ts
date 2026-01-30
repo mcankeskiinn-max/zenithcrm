@@ -300,7 +300,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
             create: { email: user.email, token, expiresAt }
         });
 
-        await EmailService.sendResetPasswordEmail(user.email, token);
+        const emailResult = await EmailService.sendResetPasswordEmail(user.email, token);
+        console.log('Email send result for:', user.email, emailResult);
 
         res.json({ message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi' });
     } catch (error) {
