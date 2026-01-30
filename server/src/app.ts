@@ -88,18 +88,11 @@ app.use(express.json());
 // app.use('/api/auth/login', authLimiter);
 
 app.get('/', async (req, res) => {
-    try {
-        const users = await prisma.user.findMany({ select: { email: true } });
-        res.json({
-            status: 'ok',
-            message: 'FORCED_UPDATE_V4 - Debug Mode',
-            version: '1.2.4',
-            db_users: users.map(u => u.email),
-            timestamp: new Date().toISOString()
-        });
-    } catch (e) {
-        res.json({ status: 'error', error: 'DB Connection Failed' });
-    }
+    res.json({
+        status: 'ok',
+        message: 'Sigorta CRM API is running',
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.use('/api/auth', authRoutes);
