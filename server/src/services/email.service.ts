@@ -16,7 +16,7 @@ export class EmailService {
         const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
         const mailOptions = {
-            from: '"ZenithCRM" <noreply@zenithcrm.com>',
+            from: 'ZenithCRM <onboarding@resend.dev>',
             to: email,
             subject: 'Şifre Sıfırlama İsteği - ZenithCRM',
             html: `
