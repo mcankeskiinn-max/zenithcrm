@@ -91,6 +91,8 @@ app.get('/', async (req, res) => {
     res.json({
         status: 'ok',
         message: 'Sigorta CRM API is running',
+        version: '1.2.0-debug',
+        api_commit: 'ultra-detailed-logging',
         timestamp: new Date().toISOString()
     });
 });
