@@ -25,19 +25,19 @@ export default function Layout() {
         if (userStr) setUser(JSON.parse(userStr));
 
         const titles: Record<string, string> = {
-            '/dashboard': 'Genel Bakış',
-            '/dashboard/sales': 'Satış Analizi',
-            '/dashboard/cancellations': 'İptal Analizi',
-            '/policy-types': 'Branş Yönetimi',
-            '/users': 'Sistem Kullanıcıları',
-            '/sales': 'Satış & Portföy',
-            '/commissions': 'Varsayılan Oranlar',
-            '/tasks': 'Görev & Ajanda',
-            '/analytics': 'Gelişmiş Analiz',
-            '/commission-rules': 'Komisyon Motoru',
-            '/messaging': 'İç İletişim & Mesajlar',
-            '/audit': 'Sistem Günlükleri',
-            '/settings': 'Ayarlar'
+            '/app/dashboard': 'Genel Bakış',
+            '/app/dashboard/sales': 'Satış Analizi',
+            '/app/dashboard/cancellations': 'İptal Analizi',
+            '/app/policy-types': 'Branş Yönetimi',
+            '/app/users': 'Sistem Kullanıcıları',
+            '/app/sales': 'Satış & Portföy',
+            '/app/commissions': 'Varsayılan Oranlar',
+            '/app/tasks': 'Görev & Ajanda',
+            '/app/analytics': 'Gelişmiş Analiz',
+            '/app/commission-rules': 'Komisyon Motoru',
+            '/app/messaging': 'İç İletişim & Mesajlar',
+            '/app/audit': 'Sistem Günlükleri',
+            '/app/settings': 'Ayarlar'
         };
         setPageTitle(titles[location.pathname] || 'ZenithCRM');
         fetchNotifications();
@@ -235,7 +235,7 @@ export default function Layout() {
                                             <div className="absolute right-0 mt-2 w-48 bg-card rounded-2xl shadow-2xl border border-border py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
                                                 <button
                                                     onClick={() => {
-                                                        navigate('/settings');
+                                                        navigate('/app/settings');
                                                         setIsProfileMenuOpen(false);
                                                     }}
                                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted hover:text-primary transition-all"

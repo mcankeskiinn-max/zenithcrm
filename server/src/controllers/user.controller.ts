@@ -6,9 +6,12 @@ import { Role } from '../utils/constants';
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user!;
         const { branchId, role } = req.query;
 
-        const where: { branchId?: string; role?: Role } = {};
+        const where: { tenantId: string; branchId?: string; role?: Role } = {
+            tenantId: currentUser.tenantId
+        };
         if (branchId) where.branchId = String(branchId);
         if (role) where.role = role as Role;
 
@@ -32,6 +35,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
     const { email, password, name, role, branchId } = req.body;
+    const currentUser = req.user!;
 
     try {
         const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -47,16 +51,17 @@ export const createUser = async (req: Request, res: Response) => {
                 password: hashedPassword,
                 name,
                 role: (role || 'EMPLOYEE') as any,
+                tenantId: currentUser.tenantId,
                 branchId: branchId || null,
                 isActive: true,
                 failedLoginAttempts: 0
             }
         });
 
-        const currentUser = req.user;
         if (currentUser) {
             await logAudit({
                 userId: currentUser.id,
+                tenantId: currentUser.tenantId,
                 action: 'CREATE',
                 resource: 'User',
                 resourceId: user.id,
@@ -75,6 +80,7 @@ export const createUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, role, branchId, password, isActive } = req.body;
+    const currentUser = req.user!;
 
     try {
         const data: {
@@ -95,15 +101,21 @@ export const updateUser = async (req: Request, res: Response) => {
             data.passwordChangedAt = new Date();
         }
 
+        // Verify tenant membership
+        const existing = await prisma.user.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (!existing) return res.status(404).json({ error: 'User not found' });
+
         const user = await prisma.user.update({
             where: { id },
             data
         });
 
-        const currentUser = req.user;
         if (currentUser) {
             await logAudit({
                 userId: currentUser.id,
+                tenantId: currentUser.tenantId,
                 action: 'UPDATE',
                 resource: 'User',
                 resourceId: id,
@@ -121,23 +133,45 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
     const { id } = req.params;
+    const currentUser = req.user!;
 
     try {
+        // Verify tenant membership
+        const userToDelete = await prisma.user.findFirst({
+            where: { id, tenantId: currentUser.tenantId },
+            include: {
+                _count: {
+                    select: { sales: true }
+                }
+            }
+        });
+
+        if (!userToDelete) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+
+        // Prevent deletion if user has sales
+        if (userToDelete._count.sales > 0) {
+            return res.status(400).json({
+                error: 'Bu kullanıcının kaydettiği poliçeler/satışlar var. Veri bütünlüğü için silinemez. Bunun yerine kullanıcıyı pasif yapabilirsiniz.'
+            });
+        }
+
         await prisma.user.delete({ where: { id } });
 
-        const currentUser = req.user;
         if (currentUser) {
             await logAudit({
                 userId: currentUser.id,
+                tenantId: currentUser.tenantId,
                 action: 'DELETE',
                 resource: 'User',
                 resourceId: id
             });
         }
 
-        res.json({ message: 'User deleted successfully' });
-    } catch (error) {
+        res.json({ message: 'Kullanıcı başarıyla silindi' });
+    } catch (error: any) {
         console.error('DeleteUser error:', error);
-        res.status(500).json({ error: 'Failed to delete user' });
+        res.status(500).json({ error: 'Kullanıcı silinemedi. Lütfen sistem yöneticisine danışın.' });
     }
 };

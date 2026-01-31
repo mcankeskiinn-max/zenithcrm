@@ -145,9 +145,33 @@ export default function Dashboard() {
         </div>
     );
 
+    const showPasswordNotice = !user.passwordChangedAt;
+
     return (
-        <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="space-y-8 pb-12 animate-in fade-in duration-700">
+            {/* Security Alert for Temporary Password */}
+            {showPasswordNotice && (
+                <div className="bg-amber-50 border-2 border-amber-200 rounded-[32px] p-6 flex items-center justify-between gap-6 shadow-xl shadow-amber-100/50 animate-bounce-subtle">
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center text-white shadow-lg shadow-amber-200">
+                            <ShieldAlert size={28} />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black text-amber-900 leading-tight">Güvenlik Uyarısı</h3>
+                            <p className="text-sm font-medium text-amber-700/80">Geçici şifre ile giriş yaptınız. Hesabınızın güvenliği için lütfen şifrenizi değiştirin.</p>
+                        </div>
+                    </div>
+                    <Link
+                        to="/app/settings?tab=security"
+                        className="h-12 px-8 bg-amber-900 text-white rounded-2xl font-black text-sm hover:bg-black transition-all shadow-lg flex items-center justify-center gap-2 whitespace-nowrap"
+                    >
+                        Şifre Değiştir
+                        <ChevronRight size={18} />
+                    </Link>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <MetricCard
                     title="Aktif Poliçeler"
                     value={data?.cards.activePolicies}
@@ -470,49 +494,51 @@ export default function Dashboard() {
             </div>
 
             {/* Target Modal */}
-            {isTargetModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-card w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-border animate-in fade-in zoom-in duration-200">
-                        <h3 className="text-2xl font-black text-foreground mb-2">Aylık Hedef Belirle</h3>
-                        <p className="text-sm text-muted-foreground font-medium mb-6">
-                            {new Date().toLocaleString('tr-TR', { month: 'long', year: 'numeric' })} dönemi için
-                            şube satış hedefini belirleyin.
-                        </p>
-                        <form onSubmit={handleSetTarget}>
-                            <div className="space-y-4 mb-8">
-                                <div>
-                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-2">Hedef Tutar (₺)</label>
-                                    <input
-                                        autoFocus
-                                        type="number"
-                                        required
-                                        value={targetAmount}
-                                        onChange={(e) => setTargetAmount(e.target.value)}
-                                        className="w-full bg-muted border-none rounded-2xl px-5 py-4 text-lg font-bold focus:ring-2 focus:ring-amber-500 transition-all"
-                                        placeholder="Örn: 500000"
-                                    />
+            {
+                isTargetModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <div className="bg-card w-full max-w-md rounded-[32px] p-8 shadow-2xl border border-border animate-in fade-in zoom-in duration-200">
+                            <h3 className="text-2xl font-black text-foreground mb-2">Aylık Hedef Belirle</h3>
+                            <p className="text-sm text-muted-foreground font-medium mb-6">
+                                {new Date().toLocaleString('tr-TR', { month: 'long', year: 'numeric' })} dönemi için
+                                şube satış hedefini belirleyin.
+                            </p>
+                            <form onSubmit={handleSetTarget}>
+                                <div className="space-y-4 mb-8">
+                                    <div>
+                                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block mb-2">Hedef Tutar (₺)</label>
+                                        <input
+                                            autoFocus
+                                            type="number"
+                                            required
+                                            value={targetAmount}
+                                            onChange={(e) => setTargetAmount(e.target.value)}
+                                            className="w-full bg-muted border-none rounded-2xl px-5 py-4 text-lg font-bold focus:ring-2 focus:ring-amber-500 transition-all"
+                                            placeholder="Örn: 500000"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsTargetModalOpen(false)}
-                                    className="flex-1 px-6 py-4 rounded-2xl font-bold text-muted-foreground hover:bg-muted transition-all"
-                                >
-                                    İptal
-                                </button>
-                                <button
-                                    disabled={isSubmitting}
-                                    type="submit"
-                                    className="flex-1 bg-amber-500 text-white px-6 py-4 rounded-2xl font-extrabold hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50"
-                                >
-                                    {isSubmitting ? 'Kaydediliyor...' : 'Hedefi Kaydet'}
-                                </button>
-                            </div>
-                        </form>
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsTargetModalOpen(false)}
+                                        className="flex-1 px-6 py-4 rounded-2xl font-bold text-muted-foreground hover:bg-muted transition-all"
+                                    >
+                                        İptal
+                                    </button>
+                                    <button
+                                        disabled={isSubmitting}
+                                        type="submit"
+                                        className="flex-1 bg-amber-500 text-white px-6 py-4 rounded-2xl font-extrabold hover:bg-amber-600 transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50"
+                                    >
+                                        {isSubmitting ? 'Kaydediliyor...' : 'Hedefi Kaydet'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

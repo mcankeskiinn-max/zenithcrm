@@ -14,17 +14,18 @@ export class CommissionEngine {
     /**
      * Calculate commission for a given sale and LOG it.
      */
-    async calculateAndLog(saleId: string, amount: number, branchId: string, policyTypeId: string, employeeId: string, createdAt: Date = new Date()): Promise<number> {
-        const result = await this.evaluate(amount, branchId, policyTypeId, createdAt);
+    async calculateAndLog(tenantId: string, saleId: string, amount: number, branchId: string, policyTypeId: string, employeeId: string, createdAt: Date = new Date()): Promise<number> {
+        const result = await this.evaluate(tenantId, amount, branchId, policyTypeId, createdAt);
 
         if (result.amount > 0) {
             // Using delete and create to avoid unique constraint issues if id was manually set before
-            await prisma.commissionLog.deleteMany({ where: { saleId } });
+            await prisma.commissionLog.deleteMany({ where: { saleId, tenantId } });
             await prisma.commissionLog.create({
                 data: {
                     saleId,
                     amount: Number(result.amount),
-                    employeeId
+                    employeeId,
+                    tenantId
                 }
             });
         } else {
@@ -37,14 +38,14 @@ export class CommissionEngine {
     /**
      * Simulate commission calculation without side effects.
      */
-    async simulate(amount: number, branchId: string, policyTypeId: string, date: Date = new Date()): Promise<any> {
-        return this.evaluate(amount, branchId, policyTypeId, date);
+    async simulate(tenantId: string, amount: number, branchId: string, policyTypeId: string, date: Date = new Date()): Promise<any> {
+        return this.evaluate(tenantId, amount, branchId, policyTypeId, date);
     }
 
     /**
      * Internal logic to find rule and calculate amount.
      */
-    private async evaluate(amount: number, branchId: string, policyTypeId: string, dateInput: Date): Promise<{ amount: number, ruleId?: string, ruleName?: string, source: 'RULE' | 'BRANCH' | 'NONE' }> {
+    private async evaluate(tenantId: string, amount: number, branchId: string, policyTypeId: string, dateInput: Date): Promise<{ amount: number, ruleId?: string, ruleName?: string, source: 'RULE' | 'BRANCH' | 'NONE' }> {
         // Normalize date to handle day-based logic without time issues
         const date = new Date(dateInput);
         date.setHours(0, 0, 0, 0);
@@ -53,6 +54,7 @@ export class CommissionEngine {
         // We'll filter and sort them in memory to ensure strict priority
         const potentialRules = await prisma.commissionRule.findMany({
             where: {
+                tenantId,
                 AND: [
                     { validFrom: { lte: new Date(dateInput.getTime() + 24 * 60 * 60 * 1000) } }, // Broad check
                     { OR: [{ validTo: null }, { validTo: { gte: date } }] },
@@ -104,7 +106,9 @@ export class CommissionEngine {
         }
 
         // 4. Fallback to branch settings
-        const branch = await prisma.branch.findUnique({ where: { id: branchId } });
+        const branch = await prisma.branch.findFirst({
+            where: { id: branchId, tenantId }
+        });
         if (branch && branch.settings) {
             try {
                 const settings = typeof branch.settings === 'string' ? JSON.parse(branch.settings) : branch.settings;

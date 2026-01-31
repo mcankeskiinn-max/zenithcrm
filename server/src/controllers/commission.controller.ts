@@ -7,10 +7,14 @@ const engine = new CommissionEngine();
 export const calculateCommission = async (req: Request, res: Response) => {
     const { saleId } = req.params;
     try {
-        const sale = await prisma.sale.findUnique({ where: { id: saleId } });
+        const currentUser = req.user!;
+        const sale = await prisma.sale.findFirst({
+            where: { id: saleId, tenantId: currentUser.tenantId }
+        });
         if (!sale) throw new Error('Sale not found');
 
         const amount = await engine.calculateAndLog(
+            currentUser.tenantId,
             saleId,
             sale.amount.toNumber(),
             sale.branchId,
@@ -28,7 +32,9 @@ export const calculateCommission = async (req: Request, res: Response) => {
 export const simulateCommission = async (req: Request, res: Response) => {
     const { amount, branchId, policyTypeId, date } = req.body;
     try {
+        const currentUser = req.user!;
         const result = await engine.simulate(
+            currentUser.tenantId,
             Number(amount),
             branchId,
             policyTypeId,
@@ -43,6 +49,7 @@ export const simulateCommission = async (req: Request, res: Response) => {
 
 export const createRule = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user!;
         const { name, branchId, policyTypeId, formula, validFrom, validTo, conditions } = req.body;
 
         const rule = await prisma.commissionRule.create({
@@ -53,7 +60,8 @@ export const createRule = async (req: Request, res: Response) => {
                 formula,
                 validFrom: new Date(validFrom),
                 validTo: validTo ? new Date(validTo) : null,
-                conditions: conditions || {}
+                conditions: conditions || {},
+                tenantId: currentUser.tenantId
             }
         });
         res.json(rule);
@@ -65,7 +73,9 @@ export const createRule = async (req: Request, res: Response) => {
 
 export const getRules = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user!;
         const rules = await prisma.commissionRule.findMany({
+            where: { tenantId: currentUser.tenantId },
             include: {
                 branch: { select: { name: true } },
                 policyType: { select: { name: true } }
@@ -81,6 +91,12 @@ export const getRules = async (req: Request, res: Response) => {
 export const deleteRule = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
+        const currentUser = req.user!;
+        const existing = await prisma.commissionRule.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (!existing) return res.status(404).json({ error: 'Rule not found' });
+
         await prisma.commissionRule.delete({ where: { id } });
         res.json({ message: 'Rule deleted' });
     } catch (error) {

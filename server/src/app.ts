@@ -23,6 +23,7 @@ import payrollRoutes from './routes/payroll.routes';
 import revenueRoutes from './routes/revenue.routes';
 import quoteRoutes from './routes/quote.routes';
 import ocrRoutes from './routes/ocr.routes';
+import tenantRoutes from './routes/tenant.routes'; // Added tenantRoutes import
 import prisma from './prisma';
 
 
@@ -114,5 +115,6 @@ app.use('/api/payroll', payrollRoutes);
 app.use('/api/revenue', revenueRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/ocr', ocrRoutes);
+app.use('/api/tenants', tenantRoutes);
 
 export default app;

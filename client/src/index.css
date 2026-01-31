@@ -104,3 +104,117 @@
 .badge-info {
   @apply bg-blue-50 text-blue-700 border border-blue-200;
 }
+
+/* Premium Aesthetics */
+.bg-noise {
+  position: relative;
+}
+
+.bg-noise::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bg-mesh {
+  background-color: white;
+  background-image:
+    radial-gradient(at 0% 0%, hsla(161, 93%, 30%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(161, 93%, 30%, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(161, 93%, 30%, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(161, 93%, 30%, 0.05) 0px, transparent 50%);
+}
+
+.dark .bg-mesh {
+  background-color: #022c22;
+  /* Deep Emerald 950 variation */
+  background-image:
+    radial-gradient(at 0% 0%, hsla(161, 93%, 30%, 0.2) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(161, 93%, 30%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsla(161, 93%, 30%, 0.2) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsla(161, 93%, 30%, 0.15) 0px, transparent 50%);
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.btn-premium {
+  @apply relative overflow-hidden transition-all duration-500 active:scale-95 px-8 py-4 rounded-full font-black text-lg inline-flex items-center gap-2;
+}
+
+.btn-premium::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transform: translateX(-100%) skewX(-15deg);
+}
+
+.btn-premium:hover::after {
+  animation: shine 0.8s ease-in-out;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes mockup-scroll {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-40%);
+  }
+}
+
+@keyframes bounce-slow {
+
+  0%,
+  100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-mockup-scroll {
+  animation: mockup-scroll 20s linear infinite alternate;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 4s infinite;
+}

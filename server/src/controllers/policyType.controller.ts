@@ -4,7 +4,9 @@ import { logAudit } from '../utils/audit.util';
 
 export const getPolicyTypes = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user!;
         const types = await prisma.policyType.findMany({
+            where: { tenantId: currentUser.tenantId },
             orderBy: { name: 'asc' }
         });
         res.json(types);
@@ -17,13 +19,17 @@ export const getPolicyTypes = async (req: Request, res: Response) => {
 export const createPolicyType = async (req: Request, res: Response) => {
     const { name } = req.body;
     try {
+        const currentUser = req.user!;
         const type = await prisma.policyType.create({
-            data: { name }
+            data: {
+                name,
+                tenantId: currentUser.tenantId
+            }
         });
-        const user = req.user;
-        if (user) {
+        if (currentUser) {
             await logAudit({
-                userId: user.id,
+                userId: currentUser.id,
+                tenantId: currentUser.tenantId,
                 action: 'CREATE',
                 resource: 'PolicyType',
                 resourceId: type.id,
@@ -39,17 +45,25 @@ export const createPolicyType = async (req: Request, res: Response) => {
 export const deletePolicyType = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
+        const currentUser = req.user!;
+        const existing = await prisma.policyType.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (!existing) return res.status(404).json({ error: 'Policy type not found' });
+
         // Check if there are sales using this policy type
-        const salesCount = await prisma.sale.count({ where: { policyTypeId: id } });
+        const salesCount = await prisma.sale.count({
+            where: { policyTypeId: id, tenantId: currentUser.tenantId }
+        });
         if (salesCount > 0) {
             return res.status(400).json({ error: 'Bu poliçe tipine bağlı satışlar olduğu için silinemez.' });
         }
 
         await prisma.policyType.delete({ where: { id } });
-        const user = req.user;
-        if (user) {
+        if (currentUser) {
             await logAudit({
-                userId: user.id,
+                userId: currentUser.id,
+                tenantId: currentUser.tenantId,
                 action: 'DELETE',
                 resource: 'PolicyType',
                 resourceId: id
@@ -65,14 +79,20 @@ export const updatePolicyType = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name } = req.body;
     try {
+        const currentUser = req.user!;
+        const existing = await prisma.policyType.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (!existing) return res.status(404).json({ error: 'Policy type not found' });
+
         const type = await prisma.policyType.update({
             where: { id },
             data: { name }
         });
-        const user = req.user;
-        if (user) {
+        if (currentUser) {
             await logAudit({
-                userId: user.id,
+                userId: currentUser.id,
+                tenantId: currentUser.tenantId,
                 action: 'UPDATE',
                 resource: 'PolicyType',
                 resourceId: id,

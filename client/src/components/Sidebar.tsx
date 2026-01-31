@@ -22,26 +22,26 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-    { icon: LayoutDashboard, label: 'Genel Bakış', path: '/dashboard', section: 'DASHBOARD' },
-    { icon: TrendingUp, label: 'Satış Analizi', path: '/dashboard/sales', section: 'DASHBOARD' },
-    { icon: AlertTriangle, label: 'İptal Analizi', path: '/dashboard/cancellations', section: 'DASHBOARD' },
-    { icon: FileText, label: 'Portföy Yönetimi', path: '/sales', section: 'MENÜ' },
-    { icon: Users, label: 'Müşteriler', path: '/customers', section: 'MENÜ' },
-    { icon: Activity, label: 'Gelişmiş Analiz', path: '/analytics', section: 'MENÜ' },
-    { icon: Scale, label: 'Teklif Karşılaştırma', path: '/quotes/compare', section: 'MENÜ' },
-    { icon: CheckSquare, label: 'Görevler', path: '/tasks', section: 'MENÜ' },
-    { icon: MessageSquare, label: 'Mesajlar', path: '/messaging', section: 'MENÜ' },
-    { icon: Users, label: 'Personel', path: '/users', section: 'YÖNETİM' },
-    { icon: Building2, label: 'Şube Yönetimi', path: '/branches', section: 'YÖNETİM' },
-    { icon: ArrowRightLeft, label: 'Branş Yönetimi', path: '/policy-types', section: 'YÖNETİM' },
-    { icon: ShieldAlert, label: 'Sistem Günlükleri', path: '/audit', section: 'YÖNETİM' },
-    { icon: ShieldCheck, label: 'Varsayılan Oranlar', path: '/commissions', section: 'FİNANS' },
-    { icon: ShieldCheck, label: 'Komisyon Motoru', path: '/commission-rules', section: 'FİNANS' },
-    { icon: FileText, label: 'Bordro / Finans', path: '/payroll', section: 'FİNANS' },
+    { icon: LayoutDashboard, label: 'Genel Bakış', path: '/app/dashboard', section: 'DASHBOARD' },
+    { icon: TrendingUp, label: 'Satış Analizi', path: '/app/dashboard/sales', section: 'DASHBOARD' },
+    { icon: AlertTriangle, label: 'İptal Analizi', path: '/app/dashboard/cancellations', section: 'DASHBOARD' },
+    { icon: FileText, label: 'Portföy Yönetimi', path: '/app/sales', section: 'MENÜ' },
+    { icon: Users, label: 'Müşteriler', path: '/app/customers', section: 'MENÜ' },
+    { icon: Activity, label: 'Gelişmiş Analiz', path: '/app/analytics', section: 'MENÜ' },
+    { icon: Scale, label: 'Teklif Karşılaştırma', path: '/app/quotes/compare', section: 'MENÜ' },
+    { icon: CheckSquare, label: 'Görevler', path: '/app/tasks', section: 'MENÜ' },
+    { icon: MessageSquare, label: 'Mesajlar', path: '/app/messaging', section: 'MENÜ' },
+    { icon: Users, label: 'Personel', path: '/app/users', section: 'YÖNETİM' },
+    { icon: Building2, label: 'Şube Yönetimi', path: '/app/branches', section: 'YÖNETİM' },
+    { icon: ArrowRightLeft, label: 'Branş Yönetimi', path: '/app/policy-types', section: 'YÖNETİM' },
+    { icon: ShieldAlert, label: 'Sistem Günlükleri', path: '/app/audit', section: 'YÖNETİM' },
+    { icon: ShieldCheck, label: 'Varsayılan Oranlar', path: '/app/commissions', section: 'FİNANS' },
+    { icon: ShieldCheck, label: 'Komisyon Motoru', path: '/app/commission-rules', section: 'FİNANS' },
+    { icon: FileText, label: 'Bordro / Finans', path: '/app/payroll', section: 'FİNANS' },
 ];
 
 const generalItems = [
-    { icon: Settings, label: 'Ayarlar', path: '/settings' },
+    { icon: Settings, label: 'Ayarlar', path: '/app/settings' },
 ];
 
 interface SidebarProps {
@@ -87,12 +87,20 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             )}>
                 <div className="p-8 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20 overflow-hidden">
-                            <img src="/logo.png" alt="ZenithCRM" className="w-full h-full object-cover" />
+                        <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20 overflow-hidden border border-border">
+                            {user?.tenant?.logo ? (
+                                <img src={user.tenant.logo} alt={user.tenant.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <Building2 size={24} />
+                            )}
                         </div>
-                        <div>
-                            <h1 className="text-xl font-bold tracking-tight text-foreground leading-none">ZenithCRM</h1>
-                            <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Pro Dashboard</span>
+                        <div className="flex flex-col">
+                            <h1 className="text-base font-bold tracking-tight text-foreground leading-tight">
+                                {user?.tenant?.name || 'ZenithCRM'}
+                            </h1>
+                            <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider opacity-60">
+                                Powered by ZenithCRM
+                            </span>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

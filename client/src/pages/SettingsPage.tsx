@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import {
     User,
@@ -21,12 +22,29 @@ export default function SettingsPage() {
     const [user, setUser] = useState<any>(null);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [tenantName, setTenantName] = useState('');
+    const [tenantLogo, setTenantLogo] = useState('');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [activeTab, setActiveTab] = useState('profile');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    // Sync activeTab with searchParams
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab && tab !== activeTab) {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
+
+    const handleTabChange = (tabId: string) => {
+        setActiveTab(tabId);
+        setSearchParams({ tab: tabId });
+        setMessage({ type: '', text: '' });
+    };
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -38,6 +56,8 @@ export default function SettingsPage() {
                 setUser(res.data.user);
                 setName(res.data.user.name);
                 setEmail(res.data.user.email);
+                setTenantName(res.data.user.tenant?.name || '');
+                setTenantLogo(res.data.user.tenant?.logo || '');
             } catch (error) {
                 console.error('Failed to fetch user', error);
             }
@@ -64,28 +84,64 @@ export default function SettingsPage() {
         }
     };
 
-    const handleChangePassword = async (e: React.FormEvent) => {
+    const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
-            setMessage({ type: 'error', text: 'Yeni şifreler eşleşmiyor' });
+            setMessage({ type: 'error', text: 'Şifreler uyuşmuyor' });
             return;
         }
+
         setIsLoading(true);
         setMessage({ type: '', text: '' });
         try {
             const token = localStorage.getItem('token');
-            await axios.post('/api/auth/change-password', {
+            await axios.put('/api/auth/change-password', {
                 currentPassword,
                 newPassword
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setMessage({ type: 'success', text: 'Şifre başarıyla güncellendi' });
+            setMessage({ type: 'success', text: 'Şifreniz başarıyla güncellendi' });
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (error: any) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Şifre güncellenemedi' });
+            setMessage({ type: 'error', text: error.response?.data?.error || 'Güncelleme başarısız' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleUpdateTenant = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setMessage({ type: '', text: '' });
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put('/api/tenants/preferences', {
+                name: tenantName,
+                logo: tenantLogo
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            // Update local user object
+            const newUser = {
+                ...user,
+                tenant: {
+                    ...(user?.tenant || {}),
+                    name: tenantName,
+                    logo: tenantLogo
+                }
+            };
+            setUser(newUser);
+            localStorage.setItem('user', JSON.stringify(newUser));
+
+            setMessage({ type: 'success', text: 'İşletme tercihleri güncellendi' });
+            // Refresh to update sidebar branding
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.response?.data?.error || 'Güncelleme başarısız' });
         } finally {
             setIsLoading(false);
         }
@@ -114,10 +170,7 @@ export default function SettingsPage() {
                         return (
                             <button
                                 key={tab.id}
-                                onClick={() => {
-                                    setActiveTab(tab.id);
-                                    setMessage({ type: '', text: '' });
-                                }}
+                                onClick={() => handleTabChange(tab.id)}
                                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all ${activeTab === tab.id
                                     ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200"
                                     : "text-muted-foreground hover:bg-card hover:text-foreground"
@@ -202,7 +255,7 @@ export default function SettingsPage() {
                                 <h3 className="text-xl font-bold text-foreground">Şifre Değiştir</h3>
                             </div>
 
-                            <form onSubmit={handleChangePassword} className="space-y-6">
+                            <form onSubmit={handleUpdatePassword} className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Mevcut Şifre</label>
                                     <div className="relative group">
@@ -258,14 +311,80 @@ export default function SettingsPage() {
                         </div>
                     )}
 
-                    {(activeTab === 'notifications' || activeTab === 'preferences') && (
+                    {activeTab === 'preferences' && user?.role === 'ADMIN' && (
+                        <div className="bg-card p-8 rounded-[40px] border border-border shadow-sm space-y-8 animate-in slide-in-from-right-4 duration-500">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+                                    <Globe size={20} />
+                                </div>
+                                <h3 className="text-xl font-bold text-foreground">İşletme Tercihleri</h3>
+                            </div>
+
+                            <form onSubmit={handleUpdateTenant} className="space-y-6">
+                                <div className="space-y-6 p-6 bg-muted/30 rounded-[32px] border border-border/50">
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">İşletme Adı</label>
+                                        <Input
+                                            value={tenantName}
+                                            onChange={(e) => setTenantName(e.target.value)}
+                                            className="h-12 bg-card border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                            placeholder="Örn: Can Sigorta"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest ml-1">Logo URL</label>
+                                        <Input
+                                            value={tenantLogo}
+                                            onChange={(e) => setTenantLogo(e.target.value)}
+                                            className="h-12 bg-card border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                            placeholder="https://..."
+                                        />
+                                        <p className="text-[10px] text-muted-foreground ml-1 italic">* Logonuzun kare (square) ölçülerde olması tavsiye edilir.</p>
+                                    </div>
+
+                                    {tenantLogo && (
+                                        <div className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border/50">
+                                            <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden border border-border">
+                                                <img src={tenantLogo} alt="Logo Önizleme" className="w-full h-full object-cover" />
+                                            </div>
+                                            <p className="text-xs font-bold text-muted-foreground">Logo Önizleme</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-xl shadow-emerald-200 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Save size={18} />
+                                    Tercihleri Kaydet
+                                </Button>
+                            </form>
+                        </div>
+                    )}
+
+                    {activeTab === 'preferences' && user?.role !== 'ADMIN' && (
+                        <div className="bg-card p-12 rounded-[40px] border border-border shadow-sm flex flex-col items-center justify-center text-center space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-red-600 opacity-20">
+                                <Shield size={32} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-foreground">Yetkiniz Yok</h3>
+                                <p className="text-sm text-gray-400 max-w-xs">İşletme ayarlarını yalnızca Sistem Yöneticileri değiştirebilir.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'notifications' && (
                         <div className="bg-card p-12 rounded-[40px] border border-border shadow-sm flex flex-col items-center justify-center text-center space-y-4">
                             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-gray-300">
                                 <Smartphone size={32} />
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-foreground">Çok Yakında</h3>
-                                <p className="text-sm text-gray-400 max-w-xs">Bu özellik geliştirme aşamasındadır. ZenithCRM deneyiminizi zenginleştirmek için çalışıyoruz.</p>
+                                <p className="text-sm text-gray-400 max-w-xs">Bu özellik geliştirme aşamasındadır.</p>
                             </div>
                         </div>
                     )}

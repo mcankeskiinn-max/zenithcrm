@@ -6,7 +6,7 @@ export class ForecastEngine {
      * Calculates the projected sales for the next month based on the last 6 months trend.
      * Simple Linear Trend: (Current - 6MonthsAgo) / 6 * GrowthFactor
      */
-    static async calculateForecast(branchId?: string, userId?: string) {
+    static async calculateForecast(tenantId: string, branchId?: string, userId?: string) {
         const now = new Date();
         const monthsToAnalyze = 6;
         const historicalData: { month: Date, total: number }[] = [];
@@ -17,6 +17,7 @@ export class ForecastEngine {
             const end = endOfMonth(date);
 
             const where: any = {
+                tenantId,
                 status: 'ACTIVE',
                 saleDate: {
                     gte: start,
@@ -74,11 +75,11 @@ export class ForecastEngine {
         };
     }
 
-    static async getTargetProgress(month: number, year: number, branchId?: string, userId?: string) {
+    static async getTargetProgress(tenantId: string, month: number, year: number, branchId?: string, userId?: string) {
         const start = startOfMonth(new Date(year, month - 1));
         const end = endOfMonth(new Date(year, month - 1));
 
-        const targetWhere: any = { month, year };
+        const targetWhere: any = { tenantId, month, year };
         if (branchId) targetWhere.branchId = branchId;
         if (userId) targetWhere.userId = userId;
 
@@ -90,6 +91,7 @@ export class ForecastEngine {
         });
 
         const salesWhere: any = {
+            tenantId,
             status: 'ACTIVE',
             saleDate: {
                 gte: start,

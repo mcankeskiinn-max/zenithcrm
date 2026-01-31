@@ -18,7 +18,8 @@ export const sendMessage = async (req: Request, res: Response) => {
                 content,
                 senderId,
                 receiverId,
-                branchId: sender.branchId
+                branchId: sender.branchId,
+                tenantId: sender.tenantId
             }
         });
 
@@ -37,6 +38,7 @@ export const getConversations = async (req: Request, res: Response) => {
         const users = await prisma.user.findMany({
             where: {
                 id: { not: userId },
+                tenantId: user.tenantId,
                 isActive: true
             },
             select: { id: true, name: true, role: true, branch: { select: { name: true } } }

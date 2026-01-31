@@ -21,13 +21,15 @@ export const uploadDocument = async (req: Request, res: Response) => {
         }
 
         console.log('[UPLOAD] Creating database record for:', req.file.originalname);
+        const currentUser = req.user!;
         const document = await prisma.document.create({
             data: {
                 filename: req.file.originalname,
                 path: req.file.filename,
                 mimetype: req.file.mimetype,
                 size: req.file.size,
-                saleId
+                saleId,
+                tenantId: currentUser.tenantId
             }
         });
 
@@ -51,8 +53,12 @@ export const uploadDocument = async (req: Request, res: Response) => {
 export const getDocuments = async (req: Request, res: Response) => {
     try {
         const { saleId } = req.params;
+        const currentUser = req.user!;
         const documents = await prisma.document.findMany({
-            where: { saleId },
+            where: {
+                saleId,
+                tenantId: currentUser.tenantId
+            },
             orderBy: { uploadedAt: 'desc' }
         });
         res.json(documents);
@@ -65,8 +71,12 @@ export const getDocuments = async (req: Request, res: Response) => {
 export const deleteDocument = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const document = await prisma.document.findUnique({
-            where: { id }
+        const currentUser = req.user!;
+        const document = await prisma.document.findFirst({
+            where: {
+                id,
+                tenantId: currentUser.tenantId
+            }
         });
 
         if (!document) {

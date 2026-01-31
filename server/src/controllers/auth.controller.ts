@@ -31,7 +31,10 @@ export const login = async (req: Request, res: Response) => {
 
         const user = await prisma.user.findUnique({
             where: { email },
-            include: { branch: true }
+            include: {
+                branch: true,
+                tenant: true
+            }
         });
 
         if (!user) {
@@ -66,7 +69,7 @@ export const login = async (req: Request, res: Response) => {
         if (!process.env.JWT_REFRESH_SECRET) throw new Error('JWT_REFRESH_SECRET missing');
 
         const accessToken = jwt.sign(
-            { userId: user.id, role: user.role },
+            { userId: user.id, role: user.role, tenantId: user.tenantId },
             process.env.JWT_SECRET,
             { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
         );
@@ -93,6 +96,7 @@ export const login = async (req: Request, res: Response) => {
             resourceId: user.id,
             details: { email },
             userId: user.id,
+            tenantId: user.tenantId,
             ipAddress: req.ip,
             userAgent: req.get('user-agent')
         });
@@ -107,7 +111,13 @@ export const login = async (req: Request, res: Response) => {
                 email: user.email,
                 name: user.name,
                 role: user.role,
-                branchId: user.branchId
+                branchId: user.branchId,
+                tenantId: user.tenantId,
+                passwordChangedAt: user.passwordChangedAt,
+                tenant: {
+                    name: (user.tenant as any).name,
+                    logo: (user.tenant as any).logo
+                }
             }
         });
 
@@ -137,6 +147,7 @@ export const logout = async (req: Request, res: Response) => {
                 resource: 'Auth',
                 resourceId: req.user.id,
                 userId: req.user.id,
+                tenantId: req.user.tenantId,
                 ipAddress: req.ip,
                 userAgent: req.get('user-agent')
             });
@@ -226,7 +237,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         const user = await prisma.user.update({
             where: { id: userId },
             data,
-            include: { branch: true }
+            include: { branch: true, tenant: true }
         });
 
         res.json({
@@ -236,7 +247,13 @@ export const updateProfile = async (req: Request, res: Response) => {
                 email: user.email,
                 name: user.name,
                 role: user.role,
-                branch: user.branch
+                tenantId: user.tenantId,
+                passwordChangedAt: user.passwordChangedAt,
+                branch: user.branch,
+                tenant: {
+                    name: (user.tenant as any)?.name,
+                    logo: (user.tenant as any)?.logo
+                }
             }
         });
     } catch (error) {
@@ -247,9 +264,14 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 export const getMe = async (req: Request, res: Response) => {
     try {
+        if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+
         const user = await prisma.user.findUnique({
-            where: { id: req.user!.id },
-            include: { branch: true }
+            where: { id: req.user.id },
+            include: {
+                branch: true,
+                tenant: true
+            }
         });
 
         if (!user) {
@@ -263,10 +285,15 @@ export const getMe = async (req: Request, res: Response) => {
                 name: user.name,
                 role: user.role,
                 branchId: user.branchId,
+                passwordChangedAt: user.passwordChangedAt,
                 branch: user.branch ? {
                     id: user.branch.id,
                     name: user.branch.name
-                } : null
+                } : null,
+                tenant: {
+                    name: (user.tenant as any).name,
+                    logo: (user.tenant as any).logo
+                }
             }
         });
     } catch (error) {
@@ -355,3 +382,102 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 };
 
+export const register = async (req: Request, res: Response) => {
+    try {
+        const { agencyName, adminName, email, password } = req.body;
+
+        if (!agencyName || !adminName || !email || !password) {
+            return res.status(400).json({ error: 'Tüm alanlar zorunludur' });
+        }
+
+        // Check if user already exists
+        const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase() },
+            include: {
+                tenant: true,
+                branch: true
+            }
+        });
+
+        if (user) {
+            return res.status(400).json({ error: 'Bu e-posta adresi zaten kullanımda' });
+        }
+
+        // Generate slug from agency name
+        const slug = agencyName
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+
+        // Use transaction to ensure everything is created or nothing is
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Create Tenant
+            const tenant = await tx.tenant.create({
+                data: {
+                    name: agencyName,
+                    slug: `${slug}-${Math.floor(1000 + Math.random() * 9000)}`, // Add randomness to slug
+                    plan: 'FREE'
+                }
+            });
+
+            // 2. Create Default Branch
+            const branch = await tx.branch.create({
+                data: {
+                    name: 'Merkez Şube',
+                    tenantId: tenant.id
+                }
+            });
+
+            // 3. Create Admin User
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const user = await tx.user.create({
+                data: {
+                    name: adminName,
+                    email: email.toLowerCase(),
+                    password: hashedPassword,
+                    role: 'ADMIN' as any,
+                    tenantId: tenant.id,
+                    branchId: branch.id
+                }
+            });
+
+            // Create default policy types for the new tenant
+            const defaultPolicies = ['Trafik Sigortası', 'Kasko', 'Sağlık Sigortası', 'Konut Sigortası', 'DASK'];
+            await tx.policyType.createMany({
+                data: defaultPolicies.map(name => ({
+                    name,
+                    tenantId: tenant.id
+                }))
+            });
+
+            return { tenant, user };
+        });
+
+        await logAudit({
+            action: 'CREATE',
+            resource: 'Tenant',
+            resourceId: result.tenant.id,
+            details: { agencyName, adminEmail: email },
+            userId: result.user.id,
+            tenantId: result.tenant.id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        });
+
+        res.status(201).json({
+            message: 'Kayıt başarılı! Hoş geldiniz.',
+            tenant: result.tenant,
+            user: {
+                id: result.user.id,
+                email: result.user.email,
+                name: result.user.name
+            }
+        });
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Kayıt işlemi başarısız oldu' });
+    }
+};

@@ -7,8 +7,8 @@ import { CommissionEngine } from '../services/commission.service';
 const commissionEngine = new CommissionEngine();
 
 // Helper to determine commission amount based on rules
-const determineCommission = async (saleId: string, amount: number, branchId: string, policyTypeId: string, employeeId: string, createdAt: Date = new Date()) => {
-    return commissionEngine.calculateAndLog(saleId, amount, branchId, policyTypeId, employeeId, createdAt);
+const determineCommission = async (tenantId: string, saleId: string, amount: number, branchId: string, policyTypeId: string, employeeId: string, createdAt: Date = new Date()) => {
+    return commissionEngine.calculateAndLog(tenantId, saleId, amount, branchId, policyTypeId, employeeId, createdAt);
 };
 
 // List sales
@@ -20,7 +20,9 @@ export const getSales = async (req: Request, res: Response) => {
 
         const { branchId, policyTypeId } = req.query;
 
-        const where: { branchId?: string; policyTypeId?: string; employeeId?: string } = {};
+        const where: { tenantId: string; branchId?: string; policyTypeId?: string; employeeId?: string } = {
+            tenantId: user.tenantId
+        };
         if (branchId && typeof branchId === 'string' && branchId.length > 10) where.branchId = branchId;
         if (policyTypeId && typeof policyTypeId === 'string' && policyTypeId.length > 10) where.policyTypeId = policyTypeId;
 
@@ -113,7 +115,8 @@ export const createSale = async (req: Request, res: Response) => {
                     data: {
                         name: customerName,
                         email: customerEmail,
-                        phone: customerPhone
+                        phone: customerPhone,
+                        tenantId: currentUser.tenantId
                     }
                 });
                 finalCustomerId = newCustomer.id;
@@ -135,6 +138,7 @@ export const createSale = async (req: Request, res: Response) => {
             customerEmail?: string | null;
             amount: number;
             status: SaleStatus;
+            tenantId: string;
             employeeId: string;
             branchId: string;
             policyTypeId: string;
@@ -144,11 +148,12 @@ export const createSale = async (req: Request, res: Response) => {
             saleDate: Date;
         } = {
             customerId: finalCustomerId,
-            customerName: customerName || (await prisma.customer.findUnique({ where: { id: finalCustomerId } }))?.name || 'Unknown',
+            customerName: customerName || (await prisma.customer.findFirst({ where: { id: finalCustomerId, tenantId: currentUser.tenantId } }))?.name || 'Unknown',
             customerPhone: customerPhone || null,
             customerEmail: customerEmail || null,
             amount: Number(amount),
             status: (status as SaleStatus) || 'ACTIVE',
+            tenantId: currentUser.tenantId,
             employeeId: sellerId,
             branchId: targetBranchId,
             policyTypeId,
@@ -163,7 +168,12 @@ export const createSale = async (req: Request, res: Response) => {
 
         if (targetPolicyNumber) {
             // Check if policy number already exists to avoid P2002 error
-            const existingSale = await prisma.sale.findUnique({ where: { policyNumber: targetPolicyNumber } });
+            const existingSale = await prisma.sale.findFirst({
+                where: {
+                    policyNumber: targetPolicyNumber,
+                    tenantId: currentUser.tenantId
+                }
+            });
             if (existingSale) {
                 // Update existing record
                 sale = await prisma.sale.update({
@@ -185,7 +195,7 @@ export const createSale = async (req: Request, res: Response) => {
 
         // 2. Calculate and Log Commission (Dynamic logic)
         const saleAmount = typeof sale.amount === 'number' ? sale.amount : Number(sale.amount);
-        const commissionAmount = await determineCommission(sale.id, saleAmount, sale.branchId, sale.policyTypeId, sale.employeeId);
+        const commissionAmount = await determineCommission(currentUser.tenantId, sale.id, saleAmount, sale.branchId, sale.policyTypeId, sale.employeeId);
 
         // 3. Audit Log
         await logAudit({
@@ -193,7 +203,8 @@ export const createSale = async (req: Request, res: Response) => {
             action: 'CREATE',
             resource: 'Sale',
             resourceId: sale.id,
-            details: { amount, customerName, policyNumber }
+            details: { amount, customerName, policyNumber },
+            tenantId: currentUser.tenantId
         });
 
         res.status(201).json({ ...sale, commission: commissionAmount });
@@ -230,7 +241,10 @@ export const updateSale = async (req: Request, res: Response) => {
         if (customerName !== undefined) {
             // For now, allow updating the customer record linked to this sale
             // but in a more robust system, we might just link to a different CustomerId
-            const sale = await prisma.sale.findUnique({ where: { id }, include: { customer: true } });
+            const sale = await prisma.sale.findFirst({
+                where: { id, tenantId: currentUser.tenantId },
+                include: { customer: true }
+            });
             if (sale?.customerId) {
                 await prisma.customer.update({
                     where: { id: sale.customerId },
@@ -256,7 +270,9 @@ export const updateSale = async (req: Request, res: Response) => {
         }
 
         // Restriction: Non-admins can only update sales in their own branch
-        const existingSale = await prisma.sale.findUnique({ where: { id } });
+        const existingSale = await prisma.sale.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
         if (!existingSale) return res.status(404).json({ error: 'Sale not found' });
 
         if (currentUser.role !== Role.ADMIN && existingSale.branchId !== currentUser.branchId) {
@@ -269,7 +285,7 @@ export const updateSale = async (req: Request, res: Response) => {
         });
 
         // RECALCULATE COMMISSION ON UPDATE
-        const commissionAmount = await determineCommission(sale.id, Number(sale.amount), sale.branchId, sale.policyTypeId, sale.employeeId);
+        const commissionAmount = await determineCommission(currentUser.tenantId, sale.id, Number(sale.amount), sale.branchId, sale.policyTypeId, sale.employeeId);
 
         // Audit Log
         await logAudit({
@@ -277,7 +293,8 @@ export const updateSale = async (req: Request, res: Response) => {
             action: 'UPDATE',
             resource: 'Sale',
             resourceId: id,
-            details: { updates: updateData }
+            details: { updates: updateData },
+            tenantId: currentUser.tenantId
         });
 
         res.json({ ...sale, commission: commissionAmount });
@@ -299,7 +316,9 @@ export const deleteSale = async (req: Request, res: Response) => {
 
         // Check permissions
         const currentUser = req.user!;
-        const existingSale = await prisma.sale.findUnique({ where: { id } });
+        const existingSale = await prisma.sale.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
 
         if (!existingSale) return res.status(404).json({ error: 'Sale not found' });
 
@@ -323,7 +342,8 @@ export const deleteSale = async (req: Request, res: Response) => {
             userId: currentUser.id,
             action: 'DELETE',
             resource: 'Sale',
-            resourceId: id
+            resourceId: id,
+            tenantId: currentUser.tenantId
         });
 
         res.json({ message: 'Sale deleted successfully' });

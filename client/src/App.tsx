@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/Layout';
 import { ThemeProvider } from './context/ThemeContext';
@@ -23,6 +24,7 @@ import PayrollPage from './pages/PayrollPage';
 import QuoteComparisonPage from './pages/QuoteComparisonPage';
 import RevenuePage from './pages/RevenuePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import LandingPage from './pages/LandingPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -36,12 +38,14 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="dashboard/sales" element={<SalesDashboard />} />
             <Route path="dashboard/cancellations" element={<CancellationDashboard />} />

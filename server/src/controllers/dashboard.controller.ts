@@ -8,7 +8,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const user = req.user!;
         const isAdmin = user.role === Role.ADMIN;
 
-        const where: { branchId?: string; employeeId?: string } = {};
+        const where: { tenantId: string; branchId?: string; employeeId?: string } = {
+            tenantId: user.tenantId
+        };
 
         // ADMIN sees EVERYTHING (no where clause for branch)
         if (!isAdmin) {
@@ -183,8 +185,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             },
             chartData: finalChartData,
             cancellationBreakdown,
-            forecast: await ForecastEngine.calculateForecast(where.branchId, where.employeeId),
+            forecast: await ForecastEngine.calculateForecast(user.tenantId, where.branchId, where.employeeId),
             targetProgress: await ForecastEngine.getTargetProgress(
+                user.tenantId,
                 new Date().getMonth() + 1,
                 new Date().getFullYear(),
                 where.branchId,
@@ -237,6 +240,7 @@ export const setSalesTarget = async (req: Request, res: Response) => {
         }
 
         const query = {
+            tenantId: currentUser.tenantId,
             month: parseInt(month),
             year: parseInt(year),
             userId: userId || null, // Default to null if not provided (Branch Target)

@@ -14,8 +14,10 @@ export class RevenueController {
 
             // Get verified sales (ACTIVE or OFFER converted to ACTIVE scenarios usually, but here we check ACTIVE)
             // Or maybe just all sales with an amount? Let's assume 'ACTIVE' represents closed deals.
+            const currentUser = req.user!;
             const sales = await prisma.sale.findMany({
                 where: {
+                    tenantId: currentUser.tenantId,
                     status: 'ACTIVE',
                     saleDate: {
                         gte: startDate,
@@ -55,16 +57,21 @@ export class RevenueController {
     // 2. Müşteri Karlılık Analizi (Pareto / LTV)
     static async getCustomerProfitability(req: Request, res: Response) {
         try {
+            const currentUser = req.user!;
             const customers = await prisma.customer.findMany({
+                where: { tenantId: currentUser.tenantId },
                 include: {
                     sales: {
-                        where: { status: 'ACTIVE' }
+                        where: {
+                            status: 'ACTIVE',
+                            tenantId: currentUser.tenantId
+                        }
                     }
                 }
             });
 
-            const profitability = customers.map(c => {
-                const totalRevenue = c.sales.reduce((sum, s) => sum + Number(s.amount), 0);
+            const profitability = (customers as any).map((c: any) => {
+                const totalRevenue = c.sales.reduce((sum: number, s: any) => sum + Number(s.amount), 0);
                 return {
                     id: c.id,
                     name: c.name,
@@ -75,13 +82,13 @@ export class RevenueController {
             });
 
             // Sort by revenue desc
-            profitability.sort((a, b) => b.totalRevenue - a.totalRevenue);
+            (profitability as any).sort((a: any, b: any) => b.totalRevenue - a.totalRevenue);
 
             // Calculate Pareto segments (Top 20% = Gold, Next 30% = Silver, Rest = Bronze)
             const top20Index = Math.floor(profitability.length * 0.2);
             const next30Index = Math.floor(profitability.length * 0.5);
 
-            const result = profitability.map((p, index) => ({
+            const result = (profitability as any).map((p: any, index: number) => ({
                 ...p,
                 segment: index < top20Index ? 'Gold' : (index < next30Index ? 'Silver' : 'Bronze')
             }));
@@ -101,8 +108,10 @@ export class RevenueController {
             const next30Days = new Date();
             next30Days.setDate(today.getDate() + 30);
 
+            const currentUser = req.user!;
             const expiringSales = await prisma.sale.findMany({
                 where: {
+                    tenantId: currentUser.tenantId,
                     status: 'ACTIVE',
                     endDate: {
                         gte: today,
@@ -145,10 +154,13 @@ export class RevenueController {
             const currentMonth = new Date().getMonth() + 1; // 1-12
             const currentYear = new Date().getFullYear();
 
+            const currentUser = req.user!;
+
             // Get Target Sum
             const targets = await prisma.salesTarget.aggregate({
                 _sum: { amount: true },
                 where: {
+                    tenantId: currentUser.tenantId,
                     month: currentMonth,
                     year: currentYear
                 }
@@ -162,6 +174,7 @@ export class RevenueController {
             const actuals = await prisma.sale.aggregate({
                 _sum: { amount: true },
                 where: {
+                    tenantId: currentUser.tenantId,
                     status: 'ACTIVE',
                     saleDate: {
                         gte: startDate,

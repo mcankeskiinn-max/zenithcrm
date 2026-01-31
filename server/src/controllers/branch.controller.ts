@@ -4,7 +4,9 @@ import prisma from '../prisma';
 // Get all branches
 export const getBranches = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user!;
         const branches = await prisma.branch.findMany({
+            where: { tenantId: currentUser.tenantId },
             include: {
                 _count: {
                     select: { users: true, sales: true }
@@ -30,7 +32,10 @@ export const createBranch = async (req: Request, res: Response) => {
     const { name, commissionRate } = req.body;
 
     try {
-        const existingBranch = await prisma.branch.findUnique({ where: { name } });
+        const currentUser = req.user!;
+        const existingBranch = await prisma.branch.findFirst({
+            where: { name, tenantId: currentUser.tenantId }
+        });
         if (existingBranch) {
             return res.status(400).json({ error: 'Branch name already exists' });
         }
@@ -41,7 +46,8 @@ export const createBranch = async (req: Request, res: Response) => {
         const branch = await prisma.branch.create({
             data: {
                 name,
-                settings
+                settings,
+                tenantId: currentUser.tenantId
             }
         });
 
@@ -58,6 +64,12 @@ export const updateBranch = async (req: Request, res: Response) => {
     const { name, commissionRate } = req.body;
 
     try {
+        const currentUser = req.user!;
+        const existing = await prisma.branch.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (!existing) return res.status(404).json({ error: 'Branch not found' });
+
         const settings = commissionRate ? { commissionRate: Number(commissionRate) } : undefined;
 
         const branch = await prisma.branch.update({
@@ -80,6 +92,12 @@ export const deleteBranch = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
+        const currentUser = req.user!;
+        const existing = await prisma.branch.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (!existing) return res.status(404).json({ error: 'Branch not found' });
+
         await prisma.branch.delete({ where: { id } });
         res.json({ message: 'Branch deleted successfully' });
     } catch (error) {

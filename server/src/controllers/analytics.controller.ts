@@ -7,7 +7,10 @@ export const getMonthlyPerformance = async (req: Request, res: Response) => {
         const user = req.user!;
         const isAdmin = user.role === 'ADMIN' || user.role === 'MANAGER';
 
-        const where: { status: 'ACTIVE'; employeeId?: string } = { status: 'ACTIVE' };
+        const where: { tenantId: string; status: 'ACTIVE'; employeeId?: string } = {
+            tenantId: user.tenantId,
+            status: 'ACTIVE'
+        };
         if (!isAdmin) {
             where.employeeId = user.id;
         }
@@ -59,15 +62,17 @@ export const getMonthlyPerformance = async (req: Request, res: Response) => {
 
 export const getBranchComparison = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user!;
         const branches = await prisma.branch.findMany({
+            where: { tenantId: currentUser.tenantId },
             include: {
                 _count: {
-                    select: { sales: { where: { status: 'ACTIVE' } } }
+                    select: { sales: { where: { status: 'ACTIVE', tenantId: currentUser.tenantId } } }
                 }
             }
         });
 
-        const result = branches.map(b => ({
+        const result = branches.map((b: any) => ({
             name: b.name,
             salesCount: b._count.sales
         }));

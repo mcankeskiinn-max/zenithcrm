@@ -65,12 +65,14 @@ export class QuoteController {
             // We need a default user/branch/policyType for these partial offers
             // For now, we'll try to find defaults or use the first available ones
             // In a real scenario, these might come from the logged-in user context
-            const defaultBranch = await prisma.branch.findFirst();
-            const defaultPolicyType = await prisma.policyType.findFirst();
-            const defaultUser = await prisma.user.findFirst(); // Should come from auth token really
+            const user = req.user!;
+            const tenantId = user.tenantId;
 
-            if (!defaultBranch || !defaultPolicyType || !defaultUser) {
-                return res.status(500).json({ error: 'System defaults (Branch/PolicyType/User) missing.' });
+            const defaultBranch = await prisma.branch.findFirst({ where: { tenantId } });
+            const defaultPolicyType = await prisma.policyType.findFirst({ where: { tenantId } });
+
+            if (!defaultBranch || !defaultPolicyType) {
+                return res.status(500).json({ error: 'Acente varsayılan ayarları eksik.' });
             }
 
             // Import dynamically to avoid circular dependency issues if any
@@ -91,7 +93,8 @@ export class QuoteController {
                         status: 'OFFER',
                         branchId: defaultBranch.id,
                         policyTypeId: defaultPolicyType.id,
-                        employeeId: defaultUser.id,
+                        employeeId: user.id,
+                        tenantId: tenantId,
                         notes: 'Otomatik OCR ile oluşturuldu.'
                     }
                 });

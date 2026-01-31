@@ -9,7 +9,9 @@ export const getTasks = async (req: Request, res: Response) => {
         const isAdmin = user.role === Role.ADMIN;
         const isManager = user.role === Role.MANAGER;
 
-        const where: { assignedTo?: { branchId?: string }; assignedToId?: string } = {};
+        const where: { tenantId: string; assignedTo?: { branchId?: string }; assignedToId?: string } = {
+            tenantId: user.tenantId
+        };
 
         // Branch Manager restriction: only their branch
         if (isManager && user.branchId) {
@@ -42,9 +44,17 @@ export const createTask = async (req: Request, res: Response) => {
 
     try {
         // Check if assignedTo user belongs to the same branch if current user is Manager
-        if (currentUser.role === Role.MANAGER) {
-            const assignedUser = await prisma.user.findUnique({ where: { id: assignedToId || currentUser.id } });
-            if (assignedUser && assignedUser.branchId !== currentUser.branchId) {
+        if (currentUser.role === Role.MANAGER || assignedToId) {
+            const assignedUser = await prisma.user.findFirst({
+                where: {
+                    id: assignedToId || currentUser.id,
+                    tenantId: currentUser.tenantId
+                }
+            });
+            if (!assignedUser) {
+                return res.status(404).json({ error: 'Atanan personel bulunamadı.' });
+            }
+            if (currentUser.role === Role.MANAGER && assignedUser.branchId !== currentUser.branchId) {
                 return res.status(403).json({ error: 'Farklı bir şubedeki personele görev atayamazsınız.' });
             }
         }
@@ -54,7 +64,8 @@ export const createTask = async (req: Request, res: Response) => {
                 title,
                 description,
                 dueDate: new Date(dueDate),
-                assignedToId: assignedToId || currentUser.id
+                assignedToId: assignedToId || currentUser.id,
+                tenantId: currentUser.tenantId
             }
         });
 
@@ -72,8 +83,8 @@ export const updateTask = async (req: Request, res: Response) => {
     const currentUser = req.user!;
 
     try {
-        const existingTask = await prisma.task.findUnique({
-            where: { id },
+        const existingTask = await prisma.task.findFirst({
+            where: { id, tenantId: currentUser.tenantId },
             include: { assignedTo: true }
         });
         if (!existingTask) return res.status(404).json({ error: 'Task not found' });
@@ -87,8 +98,11 @@ export const updateTask = async (req: Request, res: Response) => {
                 }
                 // If reassigning, new user must be in branch
                 if (assignedToId) {
-                    const newUser = await prisma.user.findUnique({ where: { id: assignedToId } });
-                    if (newUser?.branchId !== currentUser.branchId) {
+                    const newUser = await prisma.user.findFirst({
+                        where: { id: assignedToId, tenantId: currentUser.tenantId }
+                    });
+                    if (!newUser) return res.status(404).json({ error: 'Atanacak personel bulunamadı.' });
+                    if (newUser.branchId !== currentUser.branchId) {
                         return res.status(403).json({ error: 'Farklı şubeye atama yapılamaz.' });
                     }
                 }
@@ -135,8 +149,8 @@ export const deleteTask = async (req: Request, res: Response) => {
     const currentUser = req.user!;
 
     try {
-        const existingTask = await prisma.task.findUnique({
-            where: { id },
+        const existingTask = await prisma.task.findFirst({
+            where: { id, tenantId: currentUser.tenantId },
             include: { assignedTo: true }
         });
         if (!existingTask) return res.status(404).json({ error: 'Task not found' });

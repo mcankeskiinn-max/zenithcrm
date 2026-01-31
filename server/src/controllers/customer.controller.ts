@@ -5,15 +5,11 @@ import { Role } from '../utils/constants';
 // List customers
 export const getCustomers = async (req: Request, res: Response) => {
     try {
+        const currentUser = req.user!;
         const { search } = req.query;
-        const where: {
-            OR?: Array<{
-                name?: { contains: string; mode: 'insensitive' };
-                email?: { contains: string; mode: 'insensitive' };
-                phone?: { contains: string; mode: 'insensitive' };
-                identityNumber?: { contains: string; mode: 'insensitive' };
-            }>;
-        } = {};
+        const where: any = {
+            tenantId: currentUser.tenantId
+        };
 
         if (search && typeof search === 'string') {
             where.OR = [
@@ -46,8 +42,8 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
     const { id } = req.params;
     const currentUser = req.user!;
     try {
-        const customer = await prisma.customer.findUnique({
-            where: { id },
+        const customer = await prisma.customer.findFirst({
+            where: { id, tenantId: currentUser.tenantId },
             include: {
                 sales: {
                     include: {
@@ -104,9 +100,10 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
 // Create customer
 export const createCustomer = async (req: Request, res: Response) => {
     const { name, email, phone, identityNumber, address, notes } = req.body;
+    const currentUser = req.user!;
     try {
         const customer = await prisma.customer.create({
-            data: { name, email, phone, identityNumber, address, notes }
+            data: { name, email, phone, identityNumber, address, notes, tenantId: currentUser.tenantId }
         });
         res.status(201).json(customer);
     } catch (error: unknown) {
@@ -121,7 +118,14 @@ export const createCustomer = async (req: Request, res: Response) => {
 export const updateCustomer = async (req: Request, res: Response) => {
     const { id } = req.params;
     const data = req.body;
+    const currentUser = req.user!;
     try {
+        // Enforce tenant isolation
+        const existing = await prisma.customer.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (!existing) return res.status(404).json({ error: 'Müşteri bulunamadı.' });
+
         const customer = await prisma.customer.update({
             where: { id },
             data

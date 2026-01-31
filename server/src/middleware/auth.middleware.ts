@@ -11,6 +11,7 @@ declare global {
                 email: string;
                 role: Role;
                 branchId?: string;
+                tenantId: string;
             };
         }
     }
@@ -21,6 +22,7 @@ interface DecodedToken {
     email: string;
     role: Role;
     branchId?: string;
+    tenantId: string;
 }
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
@@ -99,7 +101,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
             id: user.id,
             email: user.email,
             role: user.role as Role,
-            branchId: user.branchId || undefined
+            branchId: user.branchId || undefined,
+            tenantId: decoded.tenantId
         };
 
         next();
