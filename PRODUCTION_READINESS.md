@@ -45,5 +45,10 @@
 - CI: `server-tests` and `client-tests` must pass (server-tests may be skipped if secrets are missing).
 - UI flow checks (Playwright) must pass (may be skipped if CRM secrets are missing).
 - UI flow artifacts (summary + screenshots) are stored by CI for review.
+
+## Neden Bu Kontroller?
+- Kritik akislari otomatik kontrol ederek yayin oncesi hatalari yakalar.
+- Testi hizlandirip gereksiz riskleri azaltir.
+- Hata oldugunda ekran goruntusu + ozet sayesinde hizli teshis saglar.
 - Critical flows (login/sales/customer/commission) must be validated.
 - Review `RELEASE_GATE.md` checklist before production release.
