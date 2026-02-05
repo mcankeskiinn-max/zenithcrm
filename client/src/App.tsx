@@ -26,6 +26,9 @@ import RevenuePage from './pages/RevenuePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import LandingPage from './pages/LandingPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import BranchKpiPage from './pages/BranchKpiPage';
+import ApprovalsPage from './pages/ApprovalsPage';
+import RenewalsPage from './pages/RenewalsPage';
 import { NotificationProvider } from './contexts/NotificationContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -51,12 +54,15 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="dashboard/sales" element={<SalesDashboard />} />
               <Route path="dashboard/cancellations" element={<CancellationDashboard />} />
+              <Route path="kpi" element={<BranchKpiPage />} />
               <Route path="branches" element={<BranchesPage />} />
               <Route path="policy-types" element={<PolicyTypesPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="sales" element={<SalesPage />} />
               <Route path="commissions" element={<CommissionsPage />} />
+              <Route path="approvals" element={<ApprovalsPage />} />
               <Route path="tasks" element={<TasksPage />} />
+              <Route path="renewals" element={<RenewalsPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="commission-rules" element={<CommissionRulesPage />} />
               <Route path="messaging" element={<MessagingPage />} />

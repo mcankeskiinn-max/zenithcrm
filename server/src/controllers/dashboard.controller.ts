@@ -284,3 +284,93 @@ export const setSalesTarget = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to set target' });
     }
 };
+
+export const getBranchKpi = async (req: Request, res: Response) => {
+    try {
+        const user = req.user!;
+        if (user.role !== Role.ADMIN) {
+            return res.status(403).json({ error: 'Only admins can view branch KPI' });
+        }
+
+        const days = Math.min(Math.max(parseInt(String(req.query.days || '30'), 10) || 30, 7), 365);
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+
+        const branches = await prisma.branch.findMany({
+            where: { tenantId: user.tenantId },
+            select: { id: true, name: true }
+        });
+
+        const sales = await prisma.sale.findMany({
+            where: {
+                tenantId: user.tenantId,
+                saleDate: { gte: startDate }
+            },
+            select: { branchId: true, amount: true, status: true, endDate: true }
+        });
+
+        const commissions = await prisma.commissionLog.findMany({
+            where: {
+                tenantId: user.tenantId,
+                createdAt: { gte: startDate }
+            },
+            select: { amount: true, saleId: true },
+            include: { sale: { select: { branchId: true } } }
+        });
+
+        const renewalWindow = new Date();
+        renewalWindow.setDate(renewalWindow.getDate() + 30);
+
+        const renewals = await prisma.sale.findMany({
+            where: {
+                tenantId: user.tenantId,
+                status: 'ACTIVE',
+                endDate: { gte: new Date(), lte: renewalWindow }
+            },
+            select: { branchId: true }
+        });
+
+        const byBranch = new Map<string, any>();
+        branches.forEach((b) => {
+            byBranch.set(b.id, {
+                branchId: b.id,
+                branchName: b.name,
+                totalSales: 0,
+                activePolicies: 0,
+                cancellationLoss: 0,
+                totalCommission: 0,
+                upcomingRenewals: 0
+            });
+        });
+
+        sales.forEach((sale) => {
+            const entry = byBranch.get(sale.branchId);
+            if (!entry) return;
+            const amt = Number(sale.amount) || 0;
+            if (sale.status === 'ACTIVE') {
+                entry.totalSales += amt;
+                entry.activePolicies += 1;
+            } else if (sale.status === 'CANCELLED') {
+                entry.cancellationLoss += amt;
+            }
+        });
+
+        commissions.forEach((log) => {
+            const branchId = log.sale?.branchId;
+            if (!branchId) return;
+            const entry = byBranch.get(branchId);
+            if (!entry) return;
+            entry.totalCommission += Number(log.amount) || 0;
+        });
+
+        renewals.forEach((sale) => {
+            const entry = byBranch.get(sale.branchId);
+            if (entry) entry.upcomingRenewals += 1;
+        });
+
+        res.json(Array.from(byBranch.values()));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to fetch branch KPI' });
+    }
+};

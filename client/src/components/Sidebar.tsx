@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+﻿import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
@@ -19,6 +19,9 @@ import {
     MessageSquare,
     ShieldAlert,
     Scale,
+    ClipboardCheck,
+    CalendarClock,
+    BarChart3,
     X
 } from 'lucide-react';
 
@@ -26,12 +29,15 @@ const menuItems = [
     { icon: LayoutDashboard, label: 'Genel Bakış', path: '/app/dashboard', section: 'DASHBOARD' },
     { icon: TrendingUp, label: 'Satış Analizi', path: '/app/dashboard/sales', section: 'DASHBOARD' },
     { icon: AlertTriangle, label: 'İptal Analizi', path: '/app/dashboard/cancellations', section: 'DASHBOARD' },
+    { icon: BarChart3, label: 'Şube KPI', path: '/app/kpi', section: 'DASHBOARD' },
     { icon: FileText, label: 'Portföy Yönetimi', path: '/app/sales', section: 'MENÜ' },
     { icon: Users, label: 'Müşteriler', path: '/app/customers', section: 'MENÜ' },
+    { icon: CalendarClock, label: 'Yenilemeler', path: '/app/renewals', section: 'MENÜ' },
     { icon: Activity, label: 'Gelişmiş Analiz', path: '/app/analytics', section: 'MENÜ' },
     { icon: Scale, label: 'Teklif Karşılaştırma', path: '/app/quotes/compare', section: 'MENÜ' },
     { icon: CheckSquare, label: 'Görevler', path: '/app/tasks', section: 'MENÜ' },
     { icon: MessageSquare, label: 'Mesajlar', path: '/app/messaging', section: 'MENÜ' },
+    { icon: ClipboardCheck, label: 'Onaylar', path: '/app/approvals', section: 'YÖNETİM' },
     { icon: Users, label: 'Personel', path: '/app/users', section: 'YÖNETİM' },
     { icon: Building2, label: 'Şube Yönetimi', path: '/app/branches', section: 'YÖNETİM' },
     { icon: ArrowRightLeft, label: 'Branş Yönetimi', path: '/app/policy-types', section: 'YÖNETİM' },
@@ -225,4 +231,3 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </>
     );
 }
-

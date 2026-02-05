@@ -28,6 +28,8 @@ import tenantRoutes from './routes/tenant.routes'; // Added tenantRoutes import
 import supportRoutes from './routes/support.routes';
 import sessionRoutes from './routes/session.routes';
 import maintenanceRoutes from './routes/maintenance.routes';
+import approvalRoutes from './routes/approval.routes';
+import renewalRoutes from './routes/renewal.routes';
 import prisma from './prisma';
 import { csrfProtection } from './middleware/csrf.middleware';
 
@@ -187,6 +189,8 @@ app.use('/api/tenants', tenantRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/approvals', approvalRoutes);
+app.use('/api/renewals', renewalRoutes);
 
 // 404 handler
 app.use((req, res) => {
