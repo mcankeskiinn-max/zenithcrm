@@ -107,3 +107,6 @@ pm test (Vitest) passed.
 
 - Prod readiness belgesine fayda notlari eklendi, test veri temizligi plani eklendi.
 
+
+- Admin test veri temizligi endpointi eklendi (dry-run + confirm token).
+

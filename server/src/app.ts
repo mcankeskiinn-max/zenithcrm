@@ -27,6 +27,7 @@ import ocrRoutes from './routes/ocr.routes';
 import tenantRoutes from './routes/tenant.routes'; // Added tenantRoutes import
 import supportRoutes from './routes/support.routes';
 import sessionRoutes from './routes/session.routes';
+import maintenanceRoutes from './routes/maintenance.routes';
 import prisma from './prisma';
 import { csrfProtection } from './middleware/csrf.middleware';
 
@@ -173,6 +174,7 @@ app.use('/api/ocr', ocrRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/sessions', sessionRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
