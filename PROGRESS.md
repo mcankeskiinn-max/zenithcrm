@@ -122,3 +122,6 @@ pm test (Vitest) passed.
 
 - CI workflow updated: secrets check step sets job output; steps gated without job-level if to avoid parser errors.
 
+
+- Added request validation middleware and schema checks for customer/sale create+update routes.
+

@@ -1,50 +1,105 @@
-# Security Best Practices Report (ZenithCRM)
+# Security Best Practices Report (Sigorta CRM)
 
-## Executive summary
-The codebase has a solid baseline (Helmet, CSP, CSRF, cookie-based auth, rate limiting in production). The main gaps are around request size limits, error-message leakage, and exposing refresh tokens in admin session listings. These are medium/low severity but worth fixing to reduce data exposure and abuse risk.
+Date: 2026-02-06
 
-## High severity
-- None observed in the reviewed areas.
+## Executive Summary
+Genel guvenlik temeli iyi: cookie tabanli oturum, CSRF, rate-limit, CSP/CORS ve rol/tenant izolasyonu mevcut. Ancak sigorta acentesi gibi hassas bir panel icin veri dogrulama eksikleri ve proxy/404/logging gibi operasyonel guvenlik bosluklari risk olusturuyor. Asagidaki bulgular giderildiginde guvenlik seviyesi belirgin sekilde artar.
 
-## Medium severity
+## Findings
 
-**SBP-001 — Missing JSON body size limits (DoS/abuse risk)**
-- **Rule ID:** EXPRESS-DOS-001 (body size limits), EXPRESS-INPUT-001 (untrusted input control)
-- **Severity:** Medium
-- **Location:** `server/src/app.ts:119-121`
-- **Evidence:**
-  - `app.use(express.json());` (no `limit` configured)
-- **Impact:** Large payloads can increase memory usage and degrade availability.
-- **Fix:** Set explicit limits, e.g. `express.json({ limit: '1mb' })` and `express.urlencoded({ limit: '1mb', extended: true })`.
-- **Mitigation:** Enforce request size limits at the reverse proxy as well.
-- **False positive notes:** If limits are already enforced at the edge (CDN/WAF/proxy), verify and document them.
+### SEC-EXPRESS-001 (High) ? Write endpoint?lerde merkezi input dogrulamasi eksik
+Location: `server/src/controllers/customer.controller.ts:124-144`, `server/src/controllers/sale.controller.ts:80-176`
 
-**SBP-002 — Error responses return internal messages**
-- **Rule ID:** EXPRESS-ERROR-001
-- **Severity:** Medium
-- **Location:** `server/src/app.ts:161-171`
-- **Evidence:**
-  - `res.status(500).json({ error: 'Global Sunucu Hatasý', message: err.message })`
-- **Impact:** Internal error messages can leak implementation details.
-- **Fix:** Return a generic message in production; log full error server-side only.
-- **Mitigation:** Ensure `NODE_ENV=production` and centralized error handling uses safe messages.
-- **False positive notes:** If error messages are already sanitized upstream, confirm and document.
+Evidence:
+- `createCustomer` icinde `req.body` degerleri dogrudan kullaniliyor ve schema dogrulamasi yok.
+  `const { name, email, phone, identityNumber, address, notes } = req.body;`
+  `prisma.customer.create({ data: { ... } })`
+- `createSale` icinde `amount`, `policyNumber`, `customerName` vb. alanlar dogrudan aliniyor.
+  `const { amount, policyNumber, ... } = req.body;`
+  `amount: Number(amount)`
 
-## Low severity
+Impact:
+Hatali/eksik/sekil bozuk veriler DB?ye yazilabilir, is kurallari bozulabilir, beklenmeyen tipler runtime hatalarina ve saldirganin sistem davranisini istismar etmesine yol acabilir.
 
-**SBP-003 — Admin session listing exposes full refresh tokens**
-- **Rule ID:** EXPRESS-SESS-002 (session hygiene), general secret exposure guidance
-- **Severity:** Low
-- **Location:** `server/src/controllers/session.controller.ts:31-37`
-- **Evidence:**
-  - `select: { token: true, createdAt: true, expiresAt: true, userId: true }`
-- **Impact:** Admins (or anyone with admin access) can view and potentially reuse refresh tokens.
-- **Fix:** Return only a truncated token fingerprint (e.g., first 6 + last 4) or a hashed value.
-- **Mitigation:** Audit admin access and log session-list access events.
-- **False positive notes:** If admins are trusted and audit-logged, risk is reduced but still avoid exposing raw tokens.
+Fix (Oneri):
+Route seviyesinde `zod` veya `express-validator` ile schema dogrulamasi ekleyin (or. `createCustomer` ve `createSale`).
 
-## Notes
-- The app uses cookie auth + CSRF protections, CSP headers, and rate limiting in production; these align with best practices.
+Mitigation:
+En azindan zorunlu alanlar ve tip dogrulama ekleyin; string uzunluk sinirlari koyun.
 
 ---
-**Report written to:** `security_best_practices_report.md`
+
+### SEC-EXPRESS-002 (Medium) ? `trust proxy` konfig?rasyonu yok
+Location: `server/src/app.ts` (dosyada `app.set('trust proxy', ...)` bulunmuyor)
+
+Evidence:
+`server/src/app.ts` icinde Express app kurulumu var fakat `trust proxy` ayari gorunmuyor.
+
+Impact:
+Reverse proxy/CDN arkasinda `req.ip`, `req.protocol` ve rate-limit davranisi yanlis olabilir. Bu, loglama ve guvenlik denetimlerinde yanlis kararlara yol acar.
+
+Fix (Oneri):
+Uretimde altyapiniza uygun sekilde `app.set('trust proxy', 1)` veya spesifik proxy listesi tanimlayin.
+
+Mitigation:
+Proxy katmaninda `X-Forwarded-*` basliklarinin dogru sekilde set edildigini dogrulayin.
+
+---
+
+### SEC-EXPRESS-003 (Low) ? 404 handler eksik
+Location: `server/src/app.ts:137-184` (t?m route?lar tanimli, 404 handler yok)
+
+Evidence:
+Route?lar tanimlandiktan sonra yalnizca global error handler var; 404 icin ayri handler yok.
+
+Impact:
+Istemci hatalari icin tutarsiz yanitlar ve zayif gozlemlenebilirlik (observability) olusur.
+
+Fix (Oneri):
+Route?lardan sonra bir 404 handler ekleyin:
+```ts
+app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+```
+
+---
+
+### SEC-EXPRESS-004 (Low) ? CSP?de `style-src 'unsafe-inline'`
+Location: `server/src/app.ts:31-49`
+
+Evidence:
+`styleSrc: ["'self'", "'unsafe-inline'", "https:"]`
+
+Impact:
+Inline style izinleri XSS sonrasi saldirganin kalicilik/etki alanini artirabilir.
+
+Fix (Oneri):
+M?mk?nse inline style?lari kaldirip nonce/hash bazli CSP uygulayin.
+
+Mitigation:
+Kisa vadede CSP raporlama modunu acarak inline ihtiyacini olcebilirsiniz.
+
+---
+
+### SEC-EXPRESS-005 (Low) ? Prod?da `morgan('dev')` logging
+Location: `server/src/app.ts:132`
+
+Evidence:
+`app.use(morgan('dev'));`
+
+Impact:
+Uretimde gereksiz detay loglanabilir. Loglar PII icerebilir veya saldirganin davranisini kolaylastirabilir.
+
+Fix (Oneri):
+Prod?da daha sade log format? (or. `combined` + PII mask) veya conditional log kullanin.
+
+---
+
+## Notes / Assumptions
+- Infrastructure (CDN/WAF/TLS) gorunmuyor; uygulama kodu disindaki katmanlarin dogrulanmasi gerekir.
+- Frontend tarafinda `dangerouslySetInnerHTML` kullan?m?na rastlanmadi.
+
+## Recommended Next Steps
+1. `createCustomer`, `createSale` ve diger write endpoint?lerde schema dogrulama ekleyin.
+2. `trust proxy` ve 404 handler?i production icin tanimlayin.
+3. CSP?yi inline style olmadan calisacak sekilde kademeli sikilastirin.
+4. Prod logging politikasini gozden gecirin (PII mask/rotation).
