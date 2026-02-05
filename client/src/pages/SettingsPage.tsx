@@ -32,6 +32,10 @@ export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [cleanupLoading, setCleanupLoading] = useState(false);
+    const [cleanupCounts, setCleanupCounts] = useState<any>(null);
+    const [cleanupConfirm, setCleanupConfirm] = useState('');
+    const [cleanupMessage, setCleanupMessage] = useState({ type: '', text: '' });
 
     // Sync activeTab with searchParams
     useEffect(() => {
@@ -155,6 +159,36 @@ await axios.put('/api/tenants/preferences', {
             setMessage({ type: 'error', text: error.response?.data?.error || 'İşlem başarısız' });
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const runCleanupDry = async () => {
+        setCleanupLoading(true);
+        setCleanupMessage({ type: '', text: '' });
+        try {
+            const res = await axios.post('/api/maintenance/cleanup-test-data', {});
+            setCleanupCounts(res.data?.counts || null);
+            setCleanupMessage({ type: 'success', text: 'Dry-run tamamlandi. Sayim alindi.' });
+        } catch (error: any) {
+            setCleanupMessage({ type: 'error', text: error.response?.data?.error || 'Temizlik dry-run basarisiz' });
+        } finally {
+            setCleanupLoading(false);
+        }
+    };
+
+    const runCleanupDelete = async () => {
+        setCleanupLoading(true);
+        setCleanupMessage({ type: '', text: '' });
+        try {
+            const res = await axios.post('/api/maintenance/cleanup-test-data', {
+                confirm: cleanupConfirm
+            });
+            setCleanupCounts(res.data?.deleted || null);
+            setCleanupMessage({ type: 'success', text: 'Temizlik tamamlandi.' });
+        } catch (error: any) {
+            setCleanupMessage({ type: 'error', text: error.response?.data?.error || 'Temizlik basarisiz' });
+        } finally {
+            setCleanupLoading(false);
         }
     };
 
@@ -398,6 +432,62 @@ await axios.put('/api/tenants/preferences', {
                                     Tercihleri Kaydet
                                 </Button>
                             </form>
+
+                            <div className="pt-6 border-t border-border/60 space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
+                                        <Shield size={20} />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground">Test Veri Temizligi</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    Sadece adminler icin. Once dry-run ile sayim alin, sonra onay tokeni ile silin.
+                                </p>
+
+                                {cleanupMessage.text && (
+                                    <div className={`p-3 rounded-xl text-sm font-bold ${cleanupMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
+                                        {cleanupMessage.text}
+                                    </div>
+                                )}
+
+                                {cleanupCounts && (
+                                    <div className="text-xs text-muted-foreground bg-muted/40 rounded-xl p-3 border border-border/40">
+                                        <div>customers: {cleanupCounts.customers ?? 0}</div>
+                                        <div>sales: {cleanupCounts.sales ?? 0}</div>
+                                        <div>tasks: {cleanupCounts.tasks ?? 0}</div>
+                                        <div>documents: {cleanupCounts.documents ?? 0}</div>
+                                        <div>messages: {cleanupCounts.messages ?? 0}</div>
+                                        <div>commissionLogs: {cleanupCounts.commissionLogs ?? 0}</div>
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col gap-3">
+                                    <Button
+                                        type="button"
+                                        disabled={cleanupLoading}
+                                        onClick={runCleanupDry}
+                                        className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold shadow-xl shadow-amber-200 transition-all"
+                                    >
+                                        Dry-Run Sayim Yap
+                                    </Button>
+
+                                    <Input
+                                        value={cleanupConfirm}
+                                        onChange={(e) => setCleanupConfirm(e.target.value)}
+                                        className="h-12 bg-muted border-none rounded-2xl text-sm font-bold"
+                                        placeholder='Onay tokeni: DELETE_TEST_DATA'
+                                    />
+
+                                    <Button
+                                        type="button"
+                                        disabled={cleanupLoading}
+                                        onClick={runCleanupDelete}
+                                        className="w-full h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-bold shadow-xl shadow-red-200 transition-all"
+                                    >
+                                        Test Verisini Sil
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     )}
 

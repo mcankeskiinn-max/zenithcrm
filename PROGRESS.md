@@ -110,3 +110,6 @@ pm test (Vitest) passed.
 
 - Admin test veri temizligi endpointi eklendi (dry-run + confirm token).
 
+
+- Admin Ayarlar sayfasina Test Veri Temizligi butonu eklendi (dry-run + confirm).
+
