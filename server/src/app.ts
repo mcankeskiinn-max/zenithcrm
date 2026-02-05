@@ -37,6 +37,13 @@ const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 
 if (isProduction) {
+    const trustProxyEnv = process.env.TRUST_PROXY;
+    if (trustProxyEnv === '1' || trustProxyEnv === 'true') {
+        app.set('trust proxy', 1);
+    } else if (trustProxyEnv && trustProxyEnv !== '0') {
+        app.set('trust proxy', trustProxyEnv);
+    }
+
     const requiredEnv = ['DATABASE_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
     const missing = requiredEnv.filter((key) => !process.env[key]);
     if (missing.length > 0) {
@@ -175,6 +182,11 @@ app.use('/api/tenants', tenantRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Not found' });
+});
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

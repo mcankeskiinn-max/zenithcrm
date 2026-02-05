@@ -125,3 +125,6 @@ pm test (Vitest) passed.
 
 - Added request validation middleware and schema checks for customer/sale create+update routes.
 
+
+- Production: TRUST_PROXY config eklendi, 404 handler eklendi.
+

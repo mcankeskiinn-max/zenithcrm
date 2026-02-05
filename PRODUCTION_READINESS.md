@@ -11,6 +11,7 @@
 - CLIENT_URL (frontend base URL)
 - CORS_ORIGIN (exact frontend origin)
 - SMTP_PASS (Resend API key for password reset emails)
+- TRUST_PROXY (optional, set to 1 behind a single reverse proxy)
 - PORT (optional)
 
 ## Secrets Management
