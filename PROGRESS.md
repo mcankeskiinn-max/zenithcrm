@@ -15,3 +15,7 @@
 - Hardened CORS origin checks to exact-match normalized origins (removed startsWith to prevent origin spoofing).
 - Server tests now pass with runInBand using .env.test.
 - Fixed TypeScript narrowing for allowedOrigins filtering after CORS hardening.
+- Enabled production-only rate limiting and required env validation in server/src/app.ts.
+- Reduced noisy CORS logs in production.
+- Organized server root helper files into server/tools/{diagnostics,fixtures,tests,ocr}.
+- Re-ran server tests after security + file organization: all 3 suites passed (7 tests).

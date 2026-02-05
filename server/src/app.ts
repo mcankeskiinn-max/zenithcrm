@@ -30,26 +30,38 @@ import prisma from './prisma';
 
 const app = express();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction) {
+    const requiredEnv = ['DATABASE_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
+    const missing = requiredEnv.filter((key) => !process.env[key]);
+    if (missing.length > 0) {
+        throw new Error(`Missing required env vars: ${missing.join(', ')}`);
+    }
+}
+
 // Security middleware
 app.use(helmet());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // Serve uploads
 
-// Rate limiting - TEMPORARILY DISABLED FOR DEVELOPMENT
-// const apiLimiter = rateLimit({
-//     windowMs: 15 * 60 * 1000,
-//     max: 1000, // Increased from 100 to prevent blocking during normal use
-//     message: { error: 'Too many requests, please try again later.' }
-// });
+// Rate limiting - enabled in production
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 1000,
+    message: { error: 'Too many requests, please try again later.' }
+});
 
-// const authLimiter = rateLimit({
-//     windowMs: 15 * 60 * 1000,
-//     max: 50, // Increased from 10 to allow for development testing
-//     message: { error: 'Too many login attempts, please try again later.' }
-// });
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50,
+    message: { error: 'Too many login attempts, please try again later.' }
+});
 
 // App configuration
-console.log('CORS Setup - ENV CORS_ORIGIN:', process.env.CORS_ORIGIN);
-console.log('CORS Setup - ENV CLIENT_URL:', process.env.CLIENT_URL);
+if (!isProduction) {
+    console.log('CORS Setup - ENV CORS_ORIGIN:', process.env.CORS_ORIGIN);
+    console.log('CORS Setup - ENV CLIENT_URL:', process.env.CLIENT_URL);
+}
 
 // Hardcode allow list for debugging purposes, combined with env
 // Note: when using credentials: true, 'origin' cannot be '*'
@@ -65,7 +77,9 @@ const allowedOrigins = [
     process.env.CLIENT_URL
 ].filter((o): o is string => Boolean(o)).map(normalizeOrigin);
 
-console.log('CORS Setup - Allowed Origins:', allowedOrigins);
+if (!isProduction) {
+    console.log('CORS Setup - Allowed Origins:', allowedOrigins);
+}
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -88,9 +102,11 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Apply rate limits - TEMPORARILY DISABLED FOR DEVELOPMENT
-// app.use('/api/', apiLimiter);
-// app.use('/api/auth/login', authLimiter);
+// Apply rate limits in production only
+if (isProduction) {
+    app.use('/api/', apiLimiter);
+    app.use('/api/auth/login', authLimiter);
+}
 
 app.get('/', async (req, res) => {
     res.json({
