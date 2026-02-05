@@ -66,3 +66,4 @@
 - Ran Playwright automation for login + sales/customers/portfolio/cancellations/commissions flows; screenshots and summary saved under output/playwright/.
 - Set up local server env in server/.env for dev runs (DATABASE_URL + JWT secrets + CORS/CLIENT URL).
 - Extended Playwright automation to create sale, create cancellation, and update commission; rerun successful (see output/playwright/summary.json).
+- Enforced strict document access rules (tenant + branch + role) and added authenticated download endpoint; removed public uploads exposure.

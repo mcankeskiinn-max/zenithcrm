@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import path from 'path';
-import { uploadDocument, getDocuments, deleteDocument } from '../controllers/document.controller';
+import { uploadDocument, getDocuments, deleteDocument, downloadDocument } from '../controllers/document.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -25,6 +25,7 @@ const upload = multer({
 
 // Routes
 router.post('/upload', authenticate, upload.single('file'), uploadDocument);
+router.get('/download/:id', authenticate, downloadDocument);
 router.get('/:saleId', authenticate, getDocuments);
 router.delete('/:id', authenticate, deleteDocument);
 

@@ -59,7 +59,7 @@ const cspDirectives = {
 app.use(helmet({
     contentSecurityPolicy: isProduction ? { directives: cspDirectives } : false
 }));
-app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // Serve uploads
+// Uploads are served via authenticated download endpoint
 
 // Rate limiting - enabled in production
 const apiLimiter = rateLimit({
