@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { ThemeProvider } from '../context/ThemeContext';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -24,9 +25,11 @@ describe('Component: Sidebar', () => {
         window.localStorage.setItem('user', JSON.stringify({ role: 'ADMIN', name: 'Admin User' }));
 
         render(
-            <MemoryRouter>
-                <Sidebar isOpen={true} onClose={() => { }} />
-            </MemoryRouter>
+            <ThemeProvider>
+                <MemoryRouter>
+                    <Sidebar isOpen={true} onClose={() => { }} />
+                </MemoryRouter>
+            </ThemeProvider>
         );
 
         expect(screen.getByText('Şube Yönetimi')).toBeDefined();
@@ -37,9 +40,11 @@ describe('Component: Sidebar', () => {
         window.localStorage.setItem('user', JSON.stringify({ role: 'EMPLOYEE', name: 'Agent User' }));
 
         render(
-            <MemoryRouter>
-                <Sidebar isOpen={true} onClose={() => { }} />
-            </MemoryRouter>
+            <ThemeProvider>
+                <MemoryRouter>
+                    <Sidebar isOpen={true} onClose={() => { }} />
+                </MemoryRouter>
+            </ThemeProvider>
         );
 
         // Management links should NOT be present

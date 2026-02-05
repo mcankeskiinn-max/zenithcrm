@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
 interface Notification {
     id: string;
     type: string;
@@ -34,7 +32,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_URL}/notifications`, {
+            if (!token) return;
+            const res = await axios.get('/api/notifications', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotifications(res.data.notifications);
@@ -48,7 +47,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const fetchUnreadCount = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_URL}/notifications/unread-count`, {
+            if (!token) return;
+            const res = await axios.get('/api/notifications/unread-count', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUnreadCount(res.data.count);
@@ -60,7 +60,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const markAsRead = async (id: string) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.patch(`${API_URL}/notifications/${id}/read`, {}, {
+            if (!token) return;
+            await axios.patch(`/api/notifications/${id}/read`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotifications(prev =>
@@ -75,7 +76,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const markAllAsRead = async () => {
         try {
             const token = localStorage.getItem('token');
-            await axios.patch(`${API_URL}/notifications/mark-all-read`, {}, {
+            if (!token) return;
+            await axios.patch('/api/notifications/mark-all-read', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));

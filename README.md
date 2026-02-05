@@ -142,12 +142,17 @@ JWT_EXPIRES_IN=7d
 JWT_REFRESH_EXPIRES_IN=30d
 CLIENT_URL=http://localhost:5175
 PORT=3000
+NODE_ENV=development
 ```
 
 ### Frontend (.env)
 ```
 VITE_API_URL=http://localhost:3000
 ```
+
+Notes:
+- `VITE_API_URL` should be the API host root (not ending with `/api`), since the client calls `/api/*`.
+- In production, ensure `JWT_SECRET` and `JWT_REFRESH_SECRET` are long random values.
 
 ---
 

@@ -19,3 +19,11 @@
 - Reduced noisy CORS logs in production.
 - Organized server root helper files into server/tools/{diagnostics,fixtures,tests,ocr}.
 - Re-ran server tests after security + file organization: all 3 suites passed (7 tests).
+- Client: fixed SupportChat to send auth headers and handle missing session.
+- Client: normalized NotificationContext to use /api endpoints and guard missing token.
+- Client: limited axios baseURL logging to non-production.
+- Added client/.env.example and clarified env usage in README.
+- Added CLIENT_URL to server/.env.example.
+- Added GitHub Actions CI workflow for server tests (requires secrets).
+- Fixed Sidebar tests to wrap with ThemeProvider.
+- Installed client deps and ran vitest: all 2 test files passed.

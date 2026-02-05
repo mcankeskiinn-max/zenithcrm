@@ -9,7 +9,9 @@ import axios from 'axios'
 const apiUrl = import.meta.env.VITE_API_URL;
 if (apiUrl && apiUrl.trim() !== '' && apiUrl !== 'http://localhost:3000') {
   axios.defaults.baseURL = apiUrl.replace(/\/$/, '');
-  console.log('Axios baseURL set to:', axios.defaults.baseURL);
+  if (import.meta.env.MODE !== 'production') {
+    console.log('Axios baseURL set to:', axios.defaults.baseURL);
+  }
 }
 axios.defaults.withCredentials = true;
 

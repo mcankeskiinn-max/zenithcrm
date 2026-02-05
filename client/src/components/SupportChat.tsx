@@ -31,7 +31,14 @@ export const SupportChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     const fetchMessages = async () => {
         try {
-            const response = await axios.get('/api/support/messages');
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Oturum bulunamadı. Lütfen yeniden giriş yapın.');
+                return;
+            }
+            const response = await axios.get('/api/support/messages', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setMessages(response.data);
         } catch (err) {
             console.error('Failed to fetch support messages:', err);
@@ -48,7 +55,15 @@ export const SupportChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/support/message', { message: userMessage });
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Oturum bulunamadı. Lütfen yeniden giriş yapın.');
+                setLoading(false);
+                return;
+            }
+            const response = await axios.post('/api/support/message', { message: userMessage }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setMessages(prev => [...prev, response.data]);
 
             // Poll for AI response if not immediately resolved
@@ -65,7 +80,16 @@ export const SupportChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const pollForResponse = async (id: string) => {
         const pollInterval = setInterval(async () => {
             try {
-                const response = await axios.get(`/api/support/message/${id}`);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('Oturum bulunamadı. Lütfen yeniden giriş yapın.');
+                clearInterval(pollInterval);
+                setLoading(false);
+                return;
+            }
+            const response = await axios.get(`/api/support/message/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
                 if (response.data.status === 'RESOLVED' || response.data.status === 'FAILED') {
                     setMessages(prev =>
                         prev.map(msg => msg.id === id ? response.data : msg)
