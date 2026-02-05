@@ -31,11 +31,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const fetchNotifications = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            const res = await axios.get('/api/notifications', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const user = localStorage.getItem('user');
+            if (!user) return;
+            const res = await axios.get('/api/notifications');
             setNotifications(res.data.notifications);
         } catch (error) {
             console.error('Fetch notifications error:', error);
@@ -46,11 +44,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const fetchUnreadCount = async () => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            const res = await axios.get('/api/notifications/unread-count', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const user = localStorage.getItem('user');
+            if (!user) return;
+            const res = await axios.get('/api/notifications/unread-count');
             setUnreadCount(res.data.count);
         } catch (error) {
             console.error('Fetch unread count error:', error);
@@ -59,11 +55,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const markAsRead = async (id: string) => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            await axios.patch(`/api/notifications/${id}/read`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const user = localStorage.getItem('user');
+            if (!user) return;
+            await axios.patch(`/api/notifications/${id}/read`, {});
             setNotifications(prev =>
                 prev.map(n => n.id === id ? { ...n, isRead: true } : n)
             );
@@ -75,11 +69,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const markAllAsRead = async () => {
         try {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            await axios.patch('/api/notifications/mark-all-read', {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const user = localStorage.getItem('user');
+            if (!user) return;
+            await axios.patch('/api/notifications/mark-all-read', {});
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
         } catch (error) {
@@ -89,8 +81,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Poll for unread count every 30 seconds
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        const user = localStorage.getItem('user');
+        if (!user) return;
 
         fetchUnreadCount();
         const interval = setInterval(fetchUnreadCount, 30000);

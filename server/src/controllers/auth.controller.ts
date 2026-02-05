@@ -10,6 +10,29 @@ import crypto from 'crypto';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME = 15 * 60 * 1000; // 15 dakika
+const ACCESS_COOKIE = 'access_token';
+const REFRESH_COOKIE = 'refresh_token';
+const CSRF_COOKIE = 'XSRF-TOKEN';
+
+const getCookieOptions = () => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+        path: '/'
+    };
+};
+
+const getCsrfCookieOptions = () => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    return {
+        httpOnly: false,
+        secure: isProduction,
+        sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+        path: '/'
+    };
+};
 
 export const loginValidation = [
     body('email').isEmail().normalizeEmail(),
@@ -95,6 +118,14 @@ export const login = async (req: Request, res: Response) => {
             userAgent: req.get('user-agent')
         });
 
+        const accessCookie = getCookieOptions();
+        const refreshCookie = getCookieOptions();
+        const csrfToken = crypto.randomBytes(32).toString('hex');
+
+        res.cookie(ACCESS_COOKIE, accessToken, { ...accessCookie, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie(REFRESH_COOKIE, refreshToken, { ...refreshCookie, maxAge: 30 * 24 * 60 * 60 * 1000 });
+        res.cookie(CSRF_COOKIE, csrfToken, { ...getCsrfCookieOptions(), maxAge: 30 * 24 * 60 * 60 * 1000 });
+
         res.json({
             message: 'Login successful',
             token: accessToken,
@@ -146,6 +177,11 @@ export const logout = async (req: Request, res: Response) => {
                 userAgent: req.get('user-agent')
             });
         }
+
+        const cookieOptions = getCookieOptions();
+        res.clearCookie(ACCESS_COOKIE, cookieOptions);
+        res.clearCookie(REFRESH_COOKIE, cookieOptions);
+        res.clearCookie(CSRF_COOKIE, getCsrfCookieOptions());
 
         res.json({ message: 'Logout successful' });
     } catch (error) {

@@ -28,14 +28,25 @@ interface DecodedToken {
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        let token: string | undefined;
+
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const raw = authHeader.substring(7).trim();
+            if (raw && raw !== 'null' && raw !== 'undefined') {
+                token = raw;
+            }
+        }
+
+        if (!token && (req as any).cookies?.access_token) {
+            token = (req as any).cookies.access_token as string;
+        }
+
+        if (!token) {
             return res.status(401).json({
                 error: 'Authentication required',
                 code: 'NO_TOKEN'
             });
         }
-
-        const token = authHeader.substring(7);
 
         let decoded: DecodedToken;
         try {

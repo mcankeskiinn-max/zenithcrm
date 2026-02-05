@@ -25,6 +25,7 @@ export default function ForgotPasswordPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
+                credentials: 'include',
             });
 
             const json = await res.json();

@@ -153,6 +153,7 @@ VITE_API_URL=http://localhost:3000
 Notes:
 - `VITE_API_URL` should be the API host root (not ending with `/api`), since the client calls `/api/*`.
 - In production, ensure `JWT_SECRET` and `JWT_REFRESH_SECRET` are long random values.
+- Auth uses httpOnly cookies; the client sends a CSRF header automatically for mutating requests.
 
 ---
 

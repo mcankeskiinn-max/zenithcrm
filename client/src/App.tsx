@@ -29,8 +29,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import { NotificationProvider } from './contexts/NotificationContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const token = localStorage.getItem('token');
-  if (!token) return <Navigate to="/login" replace />;
+  const user = localStorage.getItem('user');
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 

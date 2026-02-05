@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import CreateCancellationModal from './CreateCancellationModal';
 import NotificationBell from './NotificationBell';
 import { SupportWidget } from './SupportWidget';
+import axios from 'axios';
 
 export default function Layout() {
     const location = useLocation();
@@ -37,6 +38,18 @@ export default function Layout() {
         };
         setPageTitle(titles[location.pathname] || 'ZenithCRM');
     }, [location.pathname]);
+
+    const handleLogout = async () => {
+        try {
+            await axios.post('/api/auth/logout', {});
+        } catch {
+            // ignore logout network errors
+        } finally {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+    };
 
 
 
@@ -163,9 +176,7 @@ export default function Layout() {
                                                 <div className="h-px bg-border my-1 mx-2"></div>
                                                 <button
                                                     onClick={() => {
-                                                        localStorage.removeItem('token');
-                                                        localStorage.removeItem('user');
-                                                        window.location.href = '/login';
+                                                        handleLogout();
                                                     }}
                                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/10 transition-all"
                                                 >

@@ -62,10 +62,7 @@ const PayrollPage: React.FC = () => {
 
     const fetchBranches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_URL}/branches`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await axios.get(`${API_URL}/branches`);
             setBranches(res.data);
 
             // Check if single branch
@@ -82,10 +79,7 @@ const PayrollPage: React.FC = () => {
 
     const fetchEmployees = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_URL}/users`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await axios.get(`${API_URL}/users`);
             setEmployees(res.data);
         } catch (error) {
             console.error('Fetch employees error:', error);
@@ -95,15 +89,13 @@ const PayrollPage: React.FC = () => {
     const fetchPayrollData = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
             const res = await axios.get(`${API_URL}/payroll/summary`, {
                 params: {
                     startDate,
                     endDate,
                     branchId: selectedBranchId || undefined,
                     userId: selectedEmployeeId || undefined
-                },
-                headers: { Authorization: `Bearer ${token}` }
+                }
             });
             setStats(res.data.stats);
             setSales(res.data.sales);
@@ -116,15 +108,7 @@ const PayrollPage: React.FC = () => {
 
     const handleExportPDF = async () => {
         setExporting(true);
-        try {
-            const token = localStorage.getItem('token');
-
-            if (!token) {
-                alert('Oturum bulunamadı. Lütfen giriş yapın.');
-                return;
-            }
-
-            console.log('📄 PDF export başlatılıyor...', { startDate, endDate });
+        try {\n            console.log('📄 PDF export başlatılıyor...', { startDate, endDate });
 
             const response = await axios.get(`${API_URL}/payroll/export`, {
                 params: {
@@ -478,3 +462,4 @@ const PayrollPage: React.FC = () => {
 };
 
 export default PayrollPage;
+

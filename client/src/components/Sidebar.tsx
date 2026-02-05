@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from './ThemeToggle';
+import axios from 'axios';
 import {
     LayoutDashboard,
     Users,
@@ -62,6 +63,18 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             setUser(parsedUser);
         }
     }, []);
+
+    const handleLogout = async () => {
+        try {
+            await axios.post('/api/auth/logout', {});
+        } catch {
+            // ignore logout network errors
+        } finally {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+    };
 
     const filteredMenuItems = menuItems.filter(item => {
         if (!user || !user.role) return false;
@@ -200,9 +213,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
                         <button
                             onClick={() => {
-                                localStorage.removeItem('token');
-                                localStorage.removeItem('user');
-                                window.location.href = '/login';
+                                handleLogout();
                             }}
                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-secondary py-2.5 text-xs font-bold text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
                         >

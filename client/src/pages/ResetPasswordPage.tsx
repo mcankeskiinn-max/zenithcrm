@@ -39,6 +39,7 @@ export default function ResetPasswordPage() {
                     token,
                     password: data.password
                 }),
+                credentials: 'include',
             });
 
             const json = await res.json();

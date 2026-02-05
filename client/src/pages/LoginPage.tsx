@@ -24,6 +24,7 @@ export default function LoginPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(data),
+                credentials: 'include',
             });
 
             const json = await res.json();
@@ -34,7 +35,6 @@ export default function LoginPage() {
                 return;
             }
 
-            localStorage.setItem('token', json.accessToken);
             localStorage.setItem('user', JSON.stringify(json.user));
 
             navigate('/app/dashboard');

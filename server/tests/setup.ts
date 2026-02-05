@@ -8,6 +8,8 @@ const envPath = path.resolve(__dirname, '../.env');
 const envToLoad = fs.existsSync(envTestPath) ? envTestPath : envPath;
 dotenv.config({ path: envToLoad });
 
+process.env.NODE_ENV = 'test';
+
 // Ensure we don't accidentally wipe production if we ever add teardowns
 if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL must be defined for tests');

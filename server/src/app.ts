@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes';
 import commissionRoutes from './routes/commission.routes';
 import branchRoutes from './routes/branch.routes';
@@ -26,6 +27,7 @@ import ocrRoutes from './routes/ocr.routes';
 import tenantRoutes from './routes/tenant.routes'; // Added tenantRoutes import
 import supportRoutes from './routes/support.routes';
 import prisma from './prisma';
+import { csrfProtection } from './middleware/csrf.middleware';
 
 
 const app = express();
@@ -101,6 +103,8 @@ app.use(cors({
 
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(cookieParser());
+app.use(csrfProtection);
 
 // Apply rate limits in production only
 if (isProduction) {

@@ -17,6 +17,34 @@ axios.defaults.withCredentials = true;
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
+const getCookie = (name: string) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()!.split(';').shift() || '';
+  return '';
+};
+
+axios.interceptors.request.use((config) => {
+  const headers = config.headers || {};
+
+  const authHeader = (headers as any).Authorization || (headers as any).authorization;
+  if (typeof authHeader === 'string' && (authHeader === 'Bearer null' || authHeader === 'Bearer undefined' || authHeader === 'Bearer')) {
+    delete (headers as any).Authorization;
+    delete (headers as any).authorization;
+  }
+
+  const method = (config.method || 'get').toLowerCase();
+  if (['post', 'put', 'patch', 'delete'].includes(method)) {
+    const csrf = getCookie('XSRF-TOKEN');
+    if (csrf) {
+      (headers as any)['X-CSRF-Token'] = csrf;
+    }
+  }
+
+  config.headers = headers;
+  return config;
+});
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

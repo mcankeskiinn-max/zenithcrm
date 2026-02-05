@@ -27,3 +27,8 @@
 - Added GitHub Actions CI workflow for server tests (requires secrets).
 - Fixed Sidebar tests to wrap with ThemeProvider.
 - Installed client deps and ran vitest: all 2 test files passed.
+- Switched auth to httpOnly cookies + CSRF protection (server middleware, login/logout cookies).
+- Client now uses cookies (no token storage) and attaches CSRF header automatically.
+- Added logout API call on UI and cleaned token usage in key flows.
+- Re-ran server tests after cookie/CSRF changes: all 3 suites passed.
+- Re-ran client tests after auth changes: all 2 test files passed.
