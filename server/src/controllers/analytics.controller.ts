@@ -1,20 +1,16 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
 import { Role } from '../utils/constants';
+import { applySaleScope } from '../utils/access.util';
 
 export const getMonthlyPerformance = async (req: Request, res: Response) => {
     try {
         const user = req.user!;
         const { startDate, endDate } = req.query;
-        const isAdmin = user.role === 'ADMIN' || user.role === 'MANAGER';
-
         const where: any = {
-            tenantId: user.tenantId,
             status: 'ACTIVE'
         };
-        if (!isAdmin) {
-            where.employeeId = user.id;
-        }
+        applySaleScope(where, user);
 
         if (startDate || endDate) {
             where.saleDate = {};
@@ -67,7 +63,8 @@ export const getBranchComparison = async (req: Request, res: Response) => {
         const currentUser = req.user!;
         const { startDate, endDate } = req.query;
 
-        const salesWhere: any = { status: 'ACTIVE', tenantId: currentUser.tenantId };
+        const salesWhere: any = { status: 'ACTIVE' };
+        applySaleScope(salesWhere, currentUser);
         if (startDate || endDate) {
             salesWhere.saleDate = {};
             if (startDate) salesWhere.saleDate.gte = new Date(startDate as string);
@@ -78,8 +75,17 @@ export const getBranchComparison = async (req: Request, res: Response) => {
             }
         }
 
+        const branchWhere: any = { tenantId: currentUser.tenantId };
+        if (currentUser.role !== Role.ADMIN) {
+            if (currentUser.branchId) {
+                branchWhere.id = currentUser.branchId;
+            } else {
+                return res.json([]);
+            }
+        }
+
         const branches = await prisma.branch.findMany({
-            where: { tenantId: currentUser.tenantId },
+            where: branchWhere,
             include: {
                 sales: {
                     where: salesWhere,
@@ -107,9 +113,9 @@ export const getPolicyTypeDistribution = async (req: Request, res: Response) => 
         const { startDate, endDate } = req.query;
 
         const where: any = {
-            tenantId: currentUser.tenantId,
             status: 'ACTIVE'
         };
+        applySaleScope(where, currentUser);
 
         if (startDate || endDate) {
             where.saleDate = {};
@@ -156,9 +162,9 @@ export const getEmployeePerformance = async (req: Request, res: Response) => {
         const { startDate, endDate } = req.query;
 
         const where: any = {
-            tenantId: currentUser.tenantId,
             status: 'ACTIVE'
         };
+        applySaleScope(where, currentUser);
 
         if (startDate || endDate) {
             where.saleDate = {};
@@ -177,8 +183,19 @@ export const getEmployeePerformance = async (req: Request, res: Response) => {
             _count: true
         });
 
+        const employeesWhere: any = { tenantId: currentUser.tenantId };
+        if (currentUser.role === Role.MANAGER) {
+            if (currentUser.branchId) {
+                employeesWhere.branchId = currentUser.branchId;
+            } else {
+                return res.json([]);
+            }
+        } else if (currentUser.role === Role.EMPLOYEE) {
+            employeesWhere.id = currentUser.id;
+        }
+
         const employees = await prisma.user.findMany({
-            where: { tenantId: currentUser.tenantId },
+            where: employeesWhere,
             select: { id: true, name: true }
         });
 
@@ -206,22 +223,35 @@ export const getTargetProgress = async (req: Request, res: Response) => {
         const year = now.getFullYear();
         const period = `${year}-${String(month).padStart(2, '0')}`;
 
-        const targets = await prisma.salesTarget.findMany({
-            where: {
-                tenantId: currentUser.tenantId,
-                period
+        const targetsWhere: any = {
+            tenantId: currentUser.tenantId,
+            period
+        };
+        if (currentUser.role === Role.MANAGER) {
+            if (currentUser.branchId) {
+                targetsWhere.branchId = currentUser.branchId;
+            } else {
+                return res.json({ month, year, target: 0, actual: 0, percent: 0 });
             }
+        } else if (currentUser.role === Role.EMPLOYEE) {
+            targetsWhere.userId = currentUser.id;
+        }
+
+        const targets = await prisma.salesTarget.findMany({
+            where: targetsWhere
         });
 
+        const salesWhere: any = {
+            status: 'ACTIVE',
+            saleDate: {
+                gte: new Date(year, month - 1, 1),
+                lt: new Date(year, month, 1)
+            }
+        };
+        applySaleScope(salesWhere, currentUser);
+
         const currentMonthSales = await prisma.sale.aggregate({
-            where: {
-                tenantId: currentUser.tenantId,
-                status: 'ACTIVE',
-                saleDate: {
-                    gte: new Date(year, month - 1, 1),
-                    lt: new Date(year, month, 1)
-                }
-            },
+            where: salesWhere,
             _sum: { amount: true }
         });
 
@@ -243,19 +273,12 @@ export const getTargetProgress = async (req: Request, res: Response) => {
 export const getYearlyPerformance = async (req: Request, res: Response) => {
     try {
         const user = req.user!;
-        const isAdmin = user.role === 'ADMIN' || user.role === 'MANAGER';
-
-        const now = new Date();
-        const currentYear = now.getFullYear();
+        const currentYear = new Date().getFullYear();
         const lastYear = currentYear - 1;
-
         const where: any = {
-            tenantId: user.tenantId,
             status: 'ACTIVE'
         };
-        if (!isAdmin) {
-            where.employeeId = user.id;
-        }
+        applySaleScope(where, user);
 
         // Fetch sales for current year and last year
         const sales = await prisma.sale.findMany({
@@ -274,8 +297,8 @@ export const getYearlyPerformance = async (req: Request, res: Response) => {
         });
 
         const months = [
-            'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-            'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+            'Ocak', 'Subat', 'Mart', 'Nisan', 'Mayis', 'Haziran',
+            'Temmuz', 'Agustos', 'Eylul', 'Ekim', 'Kasim', 'Aralik'
         ];
 
         const yearlyData: { [key: number]: { month: string, currentYear: number, lastYear: number } } = {};
@@ -303,3 +326,14 @@ export const getYearlyPerformance = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch yearly performance' });
     }
 };
+
+
+
+
+
+
+
+
+
+
+

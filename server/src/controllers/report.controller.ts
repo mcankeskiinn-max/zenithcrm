@@ -5,6 +5,7 @@ import { startOfDay, endOfDay, format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { SaleStatus } from '@prisma/client';
 import { generateProfessionalPDF, PDFData } from '../utils/pdf.util';
+import { applySaleScope, canAccessCustomerBySales } from '../utils/access.util';
 
 export const exportSalesToExcel = async (req: Request, res: Response) => {
     try {
@@ -13,6 +14,7 @@ export const exportSalesToExcel = async (req: Request, res: Response) => {
 
         // Base where clause
         const where: {
+            tenantId?: string;
             saleDate?: { gte: Date; lte: Date };
             branchId?: string;
             policyTypeId?: string;
@@ -27,10 +29,8 @@ export const exportSalesToExcel = async (req: Request, res: Response) => {
             };
         }
 
-        // Branch filter - Employee only sees their own branch, Manager see theirs, Admin see all
-        if (user.role === 'EMPLOYEE' || user.role === 'MANAGER') {
-            where.branchId = user.branchId;
-        } else if (branchId) {
+        applySaleScope(where, user);
+        if (user.role === 'ADMIN' && branchId) {
             where.branchId = branchId as string;
         }
 
@@ -128,6 +128,13 @@ export const exportCustomerPDF = async (req: Request, res: Response) => {
 
         if (!customer) {
             return res.status(404).json({ error: 'Müşteri bulunamadı' });
+        }
+
+        if (user.role !== 'ADMIN') {
+            const sales = (customer.sales || []).map(s => ({ branchId: s.branchId, employeeId: s.employeeId }));
+            if (sales.length === 0 || !canAccessCustomerBySales(user, sales)) {
+                return res.status(403).json({ error: 'Bu mÃ¼ÅŸteri bilgilerini gÃ¶rÃ¼ntÃ¼leme yetkiniz yok.' });
+            }
         }
 
         const data: PDFData = {

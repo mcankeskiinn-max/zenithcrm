@@ -32,6 +32,15 @@ export default function CustomersPage() {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [createForm, setCreateForm] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        identityNumber: ''
+    });
+    const [creating, setCreating] = useState(false);
+    const [createError, setCreateError] = useState('');
 
     const handleDelete = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
@@ -64,6 +73,36 @@ const res = await axios.get('/api/customers', {
         }
     };
 
+    const resetCreateForm = () => {
+        setCreateForm({
+            name: '',
+            email: '',
+            phone: '',
+            identityNumber: ''
+        });
+        setCreateError('');
+    };
+
+    const handleCreateCustomer = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreating(true);
+        setCreateError('');
+        try {
+            await axios.post('/api/customers', {
+                name: createForm.name,
+                email: createForm.email || undefined,
+                phone: createForm.phone || undefined,
+                identityNumber: createForm.identityNumber || undefined
+            });
+            setIsCreateOpen(false);
+            resetCreateForm();
+            fetchCustomers();
+        } catch (error: any) {
+            setCreateError(error.response?.data?.error || 'Müþteri oluþturulamadý.');
+        } finally {
+            setCreating(false);
+        }
+    };
     const filteredCustomers = customers.filter(c =>
         (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (c.phone && c.phone.includes(searchTerm)) ||
@@ -78,7 +117,7 @@ const res = await axios.get('/api/customers', {
                     <p className="text-sm text-muted-foreground font-medium mt-1">Sistemdeki tÃ¼m mÃ¼ÅŸteriler ve Ã¶zet bilgileri</p>
                 </div>
 
-                <Button className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 active:translate-y-0 gap-2">
+                <Button onClick={() => setIsCreateOpen(true)} className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 active:translate-y-0 gap-2">
                     <UserPlus size={20} />
                     Yeni MÃ¼ÅŸteri
                 </Button>
@@ -182,7 +221,104 @@ const res = await axios.get('/api/customers', {
                     </div>
                 ))}
             </div>
+        {isCreateOpen && (
+            <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+                <div
+                    className="bg-card w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
+                        <div>
+                            <h3 className="text-2xl font-bold text-foreground">Yeni Müþteri</h3>
+                            <p className="text-sm text-muted-foreground">Hýzlý müþteri kaydý oluþturun.</p>
+                        </div>
+                        <button
+                            onClick={() => { setIsCreateOpen(false); resetCreateForm(); }}
+                            className="p-2 hover:bg-muted rounded-full transition-colors"
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleCreateCustomer} className="p-6 space-y-4">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Ad Soyad</label>
+                            <input
+                                className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-medium"
+                                value={createForm.name}
+                                onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">E-posta</label>
+                                <input
+                                    type="email"
+                                    className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-medium"
+                                    value={createForm.email}
+                                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Telefon</label>
+                                <input
+                                    className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-medium"
+                                    value={createForm.phone}
+                                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">TCKN</label>
+                            <input
+                                className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-medium"
+                                value={createForm.identityNumber}
+                                onChange={(e) => setCreateForm({ ...createForm, identityNumber: e.target.value })}
+                            />
+                        </div>
+
+                        {createError && (
+                            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-xl border border-destructive/20">
+                                {createError}
+                            </div>
+                        )}
+
+                        <div className="flex gap-3 pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1 h-12 rounded-2xl font-bold text-muted-foreground hover:bg-muted border-border transition-all"
+                                onClick={() => { setIsCreateOpen(false); resetCreateForm(); }}
+                            >
+                                Vazgeç
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={creating}
+                                className="flex-[2] h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all"
+                            >
+                                {creating ? 'Kaydediliyor...' : 'Kaydý Oluþtur'}
+                            </Button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
         </div>
     );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 

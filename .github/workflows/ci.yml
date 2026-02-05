@@ -30,3 +30,21 @@ jobs:
           JWT_EXPIRES_IN: 7d
           JWT_REFRESH_EXPIRES_IN: 30d
         run: npm test -- --runInBand
+
+  client-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Install
+        working-directory: client
+        run: npm ci
+      - name: Test
+        working-directory: client
+        run: npm test

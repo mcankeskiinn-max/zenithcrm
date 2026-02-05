@@ -1,0 +1,42 @@
+# Production Readiness Checklist
+
+## Required Environment Variables
+- DATABASE_URL
+- JWT_SECRET (64+ chars)
+- JWT_REFRESH_SECRET (64+ chars)
+- JWT_EXPIRES_IN (example: 15m)
+- JWT_REFRESH_EXPIRES_IN (example: 30d)
+- JWT_REFRESH_EXPIRES_IN_SHORT (example: 7d)
+- NODE_ENV=production
+- CLIENT_URL (frontend base URL)
+- CORS_ORIGIN (exact frontend origin)
+- SMTP_PASS (Resend API key for password reset emails)
+- PORT (optional)
+
+## Secrets Management
+- Store secrets in Railway/Vercel/Supabase secret manager (never in repo).
+- Rotate JWT secrets on schedule and after incidents.
+
+## Logging & Monitoring
+- Capture server errors (platform logs or Sentry).
+- Alert on login failures, rate-limit spikes, and 5xx errors.
+- Ensure no sensitive data is logged (tokens, passwords, PII).
+
+## Backups & Recovery
+- Enable scheduled Supabase backups.
+- Test restore procedure (at least quarterly).
+
+## Security Controls
+- Enforce HTTPS at the platform layer.
+- Keep CSP and helmet enabled in production.
+- Keep CSRF protection enabled.
+- Keep rate limits enabled for /api and auth endpoints.
+
+## Access Control
+- Verify tenant + branch + role rules are configured for every admin/manager/employee.
+- Confirm manager accounts have branchId assigned.
+
+## Operational Checks
+- Run server + client tests in CI on each push.
+- Review Prisma migrations before deploy.
+- Verify health endpoint (GET /) responds with 200.

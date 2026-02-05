@@ -68,3 +68,16 @@
 - Extended Playwright automation to create sale, create cancellation, and update commission; rerun successful (see output/playwright/summary.json).
 - Enforced strict document access rules (tenant + branch + role) and added authenticated download endpoint; removed public uploads exposure.
 - Added stricter rate limits for heavy endpoints (reports/analytics/ocr/documents) in production and added file signature validation for uploads.
+- Added shared access helpers and tightened customer/report/analytics access rules to enforce tenant + branch + role scoping.
+- Added PRODUCTION_READINESS.md checklist for env, monitoring, backups, and operational readiness.
+- Isolated uploads by tenant directory and switched document routes to shared upload middleware with signature validation and authenticated downloads.
+- Added performance test plan (PERFORMANCE_TEST_PLAN.md) and a load test helper script (server/tools/tests/loadtest.js).
+- Added quick-create customer modal on Customers page for faster data entry.
+- Expanded CI to run client tests in GitHub Actions.
+
+## 2026-02-05
+- Fixed analytics yearly performance year variables + normalized month labels.
+- Tests: server 
+pm test (Jest) passed; client 
+pm test (Vitest) passed.
+

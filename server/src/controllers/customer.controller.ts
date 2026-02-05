@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
 import { Role } from '../utils/constants';
+import { applySaleScope, canAccessCustomerBySales } from '../utils/access.util';
 
 // List customers
 export const getCustomers = async (req: Request, res: Response) => {
@@ -11,14 +12,26 @@ export const getCustomers = async (req: Request, res: Response) => {
             tenantId: currentUser.tenantId
         };
 
+        if (currentUser.role !== Role.ADMIN) {
+            const saleScope: any = {};
+            applySaleScope(saleScope, currentUser);
+            where.sales = { some: saleScope };
+        }
+
         if (search && typeof search === 'string') {
-            where.OR = [
+            const searchClause = [
                 { firstName: { contains: search, mode: 'insensitive' } },
                 { lastName: { contains: search, mode: 'insensitive' } },
                 { email: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search, mode: 'insensitive' } },
                 { identityNo: { contains: search, mode: 'insensitive' } }
             ];
+            if (where.sales) {
+                where.AND = [{ sales: where.sales }, { OR: searchClause }];
+                delete where.sales;
+            } else {
+                where.OR = searchClause;
+            }
         }
 
         const customers = await prisma.customer.findMany({
@@ -78,10 +91,10 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Müşteri bulunamadı.' });
         }
 
-        // Accessibility logic fix: If no sales, allow view if in same tenant 
-        if (currentUser.role !== Role.ADMIN && (customer.sales?.length || 0) > 0) {
-            const hasAccess = customer.sales.some(s => s.branchId === currentUser.branchId);
-            if (!hasAccess && currentUser.role !== Role.MANAGER) {
+        // Access control based on tenant + branch + role
+        if (currentUser.role !== Role.ADMIN) {
+            const sales = (customer.sales || []).map(s => ({ branchId: s.branchId, employeeId: s.employeeId }));
+            if (sales.length === 0 || !canAccessCustomerBySales(currentUser, sales)) {
                 return res.status(403).json({ error: 'Bu müşteri bilgilerini görüntüleme yetkiniz yok.' });
             }
         }
@@ -205,3 +218,13 @@ export const deleteCustomer = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
+
+
+
+
+
+
+
+
+

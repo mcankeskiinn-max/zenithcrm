@@ -2,15 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../prisma';
 import path from 'path';
 import fs from 'fs';
-import { Role } from '../utils/constants';
-
-const canAccessSale = (user: NonNullable<Request['user']>, sale: { branchId: string; employeeId: string }) => {
-    if (user.role === Role.ADMIN) return true;
-    if (user.role === Role.MANAGER) {
-        return Boolean(user.branchId) && sale.branchId === user.branchId;
-    }
-    return sale.employeeId === user.id;
-};
+import { canAccessSale } from '../utils/access.util';
 
 const isAllowedSignature = (filePath: string, mimetype: string) => {
     try {
@@ -77,11 +69,21 @@ export const uploadDocument = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Invalid file content' });
         }
 
+        const uploadRoot = path.resolve(process.cwd(), 'uploads');
+        const tenantDir = path.join(uploadRoot, currentUser.tenantId);
+        if (!fs.existsSync(tenantDir)) {
+            fs.mkdirSync(tenantDir, { recursive: true });
+        }
+
+        const finalPath = path.join(tenantDir, req.file.filename);
+        fs.renameSync(req.file.path, finalPath);
+        const storedPath = path.join(currentUser.tenantId, req.file.filename);
+
         console.log('[UPLOAD] Creating database record for:', req.file.originalname);
         const document = await prisma.document.create({
             data: {
                 filename: req.file.originalname,
-                path: req.file.filename,
+                path: storedPath,
                 mimetype: req.file.mimetype,
                 size: req.file.size,
                 saleId,
@@ -99,6 +101,14 @@ export const uploadDocument = async (req: Request, res: Response) => {
                 fs.unlinkSync(req.file.path);
             } catch (unlinkError) {
                 console.error('[UPLOAD] Failed to cleanup file after error:', unlinkError);
+            }
+            try {
+                const tenantPath = path.join(process.cwd(), 'uploads', req.user?.tenantId || '', req.file.filename);
+                if (fs.existsSync(tenantPath)) {
+                    fs.unlinkSync(tenantPath);
+                }
+            } catch (unlinkError) {
+                console.error('[UPLOAD] Failed to cleanup moved file after error:', unlinkError);
             }
         }
         const message = error instanceof Error ? error.message : String(error);
