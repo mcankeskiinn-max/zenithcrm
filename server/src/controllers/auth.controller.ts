@@ -115,7 +115,7 @@ export const login = async (req: Request, res: Response) => {
 
         const refreshTtl = rememberMe ? REFRESH_TTL_LONG : REFRESH_TTL_SHORT;
         const refreshToken = jwt.sign(
-            { userId: user.id, rm: rememberMe },
+            { userId: user.id, rm: rememberMe, jti: crypto.randomBytes(16).toString('hex') },
             process.env.JWT_REFRESH_SECRET,
             { expiresIn: refreshTtl as any }
         );

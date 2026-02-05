@@ -113,3 +113,6 @@ pm test (Vitest) passed.
 
 - Admin Ayarlar sayfasina Test Veri Temizligi butonu eklendi (dry-run + confirm).
 
+
+- Refresh token now includes random jti to avoid unique constraint collisions in tests; server tests passed.
+
