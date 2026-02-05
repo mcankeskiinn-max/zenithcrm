@@ -29,7 +29,11 @@ export default function LoginPage() {
             const json = await res.json();
 
             if (!res.ok) {
-                setError(json.error || 'Giriş başarısız');
+                if (json.code === 'INVALID_CREDENTIALS' && typeof json.remainingAttempts === 'number') {
+                    setError(`Giriş başarısız. Kalan deneme: ${json.remainingAttempts}`);
+                } else {
+                    setError(json.error || 'Giriş başarısız');
+                }
                 setIsLoading(false);
                 return;
             }

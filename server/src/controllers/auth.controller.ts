@@ -99,7 +99,8 @@ export const login = async (req: Request, res: Response) => {
             console.log('Password mismatch for user:', email);
             return res.status(401).json({
                 error: 'Invalid credentials',
-                code: 'INVALID_CREDENTIALS'
+                code: 'INVALID_CREDENTIALS',
+                remainingAttempts: Math.max(0, MAX_LOGIN_ATTEMPTS - (user.failedLoginAttempts || 0) - 1)
             });
         }
 
