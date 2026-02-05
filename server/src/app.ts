@@ -52,13 +52,14 @@ if (isProduction) {
 }
 
 // Security middleware
+const allowInlineStyles = process.env.ALLOW_INLINE_STYLES === 'true';
 const cspDirectives = {
     defaultSrc: ["'self'"],
     baseUri: ["'self'"],
     objectSrc: ["'none'"],
     frameAncestors: ["'none'"],
     imgSrc: ["'self'", "data:", "https:"],
-    styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+    styleSrc: allowInlineStyles ? ["'self'", "'unsafe-inline'", "https:"] : ["'self'", "https:"],
     scriptSrc: ["'self'"],
     connectSrc: ["'self'", "https:"],
     fontSrc: ["'self'", "https:", "data:"]
@@ -136,7 +137,11 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
 }));
 
-app.use(morgan('dev'));
+if (isProduction) {
+    app.use(morgan('combined'));
+} else {
+    app.use(morgan('dev'));
+}
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(csrfProtection);

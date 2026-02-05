@@ -128,3 +128,6 @@ pm test (Vitest) passed.
 
 - Production: TRUST_PROXY config eklendi, 404 handler eklendi.
 
+
+- CSP tightened: inline styles disabled by default (ALLOW_INLINE_STYLES to override). Prod logging uses morgan combined.
+
