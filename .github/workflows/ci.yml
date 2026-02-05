@@ -8,7 +8,11 @@ on:
 jobs:
   server-tests:
     runs-on: ubuntu-latest
-    if: ${{ secrets.DATABASE_URL != '' && secrets.JWT_SECRET != '' && secrets.JWT_REFRESH_SECRET != '' }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+    if: ${{ env.DATABASE_URL != '' && env.JWT_SECRET != '' && env.JWT_REFRESH_SECRET != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,9 +28,9 @@ jobs:
       - name: Test
         working-directory: server
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          JWT_SECRET: ${{ env.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ env.JWT_REFRESH_SECRET }}
           JWT_EXPIRES_IN: 7d
           JWT_REFRESH_EXPIRES_IN: 30d
         run: npm test -- --runInBand
@@ -51,7 +55,11 @@ jobs:
 
   ui-flow:
     runs-on: ubuntu-latest
-    if: ${{ secrets.CRM_BASE_URL != '' && secrets.CRM_EMAIL != '' && secrets.CRM_PASSWORD != '' }}
+    env:
+      CRM_BASE_URL: ${{ secrets.CRM_BASE_URL }}
+      CRM_EMAIL: ${{ secrets.CRM_EMAIL }}
+      CRM_PASSWORD: ${{ secrets.CRM_PASSWORD }}
+    if: ${{ env.CRM_BASE_URL != '' && env.CRM_EMAIL != '' && env.CRM_PASSWORD != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,9 +76,9 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run UI Flow
         env:
-          CRM_BASE_URL: ${{ secrets.CRM_BASE_URL }}
-          CRM_EMAIL: ${{ secrets.CRM_EMAIL }}
-          CRM_PASSWORD: ${{ secrets.CRM_PASSWORD }}
+          CRM_BASE_URL: ${{ env.CRM_BASE_URL }}
+          CRM_EMAIL: ${{ env.CRM_EMAIL }}
+          CRM_PASSWORD: ${{ env.CRM_PASSWORD }}
           NODE_PATH: client/node_modules
         run: node tools/playwright/run-flow.js
       - name: Upload UI Flow Artifacts

@@ -116,3 +116,6 @@ pm test (Vitest) passed.
 
 - Refresh token now includes random jti to avoid unique constraint collisions in tests; server tests passed.
 
+
+- CI workflow fix: secrets used via env in job if conditions to avoid invalid workflow parse.
+
