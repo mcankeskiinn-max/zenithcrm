@@ -26,8 +26,7 @@ export const login = async (req: Request, res: Response) => {
         const email = req.body.email?.toString().trim().toLowerCase();
         const password = req.body.password?.toString().trim();
 
-        const charCodes = password ? [...password].map(c => c.charCodeAt(0)).join(',') : 'empty';
-        console.log('Login attempt for:', email, '(length:', password?.length, ') CharCodes:', charCodes);
+        console.log('Login attempt for:', email);
 
         const user = await prisma.user.findUnique({
             where: { email },
@@ -38,7 +37,6 @@ export const login = async (req: Request, res: Response) => {
         });
 
         if (!user) {
-            console.log('User NOT found in DB:', email);
             return res.status(401).json({
                 error: 'Invalid credentials',
                 code: 'INVALID_CREDENTIALS'
@@ -54,7 +52,6 @@ export const login = async (req: Request, res: Response) => {
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        console.log('Password comparison result:', isPasswordValid);
 
         if (!isPasswordValid) {
             console.log('Password mismatch for user:', email);
@@ -64,7 +61,6 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        console.log('Generating tokens...');
         if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET missing');
         if (!process.env.JWT_REFRESH_SECRET) throw new Error('JWT_REFRESH_SECRET missing');
 
@@ -80,7 +76,6 @@ export const login = async (req: Request, res: Response) => {
             { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '30d') as any }
         );
 
-        console.log('Saving refresh token...');
         await prisma.refreshToken.create({
             data: {
                 token: refreshToken,
@@ -89,7 +84,6 @@ export const login = async (req: Request, res: Response) => {
             }
         });
 
-        console.log('Logging audit...');
         await logAudit({
             action: 'LOGIN',
             resource: 'Auth',
@@ -101,9 +95,9 @@ export const login = async (req: Request, res: Response) => {
             userAgent: req.get('user-agent')
         });
 
-        console.log('Login successful for:', email);
         res.json({
             message: 'Login successful',
+            token: accessToken,
             accessToken,
             refreshToken,
             user: {
@@ -381,12 +375,6 @@ export const resetPassword = async (req: Request, res: Response) => {
         */
 
         return res.json({ message: 'Şifreniz başarıyla güncellendi (Geliştirme modunda devre dışı)' });
-
-        // await prisma.passwordResetToken.delete({
-        //     where: { token }
-        // });
-
-        res.json({ message: 'Şifreniz başarıyla sıfırlandı. Giriş yapabilirsiniz.' });
     } catch (error) {
         console.error('ResetPassword error:', error);
         res.status(500).json({ error: 'İşlem başarısız oldu' });

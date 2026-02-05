@@ -53,6 +53,8 @@ console.log('CORS Setup - ENV CLIENT_URL:', process.env.CLIENT_URL);
 
 // Hardcode allow list for debugging purposes, combined with env
 // Note: when using credentials: true, 'origin' cannot be '*'
+const normalizeOrigin = (origin: string) => origin.replace(/\/$/, '');
+
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5173/',
@@ -61,7 +63,7 @@ const allowedOrigins = [
     'https://zenithcrm-w79r-git-main-muratcans-projects-ad29ce1e.vercel.app',
     process.env.CORS_ORIGIN,
     process.env.CLIENT_URL
-].filter(Boolean) as string[];
+].filter((o): o is string => Boolean(o)).map(normalizeOrigin);
 
 console.log('CORS Setup - Allowed Origins:', allowedOrigins);
 
@@ -70,7 +72,8 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
 
-        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.some(o => origin.startsWith(o))) {
+        const normalizedOrigin = normalizeOrigin(origin);
+        if (allowedOrigins.includes(normalizedOrigin)) {
             callback(null, true);
         } else {
             console.warn('CORS Blocked Origin:', origin);

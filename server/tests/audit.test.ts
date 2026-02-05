@@ -25,7 +25,7 @@ describe('Audit Logging System', () => {
             .set('Authorization', `Bearer ${adminToken}`);
 
         expect(res.status).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
+        expect(Array.isArray(res.body.logs)).toBe(true);
     });
 
     it('should restrict audit log access to admins only', async () => {
