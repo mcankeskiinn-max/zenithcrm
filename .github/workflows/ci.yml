@@ -8,29 +8,38 @@ on:
 jobs:
   server-tests:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
-    if: ${{ env.DATABASE_URL != '' && env.JWT_SECRET != '' && env.JWT_REFRESH_SECRET != '' }}
+    outputs:
+      skipped: ${{ steps.secrets-check.outputs.skipped }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Check Secrets
+        id: secrets-check
+        run: |
+          if [ -z "${{ secrets.DATABASE_URL }}" ] || [ -z "${{ secrets.JWT_SECRET }}" ] || [ -z "${{ secrets.JWT_REFRESH_SECRET }}" ]; then
+            echo "skipped=true" >> $GITHUB_OUTPUT
+            echo "Missing secrets for server-tests; skipping."
+          else
+            echo "skipped=false" >> $GITHUB_OUTPUT
+          fi
       - name: Setup Node
         uses: actions/setup-node@v4
+        if: ${{ steps.secrets-check.outputs.skipped != 'true' }}
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: server/package-lock.json
       - name: Install
         working-directory: server
+        if: ${{ steps.secrets-check.outputs.skipped != 'true' }}
         run: npm ci
       - name: Test
         working-directory: server
+        if: ${{ steps.secrets-check.outputs.skipped != 'true' }}
         env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          JWT_SECRET: ${{ env.JWT_SECRET }}
-          JWT_REFRESH_SECRET: ${{ env.JWT_REFRESH_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
           JWT_EXPIRES_IN: 7d
           JWT_REFRESH_EXPIRES_IN: 30d
         run: npm test -- --runInBand
@@ -55,34 +64,44 @@ jobs:
 
   ui-flow:
     runs-on: ubuntu-latest
-    env:
-      CRM_BASE_URL: ${{ secrets.CRM_BASE_URL }}
-      CRM_EMAIL: ${{ secrets.CRM_EMAIL }}
-      CRM_PASSWORD: ${{ secrets.CRM_PASSWORD }}
-    if: ${{ env.CRM_BASE_URL != '' && env.CRM_EMAIL != '' && env.CRM_PASSWORD != '' }}
+    outputs:
+      skipped: ${{ steps.secrets-check.outputs.skipped }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Check Secrets
+        id: secrets-check
+        run: |
+          if [ -z "${{ secrets.CRM_BASE_URL }}" ] || [ -z "${{ secrets.CRM_EMAIL }}" ] || [ -z "${{ secrets.CRM_PASSWORD }}" ]; then
+            echo "skipped=true" >> $GITHUB_OUTPUT
+            echo "Missing secrets for ui-flow; skipping."
+          else
+            echo "skipped=false" >> $GITHUB_OUTPUT
+          fi
       - name: Setup Node
         uses: actions/setup-node@v4
+        if: ${{ steps.secrets-check.outputs.skipped != 'true' }}
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: client/package-lock.json
       - name: Install Client Deps
         working-directory: client
+        if: ${{ steps.secrets-check.outputs.skipped != 'true' }}
         run: npm ci
       - name: Install Playwright Browsers
+        if: ${{ steps.secrets-check.outputs.skipped != 'true' }}
         run: npx playwright install --with-deps chromium
       - name: Run UI Flow
         env:
-          CRM_BASE_URL: ${{ env.CRM_BASE_URL }}
-          CRM_EMAIL: ${{ env.CRM_EMAIL }}
-          CRM_PASSWORD: ${{ env.CRM_PASSWORD }}
+          CRM_BASE_URL: ${{ secrets.CRM_BASE_URL }}
+          CRM_EMAIL: ${{ secrets.CRM_EMAIL }}
+          CRM_PASSWORD: ${{ secrets.CRM_PASSWORD }}
           NODE_PATH: client/node_modules
+        if: ${{ steps.secrets-check.outputs.skipped != 'true' }}
         run: node tools/playwright/run-flow.js
       - name: Upload UI Flow Artifacts
-        if: ${{ always() }}
+        if: ${{ always() && steps.secrets-check.outputs.skipped != 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ui-flow-artifacts
@@ -98,8 +117,10 @@ jobs:
       - name: Release Gate Summary
         run: |
           echo "server-tests: ${{ needs.server-tests.result }}"
+          echo "server-tests skipped: ${{ needs.server-tests.outputs.skipped }}"
           echo "client-tests: ${{ needs.client-tests.result }}"
           echo "ui-flow: ${{ needs.ui-flow.result }}"
+          echo "ui-flow skipped: ${{ needs.ui-flow.outputs.skipped }}"
       - name: Fail if tests did not pass
         run: |
           if [ "${{ needs.server-tests.result }}" = "failure" ]; then
@@ -114,9 +135,9 @@ jobs:
             echo "Release gate failed: ui-flow failed."
             exit 1
           fi
-          if [ "${{ needs.server-tests.result }}" = "skipped" ]; then
+          if [ "${{ needs.server-tests.outputs.skipped }}" = "true" ]; then
             echo "Release gate warning: server-tests skipped (missing secrets)."
           fi
-          if [ "${{ needs.ui-flow.result }}" = "skipped" ]; then
+          if [ "${{ needs.ui-flow.outputs.skipped }}" = "true" ]; then
             echo "Release gate warning: ui-flow skipped (missing CRM secrets)."
           fi

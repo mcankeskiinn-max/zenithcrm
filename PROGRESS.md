@@ -119,3 +119,6 @@ pm test (Vitest) passed.
 
 - CI workflow fix: secrets used via env in job if conditions to avoid invalid workflow parse.
 
+
+- CI workflow updated: secrets check step sets job output; steps gated without job-level if to avoid parser errors.
+
