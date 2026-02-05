@@ -47,3 +47,8 @@
 - Added clearer Remember Me UI and logout-all-devices option.
 - Added session expiry warning banner and delayed redirect on refresh failure.
 - Re-ran server/client tests: all passing.
+- Added security section in Settings (logout all devices).
+- Added admin action to force logout a user from Users page.
+- Added Settings security section for logout-all-devices.
+- Added admin action to force logout a user (server guard added).
+- Re-ran server/client tests: all passing.

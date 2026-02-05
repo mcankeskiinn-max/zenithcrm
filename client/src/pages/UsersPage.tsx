@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, User, Mail, Shield, Building2, Search, MoreHorizontal, UserPlus, Fingerprint, MessageSquare, Edit2, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Trash2, User, Mail, Shield, Building2, Search, MoreHorizontal, UserPlus, Fingerprint, MessageSquare, Edit2, X, CheckCircle2, AlertCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -121,6 +121,16 @@ await axios.delete(`/api/users/${id}`, {
             fetchUsers();
         } catch (error: any) {
             alert(error.response?.data?.error || 'Kullanıcı silinemedi');
+        }
+    };
+
+    const handleLogoutUser = async (id: string) => {
+        if (!confirm('Bu kullanıcının tüm cihazlardan çıkış yapmasını istiyor musunuz?')) return;
+        try {
+            await axios.post('/api/auth/logout', { allDevices: true, userId: id });
+            alert('Kullanıcı tüm cihazlardan çıkarıldı.');
+        } catch (error: any) {
+            alert(error.response?.data?.error || 'İşlem başarısız');
         }
     };
 
@@ -327,6 +337,13 @@ await axios.delete(`/api/users/${id}`, {
                                             title="Düzenle"
                                         >
                                             <Edit2 size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleLogoutUser(user.id)}
+                                            className="p-2 text-gray-300 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                                            title="Tüm Cihazlardan Çıkış"
+                                        >
+                                            <LogOut size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(user.id)}

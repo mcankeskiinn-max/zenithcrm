@@ -143,6 +143,20 @@ await axios.put('/api/tenants/preferences', {
         }
     };
 
+    const handleLogoutAllDevices = async () => {
+        setIsLoading(true);
+        setMessage({ type: '', text: '' });
+        try {
+            await axios.post('/api/auth/logout', { allDevices: true });
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.response?.data?.error || 'İşlem başarısız' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const tabs = [
         { id: 'profile', label: 'Profil Bilgileri', icon: UserCircle },
         { id: 'security', label: 'Güvenlik', icon: Shield },
@@ -304,6 +318,27 @@ await axios.put('/api/tenants/preferences', {
                                     Şifreyi Güncelle
                                 </Button>
                             </form>
+
+                            <div className="pt-6 border-t border-border/60">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                                        <Shield size={20} />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground">Oturum Güvenliği</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    Hesabınızı tüm cihazlardan güvenle çıkış yaptırabilirsiniz.
+                                </p>
+                                <Button
+                                    type="button"
+                                    disabled={isLoading}
+                                    onClick={handleLogoutAllDevices}
+                                    className="w-full h-12 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold shadow-xl shadow-amber-200 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Shield size={18} />
+                                    Tüm Cihazlardan Çıkış Yap
+                                </Button>
+                            </div>
                         </div>
                     )}
 

@@ -179,13 +179,19 @@ export const login = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
     try {
-        const { refreshToken, allDevices } = req.body;
+        const { refreshToken, allDevices, userId } = req.body;
         const cookieRefresh = (req as any).cookies?.[REFRESH_COOKIE];
         const tokenToRevoke = refreshToken || cookieRefresh;
 
-        if (allDevices && req.user?.id) {
+        const targetUserId = userId || req.user?.id;
+
+        if (userId && req.user?.role !== 'ADMIN') {
+            return res.status(403).json({ error: 'Insufficient permissions' });
+        }
+
+        if (allDevices && targetUserId) {
             await prisma.refreshToken.deleteMany({
-                where: { userId: req.user.id }
+                where: { userId: targetUserId }
             });
         } else if (tokenToRevoke) {
             await prisma.refreshToken.deleteMany({
