@@ -141,14 +141,19 @@ export default function LoginPage() {
                         </div>
 
                         <div className="flex items-center justify-between ml-1">
-                            <label className="flex items-center gap-2 cursor-pointer group">
+                            <label className="flex items-start gap-2 cursor-pointer group">
                                 <input
                                     type="checkbox"
                                     checked={rememberMe}
                                     onChange={(e) => setRememberMe(e.target.checked)}
                                     className="w-4 h-4 rounded border-border bg-muted dark:bg-emerald-900/40 dark:border-emerald-800 text-emerald-600 focus:ring-emerald-500 transition-all"
                                 />
-                                <span className="text-sm text-muted-foreground dark:text-emerald-300/60 group-hover:text-foreground dark:group-hover:text-emerald-50 transition-colors">Beni Hatırla</span>
+                                <span className="text-sm text-muted-foreground dark:text-emerald-300/60 group-hover:text-foreground dark:group-hover:text-emerald-50 transition-colors">
+                                    Beni Hatırla
+                                    <span className="block text-[11px] text-muted-foreground/70 dark:text-emerald-300/50 mt-0.5">
+                                        Seçilmezse 7 gün, seçilirse 30 gün oturum
+                                    </span>
+                                </span>
                             </label>
                             <Link to="/forgot-password" className="text-sm font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">Şifremi Unuttum</Link>
                         </div>

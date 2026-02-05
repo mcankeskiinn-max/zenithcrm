@@ -179,11 +179,15 @@ export const login = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
     try {
-        const { refreshToken } = req.body;
+        const { refreshToken, allDevices } = req.body;
         const cookieRefresh = (req as any).cookies?.[REFRESH_COOKIE];
         const tokenToRevoke = refreshToken || cookieRefresh;
 
-        if (tokenToRevoke) {
+        if (allDevices && req.user?.id) {
+            await prisma.refreshToken.deleteMany({
+                where: { userId: req.user.id }
+            });
+        } else if (tokenToRevoke) {
             await prisma.refreshToken.deleteMany({
                 where: { token: tokenToRevoke }
             });

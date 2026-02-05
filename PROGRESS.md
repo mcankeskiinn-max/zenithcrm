@@ -41,3 +41,9 @@
 - Updated env examples and README for new TTLs.
 - Remember Me login now sends flag; access TTL shortened and refresh TTL varies by rememberMe.
 - Re-ran server/client tests: all passing.
+- Added session expiry warning banner and logout-all-devices option in UI.
+- Added remember-me helper text in login.
+- Client now sets a short countdown before redirect on refresh failure.
+- Added clearer Remember Me UI and logout-all-devices option.
+- Added session expiry warning banner and delayed redirect on refresh failure.
+- Re-ran server/client tests: all passing.

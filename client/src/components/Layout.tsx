@@ -15,6 +15,8 @@ export default function Layout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const [isSessionWarningOpen, setIsSessionWarningOpen] = useState(false);
+    const [sessionSecondsLeft, setSessionSecondsLeft] = useState(0);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
     useEffect(() => {
@@ -49,6 +51,57 @@ export default function Layout() {
             window.location.href = '/login';
         }
     };
+
+    const handleLogoutAllDevices = async () => {
+        try {
+            await axios.post('/api/auth/logout', { allDevices: true });
+        } catch {
+            // ignore logout network errors
+        } finally {
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+    };
+
+    useEffect(() => {
+        const syncWarning = () => {
+            const raw = localStorage.getItem('session_warning_at');
+            if (!raw) return;
+            const warningAt = Number(raw);
+            if (!Number.isFinite(warningAt)) return;
+
+            const tick = () => {
+                const now = Date.now();
+                const remainingMs = warningAt - now;
+                if (remainingMs <= 0) {
+                    setIsSessionWarningOpen(true);
+                    setSessionSecondsLeft(0);
+                    return;
+                }
+                setIsSessionWarningOpen(true);
+                setSessionSecondsLeft(Math.ceil(remainingMs / 1000));
+            };
+
+            tick();
+            const interval = setInterval(tick, 1000);
+            return () => clearInterval(interval);
+        };
+
+        const cleanup = syncWarning();
+
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'session_warning_at') {
+                if (cleanup) cleanup();
+                syncWarning();
+            }
+        };
+
+        window.addEventListener('storage', onStorage);
+        return () => {
+            window.removeEventListener('storage', onStorage);
+            if (cleanup) cleanup();
+        };
+    }, []);
 
 
 
@@ -182,6 +235,15 @@ export default function Layout() {
                                                     <LogOut size={16} />
                                                     Çıkış Yap
                                                 </button>
+                                                <button
+                                                    onClick={() => {
+                                                        handleLogoutAllDevices();
+                                                    }}
+                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted transition-all"
+                                                >
+                                                    <LogOut size={16} />
+                                                    Tüm Cihazlardan Çıkış
+                                                </button>
                                             </div>
                                         </>
                                     )}
@@ -190,6 +252,24 @@ export default function Layout() {
                         </div>
                     </div>
                 </header>
+
+                {isSessionWarningOpen && (
+                    <div className="mx-4 md:mx-8 mt-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm flex items-center justify-between gap-4">
+                        <div>
+                            <strong className="font-semibold">Oturum süreniz dolmak üzere.</strong>
+                            <span className="ml-2">Güvenliğiniz için tekrar giriş yapmanız istenebilir.</span>
+                            {sessionSecondsLeft > 0 && (
+                                <span className="ml-2 font-medium">({sessionSecondsLeft}s)</span>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => window.location.href = '/login'}
+                            className="px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold hover:bg-amber-700"
+                        >
+                            Şimdi Giriş
+                        </button>
+                    </div>
+                )}
 
                 <main className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                     <Outlet />

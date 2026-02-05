@@ -63,8 +63,14 @@ axios.interceptors.response.use(
           return axios(original);
         }
       } catch {
+        const warningUntil = Date.now() + 15000;
+        localStorage.setItem('session_warning_at', String(warningUntil));
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        if (!window.location.pathname.startsWith('/login')) {
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 3000);
+        }
       }
     }
 
