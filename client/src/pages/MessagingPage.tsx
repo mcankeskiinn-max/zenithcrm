@@ -92,9 +92,8 @@ export default function MessagingPage() {
 
     const fetchConversations = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/messages/conversations', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/messages/conversations', {
+                
             });
             setConversations(res.data);
         } catch (error) {
@@ -104,9 +103,8 @@ export default function MessagingPage() {
 
     const fetchMessages = async (userId: string) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/messages/history/${userId}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get(`/api/messages/history/${userId}`, {
+                
             });
             setMessages(res.data);
         } catch (error) {
@@ -119,12 +117,11 @@ export default function MessagingPage() {
         if (!newMessage.trim() || !selectedUser) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('/api/messages', {
+const res = await axios.post('/api/messages', {
                 receiverId: selectedUser.id,
                 content: newMessage
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             setMessages([...messages, res.data]);
@@ -288,3 +285,4 @@ export default function MessagingPage() {
         </div>
     );
 }
+

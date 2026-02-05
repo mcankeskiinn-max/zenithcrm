@@ -89,9 +89,8 @@ export default function SalesPage() {
 
     const fetchEmployees = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/users', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/users', {
+                
             });
             setEmployees(res.data);
         } catch (error) {
@@ -101,9 +100,8 @@ export default function SalesPage() {
 
     const fetchBranches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/branches', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/branches', {
+                
             });
             setBranches(res.data);
         } catch (error) {
@@ -113,9 +111,8 @@ export default function SalesPage() {
 
     const fetchPolicyTypes = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/policy-types', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/policy-types', {
+                
             });
             setPolicyTypes(res.data);
         } catch (error) {
@@ -125,9 +122,8 @@ export default function SalesPage() {
 
     const fetchSales = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/sales?v=${Date.now()}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get(`/api/sales?v=${Date.now()}`, {
+                
             });
             setSales(res.data);
         } catch (error) {
@@ -140,8 +136,7 @@ export default function SalesPage() {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/sales', {
+await axios.post('/api/sales', {
                 customerName,
                 policyNumber,
                 amount,
@@ -151,7 +146,7 @@ export default function SalesPage() {
                 status: formStatus,
                 saleDate
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             resetForm();
             setShowCreateModal(false);
@@ -227,8 +222,7 @@ export default function SalesPage() {
         if (!editingId) return;
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`/api/sales/${editingId}`, {
+await axios.put(`/api/sales/${editingId}`, {
                 customerName,
                 policyNumber,
                 amount,
@@ -238,7 +232,7 @@ export default function SalesPage() {
                 status: formStatus,
                 saleDate
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             setShowEditModal(false);
@@ -252,9 +246,8 @@ export default function SalesPage() {
 
     const handleStatusChange = async (saleId: string, newStatus: string) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`/api/sales/${saleId}`, { status: newStatus }, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.put(`/api/sales/${saleId}`, { status: newStatus }, {
+                
             });
             fetchSales();
         } catch (error) {
@@ -265,9 +258,8 @@ export default function SalesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Bu satışı silmek istediğinizden emin misiniz?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/sales/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/sales/${id}`, {
+                
             });
             fetchSales();
         } catch (error) {
@@ -682,3 +674,4 @@ export default function SalesPage() {
         </div>
     );
 }
+

@@ -55,3 +55,4 @@ export const TargetProgress: React.FC<TargetProgressProps> = ({ data }) => {
         </div>
     );
 };
+

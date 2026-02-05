@@ -62,3 +62,4 @@ export const ChurnRiskWidget: React.FC<ChurnRiskWidgetProps> = ({ risks }) => {
         </div>
     );
 };
+

@@ -49,8 +49,7 @@ const RegisterPage = () => {
                     email: data.email,
                     password: data.password,
                     isSingleBranch: data.isSingleBranch
-                }),
-            });
+                }) });
 
             console.log('Server response status:', response.status);
             const contentType = response.headers.get("content-type");
@@ -316,3 +315,4 @@ const RegisterPage = () => {
 };
 
 export default RegisterPage;
+

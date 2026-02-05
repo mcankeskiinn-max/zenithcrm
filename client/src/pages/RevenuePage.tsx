@@ -16,8 +16,7 @@ const RevenuePage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const headers = { Authorization: `Bearer ${token}` };
+const headers = { };
 
                 const [resTrends, resProf, resRisks, resTarget] = await Promise.all([
                     axios.get('/api/revenue/trends', { headers }),
@@ -90,3 +89,4 @@ const RevenuePage: React.FC = () => {
 };
 
 export default RevenuePage;
+

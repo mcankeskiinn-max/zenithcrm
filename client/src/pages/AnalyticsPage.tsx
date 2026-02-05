@@ -38,8 +38,7 @@ export default function AnalyticsPage() {
     const fetchData = useCallback(async () => {
         try {
             setIsLoading(true);
-            const token = localStorage.getItem('token');
-            const headers = { Authorization: `Bearer ${token}` };
+const headers = { };
             const params = { startDate, endDate };
 
             const [monthly, branches, distribution, performance, targets, yearly] = await Promise.all([
@@ -74,9 +73,7 @@ export default function AnalyticsPage() {
     const handleExport = async () => {
         try {
             setIsExporting(true);
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`/api/reports/export/sales?startDate=${startDate}&endDate=${endDate}`, {
-                headers: { Authorization: `Bearer ${token}` },
+const response = await axios.get(`/api/reports/export/sales?startDate=${startDate}&endDate=${endDate}`, {
                 responseType: 'blob'
             });
 
@@ -362,3 +359,4 @@ export default function AnalyticsPage() {
         </div>
     );
 }
+

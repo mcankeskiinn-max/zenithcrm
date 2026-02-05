@@ -36,11 +36,9 @@ export const OCRUploader: React.FC<OCRUploaderProps> = ({ onScanComplete }) => {
         formData.append('document', file);
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.post('/api/ocr/scan', formData, {
+const response = await axios.post('/api/ocr/scan', formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'multipart/form-data'
                 }
             });
 
@@ -142,3 +140,4 @@ export const OCRUploader: React.FC<OCRUploaderProps> = ({ onScanComplete }) => {
         </div>
     );
 };
+

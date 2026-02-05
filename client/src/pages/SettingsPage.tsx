@@ -49,9 +49,8 @@ export default function SettingsPage() {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.get('/api/auth/me', {
-                    headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/auth/me', {
+                    
                 });
                 setUser(res.data.user);
                 setName(res.data.user.name);
@@ -70,9 +69,8 @@ export default function SettingsPage() {
         setIsLoading(true);
         setMessage({ type: '', text: '' });
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.put('/api/auth/profile', { name, email }, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.put('/api/auth/profile', { name, email }, {
+                
             });
             setUser(res.data.user);
             localStorage.setItem('user', JSON.stringify(res.data.user));
@@ -94,12 +92,11 @@ export default function SettingsPage() {
         setIsLoading(true);
         setMessage({ type: '', text: '' });
         try {
-            const token = localStorage.getItem('token');
-            await axios.put('/api/auth/change-password', {
+await axios.put('/api/auth/change-password', {
                 currentPassword,
                 newPassword
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setMessage({ type: 'success', text: 'Şifreniz başarıyla güncellendi' });
             setCurrentPassword('');
@@ -117,12 +114,11 @@ export default function SettingsPage() {
         setIsLoading(true);
         setMessage({ type: '', text: '' });
         try {
-            const token = localStorage.getItem('token');
-            await axios.put('/api/tenants/preferences', {
+await axios.put('/api/tenants/preferences', {
                 name: tenantName,
                 logo: tenantLogo
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             // Update local user object
@@ -393,3 +389,4 @@ export default function SettingsPage() {
         </div>
     );
 }
+

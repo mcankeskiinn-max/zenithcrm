@@ -33,9 +33,8 @@ export default function BranchesPage() {
 
     const fetchBranches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/branches', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/branches', {
+                
             });
             setBranches(res.data);
         } catch (error) {
@@ -48,12 +47,11 @@ export default function BranchesPage() {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/branches', {
+await axios.post('/api/branches', {
                 name: newBranchName,
                 commissionRate: parseFloat(defaultRate)
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setNewBranchName('');
             setDefaultRate('0.10');
@@ -80,12 +78,11 @@ export default function BranchesPage() {
         if (!editingBranch) return;
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`/api/branches/${editingBranch.id}`, {
+await axios.put(`/api/branches/${editingBranch.id}`, {
                 name: editName,
                 commissionRate: parseFloat(editRate)
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setShowEditModal(false);
             setEditingBranch(null);
@@ -98,9 +95,8 @@ export default function BranchesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Bu şubeyi silmek istediğinizden emin misiniz?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/branches/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/branches/${id}`, {
+                
             });
             fetchBranches();
         } catch (error: any) {
@@ -334,3 +330,4 @@ export default function BranchesPage() {
         </div>
     );
 }
+

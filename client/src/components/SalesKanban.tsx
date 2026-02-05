@@ -132,3 +132,4 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
         </div>
     );
 }
+

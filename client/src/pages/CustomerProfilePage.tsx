@@ -80,9 +80,8 @@ export default function CustomerProfilePage() {
 
     const fetchCustomerData = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/customers/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get(`/api/customers/${id}`, {
+                
             });
             setCustomer(res.data);
             setEditForm({
@@ -103,9 +102,8 @@ export default function CustomerProfilePage() {
     const handleSaveProfile = async () => {
         setSaving(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.patch(`/api/customers/${id}`, editForm, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.patch(`/api/customers/${id}`, editForm, {
+                
             });
             fetchCustomerData();
             setIsEditModalOpen(false);
@@ -120,12 +118,11 @@ export default function CustomerProfilePage() {
     const handleCreateTask = async () => {
         setSaving(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/tasks', {
+await axios.post('/api/tasks', {
                 ...taskForm,
                 customerId: id
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setIsTaskModalOpen(false);
             setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM' });
@@ -140,11 +137,10 @@ export default function CustomerProfilePage() {
 
     const toggleTaskComplete = async (taskId: string, currentStatus: boolean) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`/api/tasks/${taskId}`, {
+await axios.put(`/api/tasks/${taskId}`, {
                 isCompleted: !currentStatus
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             fetchCustomerData();
         } catch (error) {
@@ -159,9 +155,8 @@ export default function CustomerProfilePage() {
         }
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/customers/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/customers/${id}`, {
+                
             });
             navigate('/app/customers');
         } catch (error: any) {
@@ -172,9 +167,7 @@ export default function CustomerProfilePage() {
 
     const handleExportPDF = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`/api/reports/export/customer/${id}/pdf`, {
-                headers: { Authorization: `Bearer ${token}` },
+const response = await axios.get(`/api/reports/export/customer/${id}/pdf`, {
                 responseType: 'blob'
             });
 
@@ -822,3 +815,4 @@ export default function CustomerProfilePage() {
         </div>
     );
 }
+

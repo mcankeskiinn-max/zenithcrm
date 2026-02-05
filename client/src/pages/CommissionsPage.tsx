@@ -24,9 +24,8 @@ export default function CommissionsPage() {
 
     const fetchBranches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/branches', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/branches', {
+                
             });
             setBranches(res.data);
 
@@ -44,12 +43,11 @@ export default function CommissionsPage() {
 
     const handleSave = async (branchId: string, branchName: string) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`/api/branches/${branchId}`, {
+await axios.put(`/api/branches/${branchId}`, {
                 name: branchName,
                 commissionRate: Number(editingRates[branchId])
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             alert('Komisyon oranı güncellendi!');
             fetchBranches();
@@ -155,3 +153,4 @@ export default function CommissionsPage() {
         </div>
     );
 }
+

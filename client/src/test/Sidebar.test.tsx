@@ -56,3 +56,4 @@ describe('Component: Sidebar', () => {
         expect(screen.getByText('Mesajlar')).toBeDefined();
     });
 });
+

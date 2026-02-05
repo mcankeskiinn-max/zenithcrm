@@ -515,3 +515,4 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
 );
 
 export default LandingPage;
+

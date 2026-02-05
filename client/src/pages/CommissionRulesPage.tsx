@@ -54,9 +54,8 @@ export default function CommissionRulesPage() {
 
     const fetchRules = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/commission/rules', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/commission/rules', {
+                
             });
             setRules(res.data);
         } catch (error) {
@@ -68,9 +67,8 @@ export default function CommissionRulesPage() {
 
     const fetchBranches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/branches', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/branches', {
+                
             });
             setBranches(res.data);
         } catch (error) {
@@ -80,9 +78,8 @@ export default function CommissionRulesPage() {
 
     const fetchPolicyTypes = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/policy-types', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/policy-types', {
+                
             });
             setPolicyTypes(res.data);
         } catch (error) {
@@ -93,8 +90,7 @@ export default function CommissionRulesPage() {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/commission/rules', {
+await axios.post('/api/commission/rules', {
                 name,
                 branchId: branchId || null,
                 policyTypeId: policyTypeId || null,
@@ -103,7 +99,7 @@ export default function CommissionRulesPage() {
                 validTo: validTo ? new Date(validTo).toISOString() : null,
                 conditions: {}
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             setName('');
@@ -122,9 +118,8 @@ export default function CommissionRulesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Bu kuralı silmek istediğinize emin misiniz?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/commission/rules/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/commission/rules/${id}`, {
+                
             });
             fetchRules();
         } catch (error) {
@@ -135,14 +130,13 @@ export default function CommissionRulesPage() {
     const handleSimulate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('/api/commission/simulate', {
+const res = await axios.post('/api/commission/simulate', {
                 amount: Number(simAmount),
                 branchId: simBranchId,
                 policyTypeId: simPolicyTypeId,
                 date: simDate
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setSimResult(res.data);
         } catch (error) {
@@ -438,3 +432,4 @@ export default function CommissionRulesPage() {
         </div>
     );
 }
+

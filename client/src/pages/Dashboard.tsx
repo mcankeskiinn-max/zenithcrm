@@ -70,9 +70,8 @@ export default function Dashboard() {
 
     const fetchStats = async (selectedRange = range) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Date.now()}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Date.now()}`, {
+                
             });
             setData(res.data);
         } catch (error) {
@@ -86,14 +85,13 @@ export default function Dashboard() {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/dashboard/targets', {
+await axios.post('/api/dashboard/targets', {
                 amount: parseFloat(targetAmount),
                 month: new Date().getMonth() + 1,
                 year: new Date().getFullYear(),
                 branchId: user.branchId
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setIsTargetModalOpen(false);
             setTargetAmount('');
@@ -543,3 +541,4 @@ export default function Dashboard() {
         </div >
     );
 }
+

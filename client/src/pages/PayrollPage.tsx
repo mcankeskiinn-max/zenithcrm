@@ -117,7 +117,7 @@ const PayrollPage: React.FC = () => {
                     branchId: selectedBranchId || undefined,
                     userId: selectedEmployeeId || undefined
                 },
-                headers: { Authorization: `Bearer ${token}` },
+                ,
                 responseType: 'blob',
                 timeout: 30000  // 30 saniye timeout
             });
@@ -462,4 +462,5 @@ const PayrollPage: React.FC = () => {
 };
 
 export default PayrollPage;
+
 

@@ -50,15 +50,14 @@ export default function AuditLogsPage() {
     const fetchLogs = async () => {
         try {
             setLoading(true);
-            const token = localStorage.getItem('token');
-            const queryParams = new URLSearchParams({
+const queryParams = new URLSearchParams({
                 page: page.toString(),
                 limit: '20',
                 ...filters
             });
 
             const res = await axios.get(`/api/audit?${queryParams}`, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             setLogs(res.data.logs);
@@ -300,3 +299,4 @@ const ShieldCheck = ({ size }: { size: number }) => (
         <path d="M9 12l2 2 4-4" />
     </svg>
 );
+

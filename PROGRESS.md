@@ -32,3 +32,7 @@
 - Added logout API call on UI and cleaned token usage in key flows.
 - Re-ran server tests after cookie/CSRF changes: all 3 suites passed.
 - Re-ran client tests after auth changes: all 2 test files passed.
+- Removed remaining client Authorization headers; switched to cookie-based auth across API calls.
+- Added refresh token endpoint with rotation and client auto-refresh on 401.
+- Re-ran server and client tests: all passing.
+- Added SECURITY_HARDENING_CHECKLIST.md for production readiness.

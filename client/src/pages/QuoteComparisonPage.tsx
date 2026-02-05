@@ -23,9 +23,8 @@ const QuoteComparisonPage = () => {
 
     const fetchOffers = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`/api/sales?status=OFFER&v=${Date.now()}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const response = await axios.get(`/api/sales?status=OFFER&v=${Date.now()}`, {
+                
             });
             // Filter only OFFERS locally for now
             const allSales = response.data;
@@ -48,10 +47,8 @@ const QuoteComparisonPage = () => {
 
         setUploading(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/quotes/upload', formData, {
+await axios.post('/api/quotes/upload', formData, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
                 }
             });
@@ -84,11 +81,9 @@ const QuoteComparisonPage = () => {
 
     const downloadPDF = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.post('/api/quotes/compare/pdf',
+const response = await axios.post('/api/quotes/compare/pdf',
                 { saleIds: selectedIds },
                 {
-                    headers: { Authorization: `Bearer ${token}` },
                     responseType: 'blob'
                 }
             );
@@ -255,3 +250,4 @@ const QuoteComparisonPage = () => {
 };
 
 export default QuoteComparisonPage;
+

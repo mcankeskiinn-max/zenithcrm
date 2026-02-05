@@ -38,9 +38,8 @@ export default function CustomersPage() {
         if (!window.confirm('Bu müşteri kaydını silmek istediğinize emin misiniz?')) return;
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/customers/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/customers/${id}`, {
+                
             });
             setCustomers(prev => prev.filter(c => c.id !== id));
         } catch (error: any) {
@@ -54,9 +53,8 @@ export default function CustomersPage() {
 
     const fetchCustomers = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/customers', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/customers', {
+                
             });
             setCustomers(res.data);
         } catch (error) {
@@ -187,3 +185,4 @@ export default function CustomersPage() {
         </div>
     );
 }
+

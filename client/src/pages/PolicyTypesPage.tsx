@@ -24,9 +24,8 @@ export default function PolicyTypesPage() {
 
     const fetchPolicyTypes = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/policy-types', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/policy-types', {
+                
             });
             setPolicyTypes(res.data);
         } catch (error) {
@@ -39,11 +38,10 @@ export default function PolicyTypesPage() {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/policy-types', {
+await axios.post('/api/policy-types', {
                 name: newTypeName
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setNewTypeName('');
             fetchPolicyTypes();
@@ -62,11 +60,10 @@ export default function PolicyTypesPage() {
         e.preventDefault();
         if (!editingType) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`/api/policy-types/${editingType.id}`, {
+await axios.put(`/api/policy-types/${editingType.id}`, {
                 name: editName
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             setShowEditModal(false);
             setEditingType(null);
@@ -79,9 +76,8 @@ export default function PolicyTypesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Bu branşı silmek istediğinizden emin misiniz?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/policy-types/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/policy-types/${id}`, {
+                
             });
             fetchPolicyTypes();
         } catch (error: any) {
@@ -265,3 +261,4 @@ export default function PolicyTypesPage() {
         </div>
     );
 }
+

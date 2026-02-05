@@ -39,8 +39,7 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
 
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
             await axios.post('/api/sales', {
                 customerName: policy.customerName,
@@ -52,7 +51,7 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
                 status: 'CANCELLED',
                 cancelReason
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             onSuccess();
@@ -158,3 +157,4 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
         </div>
     );
 }
+

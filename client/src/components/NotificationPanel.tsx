@@ -134,3 +134,4 @@ const NotificationPanel: React.FC<NotificationPanelProps> = ({ onClose }) => {
 };
 
 export default NotificationPanel;
+

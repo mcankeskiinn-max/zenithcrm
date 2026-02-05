@@ -51,15 +51,14 @@ export default function CancellationDashboard() {
 
     const fetchStats = async (selectedRange = range) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Date.now()}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Date.now()}`, {
+                
             });
             setData(res.data);
 
             // Fetch policies for the list (Active and Cancelled)
             const policiesRes = await axios.get(`/api/sales?v=${Date.now()}`, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
             // Sort by status (Active first) then by date
             const sortedPolicies = policiesRes.data.sort((a: any, b: any) => {
@@ -346,12 +345,11 @@ export default function CancellationDashboard() {
                                                         onClick={async () => {
                                                             if (!confirm('Bu iptal işlemini geri almak istediğinize emin misiniz?')) return;
                                                             try {
-                                                                const token = localStorage.getItem('token');
-                                                                await axios.put(`/api/sales/${policy.id}`, {
+await axios.put(`/api/sales/${policy.id}`, {
                                                                     status: 'ACTIVE',
                                                                     cancelReason: null
                                                                 }, {
-                                                                    headers: { Authorization: `Bearer ${token}` }
+                                                                    
                                                                 });
                                                                 fetchStats();
                                                             } catch (error) {
@@ -407,3 +405,4 @@ export default function CancellationDashboard() {
         </div>
     );
 }
+

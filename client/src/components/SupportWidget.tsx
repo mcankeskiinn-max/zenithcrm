@@ -49,3 +49,4 @@ export const SupportWidget: React.FC = () => {
         </div>
     );
 };
+

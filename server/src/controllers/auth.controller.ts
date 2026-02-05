@@ -130,7 +130,6 @@ export const login = async (req: Request, res: Response) => {
             message: 'Login successful',
             token: accessToken,
             accessToken,
-            refreshToken,
             user: {
                 id: user.id,
                 email: user.email,
@@ -159,10 +158,12 @@ export const login = async (req: Request, res: Response) => {
 export const logout = async (req: Request, res: Response) => {
     try {
         const { refreshToken } = req.body;
+        const cookieRefresh = (req as any).cookies?.[REFRESH_COOKIE];
+        const tokenToRevoke = refreshToken || cookieRefresh;
 
-        if (refreshToken) {
+        if (tokenToRevoke) {
             await prisma.refreshToken.deleteMany({
-                where: { token: refreshToken }
+                where: { token: tokenToRevoke }
             });
         }
 
@@ -187,6 +188,89 @@ export const logout = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Logout error:', error);
         res.status(500).json({ error: 'Logout failed' });
+    }
+};
+
+export const refresh = async (req: Request, res: Response) => {
+    try {
+        const cookieRefresh = (req as any).cookies?.[REFRESH_COOKIE];
+        const bodyRefresh = req.body?.refreshToken;
+        const refreshToken = cookieRefresh || bodyRefresh;
+
+        if (!refreshToken) {
+            return res.status(401).json({ error: 'Refresh token missing' });
+        }
+
+        const refreshSecret = process.env.JWT_REFRESH_SECRET;
+        if (!refreshSecret) {
+            return res.status(500).json({ error: 'JWT_REFRESH_SECRET missing' });
+        }
+
+        let decoded: any;
+        try {
+            decoded = jwt.verify(refreshToken, refreshSecret) as { userId: string };
+        } catch {
+            return res.status(401).json({ error: 'Invalid refresh token' });
+        }
+
+        const stored = await prisma.refreshToken.findUnique({
+            where: { token: refreshToken }
+        });
+
+        if (!stored || stored.expiresAt < new Date()) {
+            return res.status(401).json({ error: 'Refresh token expired' });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { id: true, role: true, tenantId: true, branchId: true, isActive: true }
+        });
+
+        if (!user || !user.isActive) {
+            return res.status(401).json({ error: 'User not active' });
+        }
+
+        // Rotate refresh token
+        const newRefreshToken = jwt.sign(
+            { userId: user.id },
+            refreshSecret,
+            { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '30d') as any }
+        );
+
+        await prisma.$transaction([
+            prisma.refreshToken.deleteMany({ where: { token: refreshToken } }),
+            prisma.refreshToken.create({
+                data: {
+                    token: newRefreshToken,
+                    userId: user.id,
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                }
+            })
+        ]);
+
+        const accessSecret = process.env.JWT_SECRET;
+        if (!accessSecret) {
+            return res.status(500).json({ error: 'JWT_SECRET missing' });
+        }
+
+        const accessToken = jwt.sign(
+            { userId: user.id, role: user.role, tenantId: user.tenantId },
+            accessSecret,
+            { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
+        );
+
+        const accessCookie = getCookieOptions();
+        const refreshCookie = getCookieOptions();
+        const csrfToken = crypto.randomBytes(32).toString('hex');
+
+        res.cookie(ACCESS_COOKIE, accessToken, { ...accessCookie, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        res.cookie(REFRESH_COOKIE, newRefreshToken, { ...refreshCookie, maxAge: 30 * 24 * 60 * 60 * 1000 });
+        res.cookie(CSRF_COOKIE, csrfToken, { ...getCsrfCookieOptions(), maxAge: 30 * 24 * 60 * 60 * 1000 });
+
+        res.json({ message: 'Token refreshed', token: accessToken, accessToken });
+    } catch (error) {
+        console.error('Refresh error:', error);
+        res.status(500).json({ error: 'Refresh failed' });
     }
 };
 

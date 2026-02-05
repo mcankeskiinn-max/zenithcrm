@@ -38,9 +38,8 @@ export default function UsersPage() {
 
     const fetchBranches = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/branches', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/branches', {
+                
             });
             setBranches(res.data);
         } catch (error) {
@@ -50,9 +49,8 @@ export default function UsersPage() {
 
     const fetchUsers = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/users', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/users', {
+                
             });
             setUsers(res.data);
         } catch (error) {
@@ -86,8 +84,7 @@ export default function UsersPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            if (editingUser) {
+if (editingUser) {
                 await axios.put(`/api/users/${editingUser}`, {
                     name,
                     role,
@@ -95,7 +92,7 @@ export default function UsersPage() {
                     isActive,
                     ...(password ? { password } : {})
                 }, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    
                 });
             } else {
                 await axios.post('/api/users', {
@@ -105,7 +102,7 @@ export default function UsersPage() {
                     role,
                     branchId
                 }, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    
                 });
             }
             cancelEdit();
@@ -118,9 +115,8 @@ export default function UsersPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/users/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/users/${id}`, {
+                
             });
             fetchUsers();
         } catch (error: any) {
@@ -360,4 +356,5 @@ export default function UsersPage() {
         </div>
     );
 }
+
 

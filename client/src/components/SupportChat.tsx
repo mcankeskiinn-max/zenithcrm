@@ -206,3 +206,4 @@ export const SupportChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
     );
 };
+

@@ -38,11 +38,10 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
 
     const fetchFormData = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const [bRes, ptRes, uRes] = await Promise.all([
-                axios.get('/api/branches', { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get('/api/policy-types', { headers: { Authorization: `Bearer ${token}` } }),
-                axios.get('/api/users', { headers: { Authorization: `Bearer ${token}` } })
+const [bRes, ptRes, uRes] = await Promise.all([
+                axios.get('/api/branches', {  }),
+                axios.get('/api/policy-types', {  }),
+                axios.get('/api/users', {  })
             ]);
             setBranches(bRes.data);
             setPolicyTypes(ptRes.data);
@@ -78,8 +77,7 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
         e.preventDefault();
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
             const res = await axios.post('/api/sales', {
                 customerName,
@@ -93,7 +91,7 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                 status: 'ACTIVE',
                 saleDate
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             onSuccess();
@@ -299,3 +297,4 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
         </div>
     );
 }
+

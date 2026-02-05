@@ -35,9 +35,8 @@ export default function TasksPage() {
 
     const fetchTasks = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('/api/tasks', {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get('/api/tasks', {
+                
             });
             setTasks(res.data);
         } catch (error) {
@@ -50,9 +49,8 @@ export default function TasksPage() {
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/tasks', { title, description, dueDate }, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.post('/api/tasks', { title, description, dueDate }, {
+                
             });
             setTitle('');
             setDescription('');
@@ -65,9 +63,8 @@ export default function TasksPage() {
 
     const toggleComplete = async (task: Task) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.put(`/api/tasks/${task.id}`, { isCompleted: !task.isCompleted }, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.put(`/api/tasks/${task.id}`, { isCompleted: !task.isCompleted }, {
+                
             });
             fetchTasks();
         } catch (error) {
@@ -78,9 +75,8 @@ export default function TasksPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Emin misiniz?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/tasks/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/tasks/${id}`, {
+                
             });
             fetchTasks();
         } catch (error) {
@@ -245,3 +241,4 @@ export default function TasksPage() {
         </div >
     );
 }
+

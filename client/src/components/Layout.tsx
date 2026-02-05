@@ -45,7 +45,6 @@ export default function Layout() {
         } catch {
             // ignore logout network errors
         } finally {
-            localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';
         }
@@ -208,3 +207,4 @@ export default function Layout() {
         </div>
     );
 }
+

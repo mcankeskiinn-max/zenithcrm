@@ -45,6 +45,33 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config || {};
+    const status = error.response?.status;
+    const url = original.url || '';
+
+    const isAuthEndpoint = typeof url === 'string' && url.includes('/api/auth/');
+    const isRefresh = typeof url === 'string' && url.includes('/api/auth/refresh');
+
+    if (status === 401 && !original._retry && !isRefresh) {
+      original._retry = true;
+      try {
+        if (!isAuthEndpoint) {
+          await axios.post('/api/auth/refresh', {});
+          return axios(original);
+        }
+      } catch {
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
@@ -52,3 +79,4 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 )
+

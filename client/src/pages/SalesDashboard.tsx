@@ -38,9 +38,8 @@ export default function SalesDashboard() {
 
     const fetchStats = async (selectedRange = range) => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Date.now()}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Date.now()}`, {
+                
             });
             setData(res.data);
         } catch (error) {
@@ -230,3 +229,4 @@ export default function SalesDashboard() {
         </div>
     );
 }
+

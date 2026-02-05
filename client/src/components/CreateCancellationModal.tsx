@@ -30,8 +30,7 @@ export default function CreateCancellationModal({ isOpen, onClose, onSuccess }: 
 
     const fetchFormData = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const ptRes = await axios.get('/api/policy-types', { headers: { Authorization: `Bearer ${token}` } });
+const ptRes = await axios.get('/api/policy-types', {  });
             setPolicyTypes(ptRes.data);
 
             // Set default branch if user is assigned to one
@@ -42,7 +41,7 @@ export default function CreateCancellationModal({ isOpen, onClose, onSuccess }: 
             }
 
             // Also fetch branches names if admin
-            const branchesRes = await axios.get('/api/branches', { headers: { Authorization: `Bearer ${token}` } });
+            const branchesRes = await axios.get('/api/branches', {  });
             setBranches(branchesRes.data);
         } catch (error) {
             console.error('Failed to fetch modal data', error);
@@ -53,8 +52,7 @@ export default function CreateCancellationModal({ isOpen, onClose, onSuccess }: 
         e.preventDefault();
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
+const user = JSON.parse(localStorage.getItem('user') || '{}');
 
             await axios.post('/api/sales', {
                 customerName,
@@ -66,7 +64,7 @@ export default function CreateCancellationModal({ isOpen, onClose, onSuccess }: 
                 status: 'CANCELLED',
                 cancelReason
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                
             });
 
             onSuccess();
@@ -202,3 +200,4 @@ export default function CreateCancellationModal({ isOpen, onClose, onSuccess }: 
         </div>
     );
 }
+

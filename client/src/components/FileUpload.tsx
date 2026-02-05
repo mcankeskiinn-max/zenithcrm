@@ -78,13 +78,10 @@ export function FileUpload({ saleId, onUploadComplete }: FileUploadProps) {
         formData.append('saleId', saleId);
 
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('/api/documents/upload', formData, {
+await axios.post('/api/documents/upload', formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}`
-                },
-            });
+                    'Content-Type': 'multipart/form-data'
+                } });
             setUploadStatus('success');
             setFile(null);
             if (onUploadComplete) onUploadComplete();
@@ -188,3 +185,4 @@ export function FileUpload({ saleId, onUploadComplete }: FileUploadProps) {
         </div>
     );
 }
+

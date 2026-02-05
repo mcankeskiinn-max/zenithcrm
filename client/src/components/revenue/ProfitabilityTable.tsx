@@ -67,3 +67,4 @@ export const ProfitabilityTable: React.FC<ProfitabilityTableProps> = ({ data }) 
         </div>
     );
 };
+

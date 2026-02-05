@@ -28,9 +28,8 @@ export function DocumentList({ saleId, refreshTrigger }: DocumentListProps) {
 
     const fetchDocuments = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`/api/documents/${saleId}`, {
-                headers: { Authorization: `Bearer ${token}` }
+const res = await axios.get(`/api/documents/${saleId}`, {
+                
             });
             setDocuments(res.data);
         } catch (error) {
@@ -45,9 +44,8 @@ export function DocumentList({ saleId, refreshTrigger }: DocumentListProps) {
 
         setDeletingId(id);
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`/api/documents/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+await axios.delete(`/api/documents/${id}`, {
+                
             });
             setDocuments(docs => docs.filter(d => d.id !== id));
         } catch (error) {
@@ -120,3 +118,4 @@ export function DocumentList({ saleId, refreshTrigger }: DocumentListProps) {
         </div>
     );
 }
+

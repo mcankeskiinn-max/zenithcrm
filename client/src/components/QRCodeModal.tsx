@@ -97,3 +97,4 @@ export function QRCodeModal({ isOpen, onClose, customerName, phone }: QRCodeModa
         </div>
     );
 }
+

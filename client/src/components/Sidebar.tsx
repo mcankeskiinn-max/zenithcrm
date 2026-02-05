@@ -70,7 +70,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         } catch {
             // ignore logout network errors
         } finally {
-            localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';
         }
@@ -226,3 +225,4 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </>
     );
 }
+
