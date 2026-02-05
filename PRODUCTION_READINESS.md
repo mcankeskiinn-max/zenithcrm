@@ -40,3 +40,8 @@
 - Run server + client tests in CI on each push.
 - Review Prisma migrations before deploy.
 - Verify health endpoint (GET /) responds with 200.
+
+## Release Gate
+- CI: `server-tests` and `client-tests` must pass (server-tests may be skipped if secrets are missing).
+- Critical flows (login/sales/customer/commission) must be validated.
+- Review `RELEASE_GATE.md` checklist before production release.

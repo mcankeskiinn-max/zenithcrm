@@ -81,3 +81,17 @@
 pm test (Jest) passed; client 
 pm test (Vitest) passed.
 
+
+- UI kritik akýþ kontrolü: Playwright otomasyon çalýþtý (Satýþ, Müþteri, Portföy, Ýptal, Komisyon, hýzlý yeni). Sonuç: baþarýlý. (output/playwright/summary.json güncellendi).
+
+
+- UI derin akýþ kontrolü: Satýþ oluþturma, müþteri oluþturma, komisyon simülasyon adýmlarý Playwright ile çalýþtý (output/playwright/summary.json: tüm adýmlar ok).
+
+
+- Daha gerçekçi veri ile Playwright akýþý çalýþtýrýldý (satýþ/müþteri/komisyon simülasyonu).
+- Release gate tanýmý eklendi: RELEASE_GATE.md + CI elease-gate job + PRODUCTION_READINESS güncellendi.
+
+
+- Release gate: server-tests skipped durumunda uyarý, failure durumunda bloklama.
+- Playwright akýþý: form submit sonrasý yumuþak baþarý doðrulamasý eklendi.
+

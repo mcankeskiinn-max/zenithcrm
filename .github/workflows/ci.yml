@@ -48,3 +48,26 @@ jobs:
       - name: Test
         working-directory: client
         run: npm test
+
+  release-gate:
+    runs-on: ubuntu-latest
+    needs: [server-tests, client-tests]
+    if: ${{ always() }}
+    steps:
+      - name: Release Gate Summary
+        run: |
+          echo "server-tests: ${{ needs.server-tests.result }}"
+          echo "client-tests: ${{ needs.client-tests.result }}"
+      - name: Fail if tests did not pass
+        run: |
+          if [ "${{ needs.server-tests.result }}" = "failure" ]; then
+            echo "Release gate failed: server-tests failed."
+            exit 1
+          fi
+          if [ "${{ needs.client-tests.result }}" = "failure" ]; then
+            echo "Release gate failed: client-tests failed."
+            exit 1
+          fi
+          if [ "${{ needs.server-tests.result }}" = "skipped" ]; then
+            echo "Release gate warning: server-tests skipped (missing secrets)."
+          fi
