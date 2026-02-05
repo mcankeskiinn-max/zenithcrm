@@ -9,6 +9,10 @@ interface OCRData {
     amount: number | null;
     customerName: string | null;
     plateNumber: string | null;
+    identityNo: string | null;
+    startDate: string | null;
+    endDate: string | null;
+    policyTypeKey: string | null;
 }
 
 interface OCRUploaderProps {
@@ -43,10 +47,12 @@ export const OCRUploader: React.FC<OCRUploaderProps> = ({ onScanComplete }) => {
             if (response.data.success) {
                 setSuccess(true);
                 onScanComplete(response.data.data);
+            } else {
+                setError(response.data.error || 'Poliçe verileri okunamadı.');
             }
         } catch (err: any) {
             console.error('Upload error:', err);
-            setError(err.response?.data?.error || 'Dosya yüklenirken bir hata oluştu');
+            setError(err.response?.data?.error || 'Dosya yüklenirken bir hata oluştu. Lütfen dökümanın net olduğundan emin olun.');
         } finally {
             setIsUploading(false);
         }
@@ -67,8 +73,8 @@ export const OCRUploader: React.FC<OCRUploaderProps> = ({ onScanComplete }) => {
             <div
                 {...getRootProps()}
                 className={`
-                    relative overflow-hidden rounded-2xl border-2 border-dashed p-6 text-center transition-all cursor-pointer
-                    ${isDragActive ? 'border-amber-500 bg-amber-50' : 'border-border hover:border-amber-400 hover:bg-muted/50'}
+                    relative overflow-hidden rounded-2xl border-2 border-dashed p-6 text-center transition-all cursor-pointer min-h-[160px] flex items-center justify-center
+                    ${isDragActive ? 'border-emerald-500 bg-emerald-50' : 'border-border hover:border-emerald-400 hover:bg-muted/50'}
                     ${isUploading ? 'opacity-50 pointer-events-none' : ''}
                     ${success ? 'border-emerald-500 bg-emerald-50' : ''}
                     ${error ? 'border-red-500 bg-red-50' : ''}
@@ -78,17 +84,23 @@ export const OCRUploader: React.FC<OCRUploaderProps> = ({ onScanComplete }) => {
 
                 <div className="flex flex-col items-center justify-center gap-3">
                     {isUploading ? (
-                        <>
-                            <div className="animate-spin text-amber-500">
-                                <Loader2 size={32} />
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="relative w-12 h-12">
+                                <div className="absolute inset-0 border-4 border-emerald-100 rounded-full"></div>
+                                <div className="absolute inset-0 border-4 border-emerald-600 rounded-full border-t-transparent animate-spin"></div>
                             </div>
-                            <p className="text-sm font-medium text-amber-600 animate-pulse">
-                                Poliçe taranıyor ve analiz ediliyor...
-                            </p>
-                        </>
+                            <div className="space-y-1">
+                                <p className="text-sm font-extrabold text-emerald-800 animate-pulse">
+                                    Belge okunuyor...
+                                </p>
+                                <p className="text-[10px] text-emerald-600 font-medium tracking-wider uppercase">
+                                    Yapay Zeka Analizi Yapılıyor
+                                </p>
+                            </div>
+                        </div>
                     ) : success ? (
                         <>
-                            <div className="text-emerald-500">
+                            <div className="text-emerald-500 bg-emerald-100 p-3 rounded-full">
                                 <CheckCircle2 size={32} />
                             </div>
                             <p className="text-sm font-bold text-emerald-700">
@@ -99,20 +111,20 @@ export const OCRUploader: React.FC<OCRUploaderProps> = ({ onScanComplete }) => {
                             </p>
                         </>
                     ) : error ? (
-                        <>
-                            <div className="text-red-500">
+                        <div className="max-w-xs space-y-2">
+                            <div className="text-red-500 mx-auto w-fit">
                                 <AlertCircle size={32} />
                             </div>
                             <p className="text-sm font-bold text-red-700">
-                                Hata Oluştu
+                                Okuma Tamamlanamadı
                             </p>
-                            <p className="text-xs text-red-600">
+                            <p className="text-xs text-red-600 leading-relaxed">
                                 {error}
                             </p>
-                        </>
+                        </div>
                     ) : (
                         <>
-                            <div className={`p-4 rounded-full ${isDragActive ? 'bg-amber-100 text-amber-600' : 'bg-muted text-muted-foreground'}`}>
+                            <div className={`p-4 rounded-full ${isDragActive ? 'bg-emerald-100 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
                                 {isDragActive ? <FileText size={24} /> : <Upload size={24} />}
                             </div>
                             <div className="space-y-1">

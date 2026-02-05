@@ -12,6 +12,9 @@
     "build": "prisma generate && tsc",
     "start": "node dist/server.js",
     "migrate:deploy": "prisma migrate deploy",
+    "pre-migration-check": "bash scripts/pre-migration-check.sh",
+    "post-migration-check": "bash scripts/post-migration-check.sh",
+    "safe-migrate": "npm run pre-migration-check && npx prisma migrate deploy && npm run post-migration-check",
     "vercel-build": "prisma generate"
   },
   "prisma": {
@@ -40,10 +43,12 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "5.10.2",
     "@supabase/supabase-js": "^2.93.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^7.0.9",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
@@ -57,6 +62,7 @@
     "mathjs": "^15.1.0",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.13",
     "pdfkit": "^0.17.2",
     "tesseract.js": "^7.0.0",

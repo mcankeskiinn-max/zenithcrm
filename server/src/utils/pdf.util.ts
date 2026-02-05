@@ -17,17 +17,27 @@ export interface PDFData {
 export const generateProfessionalPDF = (res: Response, data: PDFData) => {
     const doc = new PDFDocument({ margin: 50 });
 
+    let hasMainFont = false;
+    try {
+        doc.registerFont('MainFont', 'C:\\Windows\\Fonts\\arial.ttf');
+        doc.font('MainFont');
+        hasMainFont = true;
+    } catch (e) {
+        console.warn('Arial font not found, falling back to Helvetica. Turkish characters might not display correctly.');
+        doc.font('Helvetica');
+    }
+
     // Stream the PDF directly to the response
     doc.pipe(res);
 
     // Header - Company Branding
     doc.fillColor('#F97316') // Orange-500
-        .fontSize(24)
-        .text(data.companyName.toUpperCase(), { align: 'right' });
+        .fontSize(20)
+        .text(`${data.companyName.toUpperCase()} powered by ZenithCRM`, { align: 'right' });
 
     doc.fillColor('#4B5563') // Gray-600
         .fontSize(10)
-        .text('Sigorta Yönetim Sistemi - Finansal Bordro', { align: 'right' });
+        .text('Dijital Sigorta Yönetim Paneli', { align: 'right' });
 
     doc.moveDown(2);
 
@@ -50,10 +60,10 @@ export const generateProfessionalPDF = (res: Response, data: PDFData) => {
     // Details Section
     doc.fillColor('#111827').fontSize(12);
     data.details.forEach(detail => {
-        doc.text(`${detail.label}: `, { continued: true })
-            .font('Helvetica-Bold')
-            .text(`${detail.value}`)
-            .font('Helvetica');
+        doc.font(hasMainFont ? 'MainFont' : 'Helvetica-Bold')
+            .text(`${detail.label}: `, { continued: true })
+            .font(hasMainFont ? 'MainFont' : 'Helvetica')
+            .text(`${detail.value}`);
     });
 
     doc.moveDown(2);
@@ -68,8 +78,10 @@ export const generateProfessionalPDF = (res: Response, data: PDFData) => {
             .fill('#F3F4F6');
 
         doc.fillColor('#374151')
-            .font('Helvetica-Bold')
             .fontSize(10);
+
+        if (hasMainFont) doc.font('MainFont');
+        else doc.font('Helvetica-Bold');
 
         data.table.headers.forEach((header, i) => {
             doc.text(header, 50 + i * columnWidth, tableTop + 5, {
@@ -78,7 +90,6 @@ export const generateProfessionalPDF = (res: Response, data: PDFData) => {
             });
         });
 
-        doc.font('Helvetica').fillColor('#111827');
         let currentY = tableTop + 25;
 
         data.table.rows.forEach((row) => {
@@ -87,6 +98,9 @@ export const generateProfessionalPDF = (res: Response, data: PDFData) => {
                 .lineTo(doc.page.width - 50, currentY + 15)
                 .strokeColor('#E5E7EB')
                 .stroke();
+
+            if (hasMainFont) doc.font('MainFont');
+            else doc.font('Helvetica');
 
             row.forEach((cell, i) => {
                 doc.text(cell.toString(), 50 + i * columnWidth, currentY, {

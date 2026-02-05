@@ -14,6 +14,19 @@ export const scanPolicy = async (req: Request, res: Response) => {
 
         const result = await OCRService.scanPolicy(filePath);
 
+        // Check if any significant data was found
+        const hasData = result.extractedData.policyNumber ||
+            result.extractedData.customerName ||
+            result.extractedData.identityNo;
+
+        if (!hasData) {
+            return res.status(422).json({
+                error: 'Belge okundu ancak poliçe verileri (Poliçe No, İsim veya TCKN) ayrıştırılamadı. Lütfen dökümanın net ve okunaklı olduğundan emin olun.',
+                success: false,
+                rawText: result.text
+            });
+        }
+
         res.json({
             success: true,
             data: result.extractedData,

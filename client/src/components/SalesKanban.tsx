@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { MoreVertical, User, FileText, Building2, Upload } from 'lucide-react';
 
 interface SalesKanbanProps {
@@ -16,6 +17,7 @@ const statusColumns = [
 ];
 
 export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs }: SalesKanbanProps) {
+    const navigate = useNavigate();
     const handleDragStart = (e: React.DragEvent, saleId: string) => {
         e.dataTransfer.setData('saleId', saleId);
     };
@@ -70,7 +72,7 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
                                             <div>
                                                 <h4
                                                     className="font-bold text-foreground leading-tight hover:text-emerald-500 cursor-pointer"
-                                                    onClick={(e) => { e.stopPropagation(); window.location.href = `/customers/${sale.customer?.id || ''}` }}
+                                                    onClick={(e) => { e.stopPropagation(); navigate(`/app/customers/${sale.customer?.id || ''}`) }}
                                                 >
                                                     {sale.customer?.name || sale.customerName}
                                                 </h4>
@@ -93,7 +95,7 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
 
                                     <div className="mb-4">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-lg font-extrabold text-foreground">₺{sale.amount.toLocaleString()}</span>
+                                            <span className="text-lg font-extrabold text-foreground">₺{sale.amount?.toLocaleString() || '0'}</span>
                                             <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg">
                                                 {sale.policyType?.name || 'Genel'}
                                             </span>

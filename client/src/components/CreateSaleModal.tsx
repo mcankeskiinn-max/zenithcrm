@@ -20,6 +20,7 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
     const [branchId, setBranchId] = useState('');
     const [policyTypeId, setPolicyTypeId] = useState('');
     const [employeeId, setEmployeeId] = useState('');
+    const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
 
     const [branches, setBranches] = useState<{ id: string, name: string }[]>([]);
     const [policyTypes, setPolicyTypes] = useState<{ id: string, name: string }[]>([]);
@@ -89,7 +90,8 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                 branchId,
                 policyTypeId,
                 employeeId: employeeId || currentUser.id,
-                status: 'ACTIVE'
+                status: 'ACTIVE',
+                saleDate
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -112,6 +114,7 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
         setCustomerEmail('');
         setPolicyNumber('');
         setAmount('');
+        setSaleDate(new Date().toISOString().split('T')[0]);
         setStep('form');
         setCreatedSaleId(null);
         onClose();
@@ -238,6 +241,16 @@ export default function CreateSaleModal({ isOpen, onClose, onSuccess }: CreateSa
                                     </select>
                                 </div>
                             )}
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Tarihi</label>
+                                <Input
+                                    type="date"
+                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                    value={saleDate}
+                                    onChange={(e) => setSaleDate(e.target.value)}
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div className="flex gap-4 pt-4">

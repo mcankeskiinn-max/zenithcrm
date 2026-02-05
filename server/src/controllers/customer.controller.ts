@@ -13,10 +13,11 @@ export const getCustomers = async (req: Request, res: Response) => {
 
         if (search && typeof search === 'string') {
             where.OR = [
-                { name: { contains: search, mode: 'insensitive' } },
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
                 { email: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search, mode: 'insensitive' } },
-                { identityNumber: { contains: search, mode: 'insensitive' } }
+                { identityNo: { contains: search, mode: 'insensitive' } }
             ];
         }
 
@@ -27,10 +28,16 @@ export const getCustomers = async (req: Request, res: Response) => {
                     select: { sales: true }
                 }
             },
-            orderBy: { name: 'asc' }
+            orderBy: { firstName: 'asc' }
         });
 
-        res.json(customers);
+        // Map to include 'name' for frontend compatibility
+        const mappedCustomers = customers.map(c => ({
+            ...c,
+            name: `${c.firstName} ${c.lastName}`.trim()
+        }));
+
+        res.json(mappedCustomers);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Server error' });
@@ -50,20 +57,18 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
                         policyType: true,
                         employee: { select: { name: true } }
                     },
-                    orderBy: { createdAt: 'desc' }
-                },
-                tasks: {
-                    include: {
-                        assignedTo: { select: { name: true } }
-                    },
-                    orderBy: { dueDate: 'desc' }
+                    orderBy: { saleDate: 'desc' }
                 },
                 documents: true,
+                tasks: {
+                    include: { assignedTo: { select: { name: true } } },
+                    orderBy: { dueDate: 'asc' }
+                },
                 _count: {
                     select: {
                         sales: true,
-                        tasks: true,
-                        documents: true
+                        documents: true,
+                        tasks: true
                     }
                 }
             }
@@ -73,24 +78,29 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Müşteri bulunamadı.' });
         }
 
-        // --- SECURITY CHECK ---
-        // If not Admin, check if customer has any relationship with the user's branch
-        if (currentUser.role !== Role.ADMIN) {
-            const hasAccess = customer.sales.some(s => s.branchId === currentUser.branchId) ||
-                customer.tasks.some(t => t.assignedToId === currentUser.id);
-
-            if (!hasAccess) {
+        // Accessibility logic fix: If no sales, allow view if in same tenant 
+        if (currentUser.role !== Role.ADMIN && (customer.sales?.length || 0) > 0) {
+            const hasAccess = customer.sales.some(s => s.branchId === currentUser.branchId);
+            if (!hasAccess && currentUser.role !== Role.MANAGER) {
                 return res.status(403).json({ error: 'Bu müşteri bilgilerini görüntüleme yetkiniz yok.' });
             }
         }
 
-        // Calculate loyalty score (dummy logic for now: sales count * 10, max 100)
-        const score = Math.min(customer.sales.length * 10, 100);
+        const score = Math.min((customer.sales?.length || 0) * 10, 100);
 
-        res.json({
+        const responseData = {
             ...customer,
-            loyaltyScore: score
-        });
+            name: `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'İsimsiz Müşteri',
+            identityNumber: customer.identityNo || null,
+            loyaltyScore: score,
+            _count: {
+                sales: customer.sales?.length || 0,
+                documents: customer.documents?.length || 0,
+                tasks: customer.tasks?.length || 0
+            }
+        };
+
+        res.json(responseData);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Server error' });
@@ -101,9 +111,23 @@ export const getCustomerProfile = async (req: Request, res: Response) => {
 export const createCustomer = async (req: Request, res: Response) => {
     const { name, email, phone, identityNumber, address, notes } = req.body;
     const currentUser = req.user!;
+
+    const nameParts = name ? name.split(' ') : [''];
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ') || '';
+
     try {
         const customer = await prisma.customer.create({
-            data: { name, email, phone, identityNumber, address, notes, tenantId: currentUser.tenantId }
+            data: {
+                firstName,
+                lastName,
+                email,
+                phone,
+                identityNo: identityNumber,
+                address,
+                notes,
+                tenantId: currentUser.tenantId
+            }
         });
         res.status(201).json(customer);
     } catch (error: unknown) {
@@ -117,7 +141,7 @@ export const createCustomer = async (req: Request, res: Response) => {
 // Update customer
 export const updateCustomer = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const data = req.body;
+    const { name, identityNumber, ...otherData } = req.body;
     const currentUser = req.user!;
     try {
         // Enforce tenant isolation
@@ -126,12 +150,58 @@ export const updateCustomer = async (req: Request, res: Response) => {
         });
         if (!existing) return res.status(404).json({ error: 'Müşteri bulunamadı.' });
 
+        const updateData: any = { ...otherData };
+
+        if (name) {
+            const nameParts = name.split(' ');
+            updateData.firstName = nameParts[0];
+            updateData.lastName = nameParts.slice(1).join(' ') || '';
+        }
+
+        if (identityNumber) {
+            updateData.identityNo = identityNumber;
+        }
+
         const customer = await prisma.customer.update({
             where: { id },
-            data
+            data: updateData
         });
         res.json(customer);
     } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+// Delete customer
+export const deleteCustomer = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const currentUser = req.user!;
+    try {
+        const customer = await prisma.customer.findFirst({
+            where: { id, tenantId: currentUser.tenantId },
+            include: {
+                _count: {
+                    select: { sales: true }
+                }
+            }
+        });
+
+        if (!customer) {
+            return res.status(404).json({ error: 'Müşteri bulunamadı.' });
+        }
+
+        // Only allow deletion if no sales exist OR if user is ADMIN/MANAGER
+        if (customer._count.sales > 0 && currentUser.role !== Role.ADMIN && currentUser.role !== Role.MANAGER) {
+            return res.status(400).json({ error: 'Satış kaydı bulunan müşteriler sadece yönetici tarafından silinebilir.' });
+        }
+
+        await prisma.customer.delete({
+            where: { id }
+        });
+
+        res.json({ message: 'Müşteri başarıyla silindi.' });
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Server error' });
     }
 };

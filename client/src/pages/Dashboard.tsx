@@ -9,7 +9,7 @@ import {
     ShieldAlert,
     ChevronRight
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     ResponsiveContainer,
     LineChart,
@@ -57,6 +57,7 @@ interface Stats {
 const COLORS = ['#EF4444', '#F59E0B', '#3B82F6', '#8B5CF6', '#10B981', '#6366F1'];
 
 export default function Dashboard() {
+    const navigate = useNavigate();
     const [data, setData] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
     const [range, setRange] = useState('6');
@@ -438,7 +439,7 @@ export default function Dashboard() {
                                             </td>
                                             <td className="px-5 py-4 text-right">
                                                 <button
-                                                    onClick={() => window.location.href = `/customers/${renewal.customer?.id || ''}`}
+                                                    onClick={() => navigate(`/app/customers/${renewal.customer?.id || ''}`)}
                                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted text-muted-foreground hover:bg-primary hover:text-primary-foreground rounded-lg text-[10px] font-bold transition-all"
                                                 >
                                                     Müşteri Dosyası

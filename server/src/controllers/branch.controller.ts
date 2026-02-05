@@ -40,6 +40,15 @@ export const createBranch = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Branch name already exists' });
         }
 
+        // Check if tenant is single-branch
+        const tenant = await prisma.tenant.findUnique({
+            where: { id: currentUser.tenantId }
+        });
+
+        if (tenant?.isSingleBranch) {
+            return res.status(403).json({ error: 'Tek şubeli planda yeni şube eklenemez.' });
+        }
+
         // Store as object for Prisma Json field
         const settings = { commissionRate: Number(commissionRate) };
 

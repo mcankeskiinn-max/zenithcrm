@@ -20,10 +20,10 @@ const RevenuePage: React.FC = () => {
                 const headers = { Authorization: `Bearer ${token}` };
 
                 const [resTrends, resProf, resRisks, resTarget] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL}/api/revenue/trends`, { headers }),
-                    axios.get(`${import.meta.env.VITE_API_URL}/api/revenue/profitability`, { headers }),
-                    axios.get(`${import.meta.env.VITE_API_URL}/api/revenue/churn-risks`, { headers }),
-                    axios.get(`${import.meta.env.VITE_API_URL}/api/revenue/targets`, { headers })
+                    axios.get('/api/revenue/trends', { headers }),
+                    axios.get('/api/revenue/profitability', { headers }),
+                    axios.get('/api/revenue/churn-risks', { headers }),
+                    axios.get('/api/revenue/targets', { headers })
                 ]);
 
                 setTrends(resTrends.data);

@@ -71,6 +71,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
                 name: true,
                 role: true,
                 branchId: true,
+                tenantId: true,
                 isActive: true,
                 lockedUntil: true
             }
@@ -102,7 +103,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
             email: user.email,
             role: user.role as Role,
             branchId: user.branchId || undefined,
-            tenantId: decoded.tenantId
+            tenantId: decoded.tenantId || user.tenantId // Fallback to DB if token doesn't have it
         };
 
         next();

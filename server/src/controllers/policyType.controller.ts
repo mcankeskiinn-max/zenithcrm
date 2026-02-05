@@ -20,25 +20,43 @@ export const createPolicyType = async (req: Request, res: Response) => {
     const { name } = req.body;
     try {
         const currentUser = req.user!;
+        console.log(`Creating policy type: "${name}" for tenant: ${currentUser.tenantId}`);
+
         const type = await prisma.policyType.create({
             data: {
                 name,
                 tenantId: currentUser.tenantId
             }
         });
+
         if (currentUser) {
-            await logAudit({
-                userId: currentUser.id,
-                tenantId: currentUser.tenantId,
-                action: 'CREATE',
-                resource: 'PolicyType',
-                resourceId: type.id,
-                details: { name }
-            });
+            try {
+                await logAudit({
+                    userId: currentUser.id,
+                    tenantId: currentUser.tenantId,
+                    action: 'CREATE',
+                    resource: 'PolicyType',
+                    resourceId: type.id,
+                    details: { name }
+                });
+            } catch (auditError) {
+                console.error('Audit log failed during policy type creation:', auditError);
+                // Don't fail the request if audit logging fails
+            }
         }
+
         res.status(201).json(type);
     } catch (error: unknown) {
-        res.status(400).json({ error: 'Bu poliçe tipi zaten mevcut veya geçersiz.' });
+        console.error('Policy Type Creation Error:', error);
+        if (error instanceof Error) {
+            // Check for Prisma unique constraint violation
+            if ((error as any).code === 'P2002') {
+                return res.status(400).json({ error: 'Bu poliçe tipi zaten mevcut.' });
+            }
+            res.status(500).json({ error: `Sunucu hatası: ${error.message}` });
+        } else {
+            res.status(500).json({ error: 'Beklenmeyen bir sunucu hatası oluştu.' });
+        }
     }
 };
 

@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-    Layout,
+    Rocket,
+    AlertCircle,
+    Loader2,
     Mail,
     Lock,
     User as UserIcon,
     Building2,
     ArrowRight,
     CheckCircle2,
-    ShieldCheck,
-    Rocket,
-    AlertCircle,
-    Loader2
+    ShieldCheck
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useTheme } from '../context/ThemeContext';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -24,9 +23,19 @@ const RegisterPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [isSuccess, setIsSuccess] = useState(false);
 
-    const { register, handleSubmit, formState: { errors: _errors } } = useForm();
+    const { register, handleSubmit, setValue, watch, formState: { errors: _errors } } = useForm({
+        defaultValues: {
+            agencyName: '',
+            name: '',
+            email: '',
+            password: '',
+            isSingleBranch: true
+        }
+    });
+    const isSingleBranch = watch('isSingleBranch');
 
     const onSubmit = async (data: any) => {
+        console.log('Registration attempt:', { ...data, password: '***' });
         setIsLoading(true);
         setError(null);
         try {
@@ -37,11 +46,24 @@ const RegisterPage = () => {
                     agencyName: data.agencyName,
                     adminName: data.name,
                     email: data.email,
-                    password: data.password
+                    password: data.password,
+                    isSingleBranch: data.isSingleBranch
                 }),
             });
 
+            console.log('Server response status:', response.status);
+            const contentType = response.headers.get("content-type");
+            console.log('Server response content-type:', contentType);
+
+            if (response.status === 204 || !contentType || !contentType.includes("application/json")) {
+                const text = await response.text();
+                console.log('Server response text (not JSON):', text);
+                if (!response.ok) throw new Error(text || 'Sunucudan geçersiz yanıt alındı');
+                return;
+            }
+
             const result = await response.json();
+            console.log('Server response JSON:', result);
 
             if (!response.ok) {
                 throw new Error(result.error || 'Kayıt başarısız oldu');
@@ -50,6 +72,7 @@ const RegisterPage = () => {
             setIsSuccess(true);
             setTimeout(() => navigate('/login'), 3000);
         } catch (err: any) {
+            console.error('Registration Error:', err);
             setError(err.message);
         } finally {
             setIsLoading(false);
@@ -170,6 +193,61 @@ const RegisterPage = () => {
                                         {...register('name', { required: true })}
                                     />
                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 pt-2">
+                            <label className="text-sm font-bold text-foreground/70 dark:text-emerald-200 ml-1">İşletme Yapısı</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setValue('isSingleBranch', true)}
+                                    className={cn(
+                                        "p-4 rounded-2xl border-2 transition-all flex flex-col gap-2 text-left",
+                                        isSingleBranch
+                                            ? "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/5"
+                                            : "border-border bg-muted dark:bg-emerald-900/20 hover:border-emerald-500/30"
+                                    )}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                            isSingleBranch ? "bg-emerald-500 text-white" : "bg-muted-foreground/10 text-muted-foreground"
+                                        )}>
+                                            <Building2 size={20} />
+                                        </div>
+                                        {isSingleBranch && <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-black uppercase tracking-tight">Tek Şube</h4>
+                                        <p className="text-[10px] text-muted-foreground leading-tight mt-1">Butik ve yerel acenteler için sade paneller.</p>
+                                    </div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setValue('isSingleBranch', false)}
+                                    className={cn(
+                                        "p-4 rounded-2xl border-2 transition-all flex flex-col gap-2 text-left",
+                                        !isSingleBranch
+                                            ? "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 shadow-lg shadow-emerald-500/5"
+                                            : "border-border bg-muted dark:bg-emerald-900/20 hover:border-emerald-500/30"
+                                    )}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                            !isSingleBranch ? "bg-emerald-500 text-white" : "bg-muted-foreground/10 text-muted-foreground"
+                                        )}>
+                                            <Building2 size={20} className="scale-110" />
+                                        </div>
+                                        {!isSingleBranch && <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-black uppercase tracking-tight">Çok Şubeli</h4>
+                                        <p className="text-[10px] text-muted-foreground leading-tight mt-1">Geniş ağlar için gelişmiş organizasyon yönetimi.</p>
+                                    </div>
+                                </button>
                             </div>
                         </div>
 

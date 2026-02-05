@@ -1,6 +1,6 @@
 // Deployment Version: 2026-01-30-T20-10
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
     Users,
@@ -19,11 +19,17 @@ import {
     Download,
     ExternalLink,
     Edit2,
+    Trash2,
     Save,
-    X
+    X,
+    Plus,
+    MessageSquare,
+    MessageCircle,
+    PhoneCall
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { QRCodeModal } from '@/components/QRCodeModal';
 
 interface CustomerProfile {
     id: string;
@@ -46,23 +52,33 @@ interface CustomerProfile {
 
 export default function CustomerProfilePage() {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const [customer, setCustomer] = useState<CustomerProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+    const [isQRModalOpen, setIsQRModalOpen] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '',
         phone: '',
         email: '',
+        identityNumber: '',
         address: '',
         notes: ''
+    });
+    const [taskForm, setTaskForm] = useState({
+        title: '',
+        description: '',
+        dueDate: '',
+        priority: 'MEDIUM'
     });
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        if (id) fetchProfile();
+        if (id) fetchCustomerData();
     }, [id]);
 
-    const fetchProfile = async () => {
+    const fetchCustomerData = async () => {
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(`/api/customers/${id}`, {
@@ -73,6 +89,7 @@ export default function CustomerProfilePage() {
                 name: res.data.name || '',
                 phone: res.data.phone || '',
                 email: res.data.email || '',
+                identityNumber: res.data.identityNumber || '',
                 address: res.data.address || '',
                 notes: res.data.notes || ''
             });
@@ -90,7 +107,7 @@ export default function CustomerProfilePage() {
             await axios.patch(`/api/customers/${id}`, editForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            await fetchProfile();
+            fetchCustomerData();
             setIsEditModalOpen(false);
         } catch (error) {
             console.error('Failed to update profile', error);
@@ -100,8 +117,138 @@ export default function CustomerProfilePage() {
         }
     };
 
+    const handleCreateTask = async () => {
+        setSaving(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('/api/tasks', {
+                ...taskForm,
+                customerId: id
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setIsTaskModalOpen(false);
+            setTaskForm({ title: '', description: '', dueDate: '', priority: 'MEDIUM' });
+            fetchCustomerData();
+        } catch (error) {
+            console.error('Failed to create task', error);
+            alert('Görev oluşturulurken hata oluştu.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const toggleTaskComplete = async (taskId: string, currentStatus: boolean) => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(`/api/tasks/${taskId}`, {
+                isCompleted: !currentStatus
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            fetchCustomerData();
+        } catch (error) {
+            console.error('Failed to update task status', error);
+            alert('Görev güncellenirken hata oluştu.');
+        }
+    };
+
+    const handleDeleteCustomer = async () => {
+        if (!window.confirm('Bu müşteri kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`/api/customers/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            navigate('/app/customers');
+        } catch (error: any) {
+            const msg = error.response?.data?.error || 'Müşteri silinirken bir hata oluştu.';
+            alert(msg);
+        }
+    };
+
+    const handleExportPDF = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`/api/reports/export/customer/${id}/pdf`, {
+                headers: { Authorization: `Bearer ${token}` },
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Musteri_Ozeti_${customer?.name?.replace(/\s+/g, '_')}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+        } catch (error) {
+            console.error('Failed to export PDF', error);
+            alert('PDF raporu oluşturulurken bir hata oluştu.');
+        }
+    };
+
+    // Communication Helper Functions
+    const formatPhoneForWhatsApp = (phone: string | null): string | null => {
+        if (!phone) return null;
+
+        // Remove all non-digit characters
+        const cleaned = phone.replace(/\D/g, '');
+
+        // If starts with 0, remove it and add country code
+        if (cleaned.startsWith('0')) {
+            return '90' + cleaned.substring(1);
+        }
+
+        // If already has country code
+        if (cleaned.startsWith('90')) {
+            return cleaned;
+        }
+
+        // Otherwise add country code
+        return '90' + cleaned;
+    };
+
+    // Device detection utility
+    const isMobileDevice = () => {
+        return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    };
+
+    const handleWhatsAppClick = () => {
+        const formattedPhone = formatPhoneForWhatsApp(customer?.phone || null);
+        if (formattedPhone) {
+            if (isMobileDevice()) {
+                // On mobile, open WhatsApp app directly
+                window.location.href = `whatsapp://send?phone=${formattedPhone}`;
+            } else {
+                // On desktop, open WhatsApp Web
+                window.open(`https://wa.me/${formattedPhone}`, '_blank');
+            }
+        }
+    };
+
+    const handleSMSClick = () => {
+        if (customer?.phone) {
+            window.open(`sms:${customer.phone}`, '_blank');
+        }
+    };
+
+    const handleCallClick = () => {
+        if (customer?.phone) {
+            window.location.href = `tel:${customer.phone}`;
+        }
+    };
+
+
     const totalPortfolioValue = useMemo(() => {
-        return customer?.sales.reduce((sum, s) => sum + Number(s.amount), 0) || 0;
+        if (!customer?.sales) return 0;
+        return customer.sales.reduce((sum, s) => {
+            const amt = s?.amount ? Number(s.amount) : 0;
+            return sum + (isNaN(amt) ? 0 : amt);
+        }, 0);
     }, [customer]);
 
     if (loading) {
@@ -129,7 +276,7 @@ export default function CustomerProfilePage() {
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <button
-                        onClick={() => window.history.back()}
+                        onClick={() => navigate('/app/customers')}
                         className="p-3 bg-card border border-border rounded-2xl text-muted-foreground hover:text-emerald-600 hover:border-emerald-100 transition-all shadow-sm"
                     >
                         <ArrowLeft size={20} />
@@ -140,13 +287,31 @@ export default function CustomerProfilePage() {
                     </div>
                 </div>
 
-                <Button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="h-11 bg-white border border-border text-foreground hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-100 font-bold rounded-2xl shadow-sm transition-all gap-2 px-6"
-                >
-                    <Edit2 size={18} />
-                    Profil Bilgilerini Güncelle
-                </Button>
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={handleDeleteCustomer}
+                        className="h-11 bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-2xl transition-all gap-2 px-6"
+                    >
+                        <Trash2 size={18} />
+                        Sil
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        onClick={handleExportPDF}
+                        className="h-11 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold rounded-2xl transition-all gap-2 px-6"
+                    >
+                        <Download size={18} />
+                        PDF Raporu
+                    </Button>
+                    <Button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="h-11 bg-white border border-border text-foreground hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-100 font-bold rounded-2xl shadow-sm transition-all gap-2 px-6"
+                    >
+                        <Edit2 size={18} />
+                        Güncelle
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -161,8 +326,8 @@ export default function CustomerProfilePage() {
                                 <Users size={40} />
                             </div>
 
-                            <h2 className="text-2xl font-black text-foreground mb-1 uppercase tracking-tight">{customer.name}</h2>
-                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6">Müşteri No: #{customer.id.slice(0, 8)}</p>
+                            <h2 className="text-2xl font-black text-foreground mb-1 uppercase tracking-tight">{customer?.name || 'İsimsiz Müşteri'}</h2>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6">Müşteri No: #{customer?.id?.slice?.(0, 8) || 'N/A'}</p>
 
                             <div className="space-y-4">
                                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-2xl border border-transparent hover:border-emerald-100/20 transition-all">
@@ -195,6 +360,62 @@ export default function CustomerProfilePage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Quick Communication Section */}
+                            <div className="mt-6 pt-6 border-t border-border">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                        Hızlı İletişim
+                                    </p>
+                                    {/* QR Code Button - Only show on desktop */}
+                                    {!isMobileDevice() && customer.phone && (
+                                        <button
+                                            onClick={() => setIsQRModalOpen(true)}
+                                            className="flex items-center gap-1 px-2 py-1 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/20 transition-all text-[10px] font-bold"
+                                            title="QR kod ile mobil cihazdan iletişim kur"
+                                        >
+                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zm-2 8h8v8H3v-8zm2 2v4h4v-4H5zm8-12v8h8V3h-8zm2 2h4v4h-4V5zm4 8h-2v2h2v-2zm-2 2h-2v2h2v-2zm2 0h2v2h-2v-2zm0 2v2h-2v-2h2zm2 0h2v2h-2v-2zm0-2v-2h2v2h-2zm-4-2h2v2h-2v-2z" />
+                                            </svg>
+                                            QR
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {/* WhatsApp Button */}
+                                    <button
+                                        onClick={handleWhatsAppClick}
+                                        disabled={!customer.phone}
+                                        className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl hover:shadow-lg hover:shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none group"
+                                        title={customer.phone ? 'WhatsApp ile mesaj gönder' : 'Telefon numarası yok'}
+                                    >
+                                        <MessageSquare size={20} className="group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wide">WhatsApp</span>
+                                    </button>
+
+                                    {/* SMS Button */}
+                                    <button
+                                        onClick={handleSMSClick}
+                                        disabled={!customer.phone}
+                                        className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none group"
+                                        title={customer.phone ? 'SMS gönder' : 'Telefon numarası yok'}
+                                    >
+                                        <MessageCircle size={20} className="group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wide">SMS</span>
+                                    </button>
+
+                                    {/* Call Button */}
+                                    <button
+                                        onClick={handleCallClick}
+                                        disabled={!customer.phone}
+                                        className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-2xl hover:shadow-lg hover:shadow-orange-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none group"
+                                        title={customer.phone ? 'Ara' : 'Telefon numarası yok'}
+                                    >
+                                        <PhoneCall size={20} className="group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wide">Ara</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -220,13 +441,13 @@ export default function CustomerProfilePage() {
                                         stroke="white"
                                         strokeWidth="8"
                                         strokeDasharray={364}
-                                        strokeDashoffset={364 - (364 * customer.loyaltyScore) / 100}
+                                        strokeDashoffset={364 - (364 * (customer?.loyaltyScore || 0)) / 100}
                                         strokeLinecap="round"
                                         className="transition-all duration-1000 ease-out"
                                     />
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-3xl font-black">{customer.loyaltyScore}</span>
+                                    <span className="text-3xl font-black">{customer?.loyaltyScore || 0}</span>
                                     <span className="text-[10px] font-bold opacity-60 uppercase">Puan</span>
                                 </div>
                             </div>
@@ -262,7 +483,7 @@ export default function CustomerProfilePage() {
                                 </div>
                                 <h3 className="text-xl font-bold text-foreground">Poliçe ve Satış Geçmişi</h3>
                             </div>
-                            <span className="text-xs font-bold text-muted-foreground bg-muted px-3 py-1 rounded-full uppercase tracking-widest">{customer.sales.length} Kayıt</span>
+                            <span className="text-xs font-bold text-muted-foreground bg-muted px-3 py-1 rounded-full uppercase tracking-widest">{(customer.sales || []).length} Kayıt</span>
                         </div>
 
                         <div className="overflow-x-auto">
@@ -276,33 +497,33 @@ export default function CustomerProfilePage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
-                                    {customer.sales.length === 0 ? (
+                                    {(!customer?.sales || customer.sales.length === 0) ? (
                                         <tr><td colSpan={4} className="p-12 text-center text-muted-foreground font-medium italic">Henüz poliçe/satış kaydı bulunmuyor.</td></tr>
                                     ) : customer.sales.map((sale) => (
-                                        <tr key={sale.id} className="hover:bg-muted/50 transition-colors group">
+                                        <tr key={sale?.id} className="hover:bg-muted/50 transition-colors group">
                                             <td className="px-8 py-5">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-foreground group-hover:text-emerald-600 transition-colors">{sale.policyType?.name || 'Belirtilmemiş'}</span>
-                                                    <span className="text-[11px] font-medium text-muted-foreground mt-0.5">{sale.policyNumber || 'No Yok'}</span>
+                                                    <span className="font-bold text-foreground group-hover:text-emerald-600 transition-colors">{sale?.policyType?.name || 'Belirtilmemiş'}</span>
+                                                    <span className="text-[11px] font-medium text-muted-foreground mt-0.5">{sale?.policyNumber || 'No Yok'}</span>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className="font-black text-foreground">₺{Number(sale.amount).toLocaleString()}</span>
+                                                <span className="font-black text-foreground">₺{Number(sale?.amount || 0).toLocaleString()}</span>
                                             </td>
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-2">
                                                     <Calendar size={14} className="text-muted-foreground" />
-                                                    <span className={`text-sm font-bold ${new Date(sale.endDate) < new Date() ? 'text-red-500' : 'text-muted-foreground'}`}>
-                                                        {sale.endDate ? new Date(sale.endDate).toLocaleDateString('tr-TR') : '-'}
+                                                    <span className={`text-sm font-bold ${sale?.endDate && new Date(sale.endDate) < new Date() ? 'text-red-500' : 'text-muted-foreground'}`}>
+                                                        {sale?.endDate ? new Date(sale.endDate).toLocaleDateString('tr-TR') : '-'}
                                                     </span>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5 text-right">
-                                                <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${sale.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-600' :
-                                                    sale.status === 'CANCELLED' ? 'bg-red-500/10 text-red-600' :
+                                                <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${sale?.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-600' :
+                                                    sale?.status === 'CANCELLED' ? 'bg-red-500/10 text-red-600' :
                                                         'bg-yellow-500/10 text-yellow-600'
                                                     }`}>
-                                                    {sale.status}
+                                                    {sale?.status || 'LEAD'}
                                                 </span>
                                             </td>
                                         </tr>
@@ -321,21 +542,58 @@ export default function CustomerProfilePage() {
                                     <Clock size={18} className="text-blue-600" />
                                     <h3 className="font-bold text-foreground">Yaklaşan Görevler</h3>
                                 </div>
-                                <Button variant="ghost" size="sm" className="h-8 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-500/10">Tümü</Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={() => setIsTaskModalOpen(true)}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                                    >
+                                        <Plus size={14} className="mr-1" /> Yeni Görev
+                                    </Button>
+                                    <Button
+                                        onClick={() => navigate('/app/tasks')}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
+                                    >
+                                        Tümü
+                                    </Button>
+                                </div>
                             </div>
                             <div className="p-4 space-y-3">
-                                {customer.tasks.length === 0 ? (
-                                    <p className="p-6 text-center text-xs text-muted-foreground italic">Planlanmış görev bulunmuyor.</p>
+                                {(!customer?.tasks || customer.tasks.length === 0) ? (
+                                    <div className="p-8 text-center bg-muted/20 rounded-2xl border border-dashed border-border">
+                                        <Calendar size={24} className="mx-auto text-muted-foreground/30 mb-2" />
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Planlanmış görev yok</p>
+                                    </div>
                                 ) : customer.tasks.map(task => (
-                                    <div key={task.id} className="p-4 bg-muted/50 rounded-2xl flex items-start gap-3 group hover:bg-emerald-500/5 transition-all border border-transparent hover:border-emerald-100/20">
-                                        <div className={`mt-0.5 shrink-0 ${task.isCompleted ? 'text-emerald-500' : 'text-orange-500'}`}>
-                                            {task.isCompleted ? <CheckCircle2 size={16} /> : <div className="h-4 w-4 rounded-full border-2 border-orange-500 animate-pulse" />}
+                                    <button
+                                        key={task.id}
+                                        onClick={() => toggleTaskComplete(task.id, task.isCompleted)}
+                                        className="w-full text-left p-4 bg-muted/30 rounded-2xl flex items-start gap-3 group hover:bg-card transition-all border border-transparent hover:border-border shadow-none hover:shadow-sm"
+                                    >
+                                        <div className={`mt-0.5 shrink-0 transition-colors ${task.isCompleted ? 'text-muted-foreground/40' : 'text-emerald-500'}`}>
+                                            {task.isCompleted ? <CheckCircle2 size={18} /> : <div className="h-4.5 w-4.5 rounded-lg border-2 border-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]" />}
                                         </div>
                                         <div className="flex-1">
-                                            <p className={`text-sm font-bold ${task.isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{task.title}</p>
-                                            <p className="text-[10px] font-medium text-muted-foreground mt-1">{new Date(task.dueDate).toLocaleDateString('tr-TR')} • {task.priority}</p>
+                                            <p className={`text-sm font-bold transition-all ${task.isCompleted ? 'text-muted-foreground/40 line-through' : 'text-foreground'}`}>{task.title}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className={`text-[10px] font-bold flex items-center gap-1 ${task.isCompleted ? 'text-muted-foreground/30' : 'text-muted-foreground/80'}`}>
+                                                    <Clock size={10} />
+                                                    {new Date(task.dueDate).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                                                </span>
+                                                {!task.isCompleted && (
+                                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${task.priority === 'HIGH' ? 'bg-red-500/10 text-red-600' :
+                                                        task.priority === 'MEDIUM' ? 'bg-orange-500/10 text-orange-600' :
+                                                            'bg-emerald-500/10 text-emerald-600'
+                                                        }`}>
+                                                        {task.priority || 'NORMAL'}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
+                                    </button>
                                 ))}
                             </div>
                         </div>
@@ -350,7 +608,7 @@ export default function CustomerProfilePage() {
                                 <Button variant="ghost" size="sm" className="h-8 text-[11px] font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-500/10">Yönet</Button>
                             </div>
                             <div className="p-4 space-y-3">
-                                {customer.documents.length === 0 ? (
+                                {(!customer.documents || customer.documents.length === 0) ? (
                                     <p className="p-6 text-center text-xs text-muted-foreground italic">Yüklenmiş belge bulunmuyor.</p>
                                 ) : customer.documents.map(doc => (
                                     <div key={doc.id} className="p-4 bg-muted/50 rounded-2xl border border-transparent hover:border-indigo-100/20 hover:bg-indigo-500/5 transition-all flex items-center justify-between group">
@@ -475,6 +733,91 @@ export default function CustomerProfilePage() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Task Creation Modal */}
+            {isTaskModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-card w-full max-w-md rounded-[32px] border border-border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-6 border-b border-border flex items-center justify-between bg-blue-600">
+                            <div>
+                                <h3 className="text-xl font-black text-white tracking-tight">Yeni Görev Oluştur</h3>
+                                <p className="text-xs text-white/70 font-bold uppercase tracking-widest">{customer?.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setIsTaskModalOpen(false)}
+                                className="p-2 hover:bg-white/10 rounded-full text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Görev Konusu</label>
+                                <Input
+                                    value={taskForm.title}
+                                    onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                                    className="h-11 rounded-xl bg-muted/50 border-none font-bold"
+                                    placeholder="Örn: Evrak talebi için ara"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Açıklama</label>
+                                <textarea
+                                    value={taskForm.description}
+                                    onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
+                                    className="w-full min-h-[100px] p-3 rounded-xl bg-muted/50 border-none text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none resize-none"
+                                    placeholder="Detaylı notlar..."
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Bitiş Tarihi</label>
+                                    <Input
+                                        type="datetime-local"
+                                        value={taskForm.dueDate}
+                                        onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                                        className="h-11 rounded-xl bg-muted/50 border-none font-bold text-xs"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest px-1">Öncelik</label>
+                                    <select
+                                        value={taskForm.priority}
+                                        onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
+                                        className="w-full h-11 rounded-xl bg-muted/50 border-none text-xs font-bold px-3 focus:ring-2 focus:ring-blue-500/20 outline-none appearance-none"
+                                    >
+                                        <option value="LOW">Düşük</option>
+                                        <option value="MEDIUM">Orta</option>
+                                        <option value="HIGH">Yüksek</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <Button
+                                onClick={handleCreateTask}
+                                disabled={saving || !taskForm.title || !taskForm.dueDate}
+                                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-lg shadow-blue-500/20 transition-all mt-4"
+                            >
+                                {saving ? 'Oluşturuluyor...' : 'Görevi Kaydet'}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* QR Code Modal */}
+            {customer && (
+                <QRCodeModal
+                    isOpen={isQRModalOpen}
+                    onClose={() => setIsQRModalOpen(false)}
+                    customerName={customer.name}
+                    phone={customer.phone || ''}
+                />
             )}
         </div>
     );

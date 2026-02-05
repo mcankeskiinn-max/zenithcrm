@@ -13,8 +13,12 @@ if (apiUrl && apiUrl.trim() !== '' && apiUrl !== 'http://localhost:3000') {
 }
 axios.defaults.withCredentials = true;
 
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

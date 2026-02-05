@@ -15,6 +15,7 @@ model Tenant {
   logo            String?
   plan            String           @default("FREE")
   isActive        Boolean          @default(true)
+  isSingleBranch  Boolean          @default(false)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   users           User[]
@@ -59,6 +60,7 @@ model User {
   sales               Sale[]
   tasks               Task[]
   salesTargets        SalesTarget[]
+  supportMessages     SupportMessage[]
   tenant              Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch              Branch?         @relation(fields: [branchId], references: [id])
 
@@ -106,28 +108,54 @@ model Branch {
   settings        Json?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   commissionRules CommissionRule[]
   messages        Message[]
   sales           Sale[]
   users           User[]
   salesTargets    SalesTarget[]
-  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@map("branches")
+}
+
+model Customer {
+  id          String     @id @default(uuid())
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  identityNo  String?
+  birthDate   DateTime?
+  gender      String?
+  address     String?
+  notes       String?
+  tenantId    String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  documents   Document[]
+  sales       Sale[]
+  tasks       Task[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@index([phone])
+  @@index([identityNo])
+  @@map("customers")
 }
 
 model PolicyType {
   id              String           @id @default(uuid())
   name            String
   tenantId        String
-  description     String?
   isActive        Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   commissionRules CommissionRule[]
   sales           Sale[]
-  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tasks           Task[]
 
   @@index([tenantId])
   @@map("policy_types")
@@ -135,16 +163,14 @@ model PolicyType {
 
 model Sale {
   id             String          @id @default(uuid())
-  customerName   String
-  customerPhone  String?
-  customerEmail  String?
   policyNumber   String?         @unique
   amount         Decimal         @db.Decimal(12, 2)
   status         SaleStatus      @default(LEAD)
-  tenantId       String
+  customerId     String?
   branchId       String
   employeeId     String
   policyTypeId   String
+  tenantId       String
   saleDate       DateTime?
   startDate      DateTime?
   endDate        DateTime?
@@ -152,68 +178,44 @@ model Sale {
   notes          String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  customerId     String?
-  commissionLogs CommissionLog[]
-  documents      Document[]
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch         Branch          @relation(fields: [branchId], references: [id])
   customer       Customer?       @relation(fields: [customerId], references: [id])
   employee       User            @relation(fields: [employeeId], references: [id])
   policyType     PolicyType      @relation(fields: [policyTypeId], references: [id])
-  tasks          Task[]
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  commissionLogs CommissionLog[]
+  documents      Document[]
+  messages       Message[]
 
-  @@index([tenantId])
   @@index([branchId])
   @@index([employeeId])
   @@index([policyTypeId])
-  @@index([customerId])
+  @@index([tenantId])
   @@index([status])
   @@index([saleDate])
   @@map("sales")
 }
 
-model Customer {
-  id             String     @id @default(uuid())
-  name           String
-  tenantId       String
-  phone          String?
-  email          String?
-  identityNumber String?
-  address        String?
-  notes          String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  documents      Document[]
-  sales          Sale[]
-  tasks          Task[]
-  tenant         Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
-  @@index([name])
-  @@index([identityNumber])
-  @@map("customers")
-}
-
 model Task {
-  id           String    @id @default(uuid())
+  id           String   @id @default(uuid())
   title        String
   description  String?
-  tenantId     String
   dueDate      DateTime
-  isCompleted  Boolean   @default(false)
-  priority     Priority  @default(MEDIUM)
+  isCompleted  Boolean  @default(false)
+  priority     Priority @default(MEDIUM)
   assignedToId String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  tenantId     String
   customerId   String?
-  saleId       String?
-  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  assignedTo   User      @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
-  customer     Customer? @relation(fields: [customerId], references: [id])
-  sale         Sale?     @relation(fields: [saleId], references: [id])
+  policyTypeId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  assignedTo   User     @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  policyType   PolicyType? @relation(fields: [policyTypeId], references: [id])
 
-  @@index([tenantId])
   @@index([assignedToId])
+  @@index([tenantId])
   @@index([dueDate])
   @@index([isCompleted])
   @@map("tasks")
@@ -222,8 +224,8 @@ model Task {
 model CommissionRule {
   id           String      @id @default(uuid())
   name         String
-  tenantId     String
   description  String?
+  tenantId     String
   branchId     String?
   policyTypeId String?
   conditions   Json
@@ -233,141 +235,108 @@ model CommissionRule {
   isActive     Boolean     @default(true)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch       Branch?     @relation(fields: [branchId], references: [id], onDelete: Cascade)
   policyType   PolicyType? @relation(fields: [policyTypeId], references: [id], onDelete: Cascade)
+  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId])
   @@index([branchId])
   @@index([policyTypeId])
-  @@index([validFrom])
-  @@index([validTo])
+  @@index([tenantId])
   @@index([isActive])
   @@map("commission_rules")
 }
 
 model CommissionLog {
-  id         String    @id @default(uuid())
-  amount     Decimal   @db.Decimal(12, 2)
-  isPaid     Boolean   @default(false)
+  id         String   @id @default(uuid())
+  amount     Decimal  @db.Decimal(12, 2)
+  isPaid     Boolean  @default(false)
   paidAt     DateTime?
   saleId     String
   employeeId String
-  tenantId    String
-  createdAt  DateTime  @default(now())
-  employee   User      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  sale       Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenantId   String
+  createdAt  DateTime @default(now())
+  employee   User     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  sale       Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([saleId])
   @@index([employeeId])
-  @@index([isPaid])
   @@index([tenantId])
+  @@index([isPaid])
   @@map("commission_logs")
 }
+
+model Message {
+  id           String    @id @default(uuid())
+  subject      String
+  content      String
+  senderId     String
+  receiverId   String
+  tenantId     String
+  branchId     String?
+  saleId       String?
+  isRead       Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  sender       User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiver     User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch       Branch?   @relation(fields: [branchId], references: [id])
+  sale         Sale?     @relation(fields: [saleId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([tenantId])
+  @@map("messages")
+}
+
+
 
 model AuditLog {
   id         String   @id @default(uuid())
   action     String
   resource   String
-  tenantId   String?
   resourceId String?
   details    Json?
   ipAddress  String?
   userAgent  String?
   userId     String?
+  tenantId   String
   createdAt  DateTime @default(now())
-  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user       User?    @relation(fields: [userId], references: [id])
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId])
   @@index([userId])
+  @@index([tenantId])
   @@index([action])
   @@index([resource])
   @@index([createdAt])
   @@map("audit_logs")
 }
 
-model Message {
-  id         String   @id @default(uuid())
-  content    String
-  senderId   String
-  receiverId String
-  branchId   String?
-  tenantId   String
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  branch     Branch?  @relation(fields: [branchId], references: [id])
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([senderId])
-  @@index([receiverId])
-  @@index([branchId])
-  @@index([tenantId])
-  @@index([createdAt])
-  @@map("messages")
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  title     String
-  content   String
-  type      String
-  isRead    Boolean  @default(false)
-  userId    String
-  tenantId  String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([tenantId])
-  @@index([isRead])
-  @@index([createdAt])
-  @@map("notifications")
-}
-
 model SalesTarget {
-  id        String   @id @default(uuid())
-  amount    Decimal  @db.Decimal(12, 2)
-  month     Int
-  year      Int
-  tenantId  String
-  userId    String?
-  branchId  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  branch    Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  userId      String
+  branchId    String
+  tenantId    String
+  period      String
+  amount      Decimal  @db.Decimal(12, 2)
+  achieved    Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch      Branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([tenantId])
   @@index([userId])
   @@index([branchId])
-  @@index([month, year])
-  @@unique([month, year, userId, branchId, tenantId], name: "targetId")
+  @@index([tenantId])
   @@map("sales_targets")
-}
-
-model PasswordResetToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  email     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([email])
-  @@index([token])
-  @@map("password_reset_tokens")
 }
 
 enum Role {
   ADMIN
   MANAGER
   EMPLOYEE
-  CUSTOMER
 }
 
 enum SaleStatus {
@@ -382,4 +351,66 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+}
+
+model Notification {
+  id          String               @id @default(uuid())
+  tenantId    String
+  userId      String?
+  type        NotificationType
+  title       String
+  message     String
+  link        String?
+  isRead      Boolean              @default(false)
+  priority    NotificationPriority @default(NORMAL)
+  relatedId   String?
+  relatedType String?
+  createdAt   DateTime             @default(now())
+  expiresAt   DateTime?
+  user        User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  POLICY_RENEWAL
+  TASK_DEADLINE
+  TASK_ASSIGNED
+  SYSTEM_ALERT
+  COMMISSION_EARNED
+  CUSTOMER_BIRTHDAY
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model SupportMessage {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message     String        @db.Text
+  response    String?       @db.Text
+  status      SupportStatus @default(PENDING)
+  aiProcessed Boolean       @default(false)
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("support_messages")
+}
+
+enum SupportStatus {
+  PENDING
+  PROCESSING
+  RESOLVED
+  FAILED
 }

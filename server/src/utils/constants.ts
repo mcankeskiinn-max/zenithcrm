@@ -8,5 +8,6 @@ export enum SaleStatus {
     LEAD = 'LEAD',
     OFFER = 'OFFER',
     ACTIVE = 'ACTIVE',
-    CANCELLED = 'CANCELLED'
+    CANCELLED = 'CANCELLED',
+    LOST = 'LOST'
 }

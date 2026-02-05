@@ -95,7 +95,7 @@ export function DocumentList({ saleId, refreshTrigger }: DocumentListProps) {
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg"
-                            onClick={() => window.open(`http://localhost:3000/uploads/${doc.path}`, '_blank')}
+                            onClick={() => window.open(`/uploads/${doc.path}`, '_blank')}
                             title="Görüntüle"
                         >
                             <Eye size={16} />

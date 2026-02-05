@@ -9,7 +9,8 @@ export const getTasks = async (req: Request, res: Response) => {
         const isAdmin = user.role === Role.ADMIN;
         const isManager = user.role === Role.MANAGER;
 
-        const where: { tenantId: string; assignedTo?: { branchId?: string }; assignedToId?: string } = {
+        const { search, customerId } = req.query;
+        const where: any = {
             tenantId: user.tenantId
         };
 
@@ -22,10 +23,22 @@ export const getTasks = async (req: Request, res: Response) => {
             where.assignedToId = user.id;
         }
 
+        if (customerId) {
+            where.customerId = customerId;
+        }
+
+        if (search && typeof search === 'string') {
+            where.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
         const tasks = await prisma.task.findMany({
             where,
             include: {
-                assignedTo: { select: { id: true, name: true } }
+                assignedTo: { select: { id: true, name: true } },
+                customer: { select: { id: true, firstName: true, lastName: true } }
             },
             orderBy: { dueDate: 'asc' }
         });
@@ -39,7 +52,7 @@ export const getTasks = async (req: Request, res: Response) => {
 
 // Create task
 export const createTask = async (req: Request, res: Response) => {
-    const { title, description, dueDate, assignedToId } = req.body;
+    const { title, description, dueDate, assignedToId, customerId } = req.body;
     const currentUser = req.user!;
 
     try {
@@ -65,6 +78,7 @@ export const createTask = async (req: Request, res: Response) => {
                 description,
                 dueDate: new Date(dueDate),
                 assignedToId: assignedToId || currentUser.id,
+                customerId: customerId || null,
                 tenantId: currentUser.tenantId
             }
         });

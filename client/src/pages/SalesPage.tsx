@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SalesKanban from '@/components/SalesKanban';
@@ -17,7 +18,8 @@ import {
     Building2,
     ChevronDown,
     X,
-    Upload
+    Upload,
+    Calendar
 } from 'lucide-react';
 import { FileUpload } from '@/components/FileUpload';
 import { DocumentList } from '@/components/DocumentList';
@@ -37,6 +39,7 @@ interface Sale {
 }
 
 export default function SalesPage() {
+    const navigate = useNavigate();
     const [sales, setSales] = useState<Sale[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -50,13 +53,15 @@ export default function SalesPage() {
     const [branches, setBranches] = useState<{ id: string, name: string }[]>([]);
     const [policyTypes, setPolicyTypes] = useState<{ id: string, name: string }[]>([]);
     const [employees, setEmployees] = useState<{ id: string, name: string, role: string }[]>([]);
+    const [saleDate, setSaleDate] = useState(new Date().toISOString().split('T')[0]);
 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
-    const [status, setStatus] = useState('ACTIVE');
-    const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [formStatus, setFormStatus] = useState('ACTIVE');
+    const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
     const [searchTerm, setSearchTerm] = useState('');
     const [refreshDocs, setRefreshDocs] = useState(0);
     const [showDocsId, setShowDocsId] = useState<string | null>(null);
@@ -72,6 +77,8 @@ export default function SalesPage() {
         fetchBranches();
         fetchPolicyTypes();
         fetchEmployees();
+        fetchBranches();
+        fetchSales();
     }, []);
 
     useEffect(() => {
@@ -141,15 +148,16 @@ export default function SalesPage() {
                 branchId,
                 policyTypeId,
                 employeeId,
-                status: 'LEAD'
+                status: formStatus,
+                saleDate
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             resetForm();
             setShowCreateModal(false);
             fetchSales();
-        } catch (error) {
-            alert('Satış oluşturulamadı. Lütfen tüm alanları doldurunuz.');
+        } catch (error: any) {
+            alert(error.response?.data?.error || 'Satış oluşturulamadı. Lütfen internet bağlantınızı kontrol ediniz.');
         }
     };
 
@@ -157,7 +165,32 @@ export default function SalesPage() {
         if (data.policyNumber) setPolicyNumber(data.policyNumber);
         if (data.amount) setAmount(data.amount.toString());
         if (data.customerName) setCustomerName(data.customerName);
-        // You can add more mappings here
+        if (data.identityNo) {
+            // We can add a toast or note here, or if we had a TCKN field we'd set it.
+            // For now, let's append it to notes if it were available, or just keep it for later.
+        }
+
+        if (data.startDate) setSaleDate(data.startDate);
+
+        // Match policy type if found
+        if (data.policyTypeKey) {
+            const matchedType = policyTypes.find(pt =>
+                pt.name.toLowerCase().includes(data.policyTypeKey.toLowerCase())
+            );
+            if (matchedType) setPolicyTypeId(matchedType.id);
+        }
+
+        if (data.date && !data.startDate) {
+            try {
+                const parts = data.date.split(/[.\/-]/);
+                if (parts.length === 3) {
+                    const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                    if (!isNaN(d.getTime())) {
+                        setSaleDate(d.toISOString().split('T')[0]);
+                    }
+                }
+            } catch (e) { }
+        }
     };
 
     const resetForm = () => {
@@ -166,18 +199,26 @@ export default function SalesPage() {
         setAmount('');
         setPolicyTypeId('');
         setEmployeeId('');
-        setStatus('ACTIVE');
+        setFormStatus('ACTIVE');
+        setSaleDate(new Date().toISOString().split('T')[0]);
     };
 
     const handleEdit = (sale: any) => {
         setEditingId(sale.id);
         setCustomerName(sale.customerName);
         setPolicyNumber(sale.policyNumber);
-        setAmount(sale.amount.toString());
+        setAmount(sale.amount?.toString() || '');
         setBranchId(sale.branchId || '');
         setPolicyTypeId(sale.policyTypeId || '');
         setEmployeeId(sale.employeeId || '');
-        setStatus(sale.status);
+        setFormStatus(sale.status);
+        if (sale.saleDate) {
+            setSaleDate(new Date(sale.saleDate).toISOString().split('T')[0]);
+        } else if (sale.createdAt) {
+            setSaleDate(new Date(sale.createdAt).toISOString().split('T')[0]);
+        } else {
+            setSaleDate(new Date().toISOString().split('T')[0]);
+        }
         setShowEditModal(true);
     };
 
@@ -194,7 +235,8 @@ export default function SalesPage() {
                 branchId,
                 policyTypeId,
                 employeeId,
-                status
+                status: formStatus,
+                saleDate
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -203,8 +245,8 @@ export default function SalesPage() {
             setEditingId(null);
             resetForm();
             fetchSales();
-        } catch (error) {
-            alert('Satış güncellenemedi');
+        } catch (error: any) {
+            alert(error.response?.data?.error || 'Satış güncellenemedi');
         }
     };
 
@@ -286,7 +328,7 @@ export default function SalesPage() {
                             Liste
                         </button>
                     </div>
-                    <Button onClick={() => setShowCreateModal(true)} className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 active:translate-y-0 gap-2">
+                    <Button onClick={() => { resetForm(); setShowCreateModal(true); }} className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 active:translate-y-0 gap-2">
                         <Plus size={20} />
                         Yeni Giriş
                     </Button>
@@ -367,7 +409,7 @@ export default function SalesPage() {
                                                 <div>
                                                     <p
                                                         className="font-bold text-foreground leading-tight hover:text-emerald-600 cursor-pointer"
-                                                        onClick={() => window.location.href = `/customers/${sale.customer?.id || ''}`}
+                                                        onClick={() => navigate(`/app/customers/${sale.customer?.id || ''}`)}
                                                     >
                                                         {sale.customer?.name || sale.customerName}
                                                     </p>
@@ -376,7 +418,7 @@ export default function SalesPage() {
                                             </div>
                                         </td>
                                         <td className="p-5">
-                                            <span className="font-bold text-foreground">₺{sale.amount.toLocaleString()}</span>
+                                            <span className="font-bold text-foreground">₺{sale.amount?.toLocaleString() || '0'}</span>
                                         </td>
                                         <td className="p-5">
                                             <span className="text-xs font-bold text-muted-foreground bg-gray-100 px-2 py-1 rounded-lg">
@@ -436,153 +478,173 @@ export default function SalesPage() {
                 )}
             </div>
 
-            {/* Redesigned Modal Layout (Reusable) */}
+            {/* Create/Edit Modal */}
             {(showCreateModal || showEditModal) && (
-                <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-                    <div className="bg-card w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-                        <div className="p-8 border-b border-gray-50 flex items-center justify-between bg-muted/50">
-                            <div>
-                                <h3 className="text-2xl font-bold text-foreground">{showCreateModal ? 'Yeni Satış Girişi' : 'Kaydı Düzenle'}</h3>
-                                <p className="text-sm text-muted-foreground font-medium">Formu eksiksiz doldurduğunuzdan emin olun.</p>
-                            </div>
+                <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+                    <div
+                        className="bg-card w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in duration-300 max-h-[90vh] flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-8 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
+                            <h2 className="text-2xl font-extrabold text-foreground tracking-tight">
+                                {showCreateModal ? 'Yeni Satış Girişi' : 'Satış Düzenle'}
+                            </h2>
                             <button
                                 onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
-                                className="p-3 bg-card text-muted-foreground hover:text-gray-600 rounded-2xl border border-border shadow-sm transition-all"
+                                className="p-2 hover:bg-muted/80 rounded-full transition-colors"
                             >
-                                <X size={20} />
+                                <X className="w-6 h-6 text-muted-foreground" />
                             </button>
                         </div>
 
-                        <form onSubmit={showCreateModal ? handleCreate : handleUpdate} className="p-8 space-y-6">
-
-                            {/* OCR Section - Only for new sales */}
+                        <div className="overflow-y-auto p-8 custom-scrollbar">
+                            {/* OCR Section */}
                             {showCreateModal && (
-                                <div className="bg-amber-50/50 border border-amber-100 rounded-2xl p-4 mb-6">
-                                    <h4 className="text-sm font-bold text-amber-800 mb-3 flex items-center gap-2">
-                                        <FileText size={16} />
-                                        Otomatik Doldurma (OCR)
-                                    </h4>
+                                <div className="mb-8">
                                     <OCRUploader onScanComplete={handleOCRComplete} />
+                                    <div className="relative mt-6">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t border-border" />
+                                        </div>
+                                        <div className="relative flex justify-center text-xs uppercase">
+                                            <span className="bg-card px-2 text-muted-foreground font-bold tracking-widest">veya manuel girin</span>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Müşteri Adı</label>
-                                    <Input
-                                        placeholder="Ahmet Yılmaz"
-                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
-                                        value={customerName}
-                                        onChange={(e) => setCustomerName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Numarası</label>
-                                    <Input
-                                        placeholder="POL-2024-001"
-                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
-                                        value={policyNumber}
-                                        onChange={(e) => setPolicyNumber(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Tutar (₺)</label>
-                                    <Input
-                                        type="number"
-                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
-                                        value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        required
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Branşı</label>
-                                    <select
-                                        className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
-                                        value={policyTypeId}
-                                        onChange={(e) => setPolicyTypeId(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Seçiniz...</option>
-                                        {policyTypes.map(pt => <option key={pt.id} value={pt.id}>{pt.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Şube</label>
-                                    <select
-                                        className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
-                                        value={branchId}
-                                        onChange={(e) => setBranchId(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Şube Seçiniz...</option>
-                                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                                    </select>
-                                </div>
-                                {userRole !== 'EMPLOYEE' && (
+                            <form onSubmit={showCreateModal ? handleCreate : handleUpdate} className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Personel</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Müşteri Adı</label>
+                                        <Input
+                                            placeholder="Ahmet Yılmaz"
+                                            className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                            value={customerName}
+                                            onChange={(e) => setCustomerName(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Numarası</label>
+                                        <Input
+                                            placeholder="POL-2024-001"
+                                            className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                            value={policyNumber}
+                                            onChange={(e) => setPolicyNumber(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Tarihi</label>
+                                        <div className="relative">
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={18} />
+                                            <input
+                                                type="date"
+                                                className="w-full h-12 bg-muted border-none rounded-xl outline-none pl-12 pr-4 text-sm font-bold text-gray-700 placeholder:text-muted-foreground/50 focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                                value={saleDate}
+                                                onChange={(e) => setSaleDate(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Tutar (₺)</label>
+                                        <Input
+                                            type="number"
+                                            className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all"
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Poliçe Branşı</label>
                                         <select
                                             className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
-                                            value={employeeId}
-                                            onChange={(e) => setEmployeeId(e.target.value)}
+                                            value={policyTypeId}
+                                            onChange={(e) => setPolicyTypeId(e.target.value)}
+                                            required
                                         >
-                                            <option value="">Benim Üzerime Al</option>
-                                            {employees.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                            <option value="">Seçiniz...</option>
+                                            {policyTypes.map(pt => <option key={pt.id} value={pt.id}>{pt.name}</option>)}
                                         </select>
                                     </div>
-                                )}
-                                {showEditModal && (
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Durum</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Şube</label>
                                         <select
                                             className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value)}
+                                            value={branchId}
+                                            onChange={(e) => setBranchId(e.target.value)}
+                                            required
                                         >
-                                            <option value="ACTIVE">Aktif</option>
-                                            <option value="LEAD">Tanışma/Lead</option>
-                                            <option value="OFFER">Teklif Verildi</option>
-                                            <option value="CANCELLED">İptal</option>
-                                            <option value="LOST">Kaybedildi</option>
+                                            <option value="">Şube Seçiniz...</option>
+                                            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                         </select>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* Document Upload Section (Only in Edit Mode) */}
-                            {showEditModal && editingId && (
-                                <div className="mt-8 pt-8 border-t border-border">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Upload className="w-5 h-5 text-emerald-600" />
-                                        <h4 className="text-lg font-bold text-foreground">Belgeler & Dosyalar</h4>
-                                    </div>
-                                    <FileUpload saleId={editingId} onUploadComplete={() => {
-                                        setRefreshDocs(prev => prev + 1);
-                                    }} />
-                                    <DocumentList saleId={editingId} refreshTrigger={refreshDocs} />
+                                    {userRole !== 'EMPLOYEE' && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Personel</label>
+                                            <select
+                                                className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                                value={employeeId}
+                                                onChange={(e) => setEmployeeId(e.target.value)}
+                                            >
+                                                <option value="">Benim Üzerime Al</option>
+                                                {employees.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                                            </select>
+                                        </div>
+                                    )}
+                                    {(showEditModal || showCreateModal) && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Durum</label>
+                                            <select
+                                                className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-bold text-gray-700 focus:ring-4 focus:ring-emerald-500/5 transition-all appearance-none"
+                                                value={formStatus}
+                                                onChange={(e) => setFormStatus(e.target.value)}
+                                            >
+                                                <option value="ACTIVE">Aktif (Poliçe Kesildi)</option>
+                                                <option value="LEAD">Tanışma / Aday</option>
+                                                <option value="OFFER">Teklif Verildi</option>
+                                                <option value="CANCELLED">İptal</option>
+                                                <option value="LOST">Kaybedildi</option>
+                                            </select>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
 
-                            <div className="flex gap-4 pt-8">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="flex-1 h-14 rounded-2xl font-bold text-muted-foreground hover:bg-muted border-border transition-all"
-                                    onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
-                                >
-                                    İptal
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    className="flex-[2] h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5"
-                                >
-                                    {showCreateModal ? 'Kayıt Oluştur' : 'Değişiklikleri Kaydet'}
-                                </Button>
-                            </div>
-                        </form>
+                                {/* Document Upload Section (Only in Edit Mode) */}
+                                {showEditModal && editingId && (
+                                    <div className="mt-8 pt-8 border-t border-border">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Upload className="w-5 h-5 text-emerald-600" />
+                                            <h4 className="text-lg font-bold text-foreground">Belgeler & Dosyalar</h4>
+                                        </div>
+                                        <FileUpload saleId={editingId} onUploadComplete={() => {
+                                            setRefreshDocs(prev => prev + 1);
+                                        }} />
+                                        <DocumentList saleId={editingId} refreshTrigger={refreshDocs} />
+                                    </div>
+                                )}
+
+                                <div className="flex gap-4 pt-8">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="flex-1 h-14 rounded-2xl font-bold text-muted-foreground hover:bg-muted border-border transition-all"
+                                        onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
+                                    >
+                                        İptal
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        className="flex-[2] h-14 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5"
+                                    >
+                                        {showCreateModal ? 'Kayıt Oluştur' : 'Değişiklikleri Kaydet'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

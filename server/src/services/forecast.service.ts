@@ -79,7 +79,8 @@ export class ForecastEngine {
         const start = startOfMonth(new Date(year, month - 1));
         const end = endOfMonth(new Date(year, month - 1));
 
-        const targetWhere: any = { tenantId, month, year };
+        const period = `${year}-${month.toString().padStart(2, '0')}`;
+        const targetWhere: any = { tenantId, period };
         if (branchId) targetWhere.branchId = branchId;
         if (userId) targetWhere.userId = userId;
 

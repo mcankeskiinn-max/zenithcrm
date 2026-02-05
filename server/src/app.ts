@@ -24,6 +24,7 @@ import revenueRoutes from './routes/revenue.routes';
 import quoteRoutes from './routes/quote.routes';
 import ocrRoutes from './routes/ocr.routes';
 import tenantRoutes from './routes/tenant.routes'; // Added tenantRoutes import
+import supportRoutes from './routes/support.routes';
 import prisma from './prisma';
 
 
@@ -116,5 +117,19 @@ app.use('/api/revenue', revenueRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/ocr', ocrRoutes);
 app.use('/api/tenants', tenantRoutes);
+app.use('/api/support', supportRoutes);
+
+// Global Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const fs = require('fs');
+    const logEntry = `[${new Date().toISOString()}] ${req.method} ${req.url}\n${err.stack}\n\n`;
+    fs.appendFileSync(path.join(__dirname, '../debug_errors.log'), logEntry);
+
+    console.error('Global Error:', err);
+    res.status(500).json({
+        error: 'Global Sunucu Hatası',
+        message: err.message
+    });
+});
 
 export default app;

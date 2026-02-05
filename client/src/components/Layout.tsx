@@ -1,11 +1,10 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Search, Bell, Plus, ChevronDown, Building2, Users, TrendingUp, CheckSquare, AlertTriangle, LogOut, Settings as SettingsIcon, Menu } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { Search, Plus, ChevronDown, Building2, Users, TrendingUp, CheckSquare, AlertTriangle, LogOut, Settings as SettingsIcon, Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import CreateCancellationModal from './CreateCancellationModal';
-import axios from 'axios';
-import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import NotificationBell from './NotificationBell';
+import { SupportWidget } from './SupportWidget';
 
 export default function Layout() {
     const location = useLocation();
@@ -15,10 +14,7 @@ export default function Layout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-    const [notifications, setNotifications] = useState<any[]>([]);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-    const notificationRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
@@ -40,36 +36,20 @@ export default function Layout() {
             '/app/settings': 'Ayarlar'
         };
         setPageTitle(titles[location.pathname] || 'ZenithCRM');
-        fetchNotifications();
-
-        const interval = setInterval(fetchNotifications, 60000); // 1 minute
-        return () => clearInterval(interval);
     }, [location.pathname]);
 
-    const fetchNotifications = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (token) {
-                const res = await axios.get('/api/notifications', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                setNotifications(res.data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch notifications', error);
-        }
-    };
+
 
     const menuActions = user?.role === 'EMPLOYEE'
         ? [
-            { label: 'Yeni Satış', icon: TrendingUp, path: '/sales' },
-            { label: 'Yeni Görev', icon: CheckSquare, path: '/tasks' },
+            { label: 'Yeni Satış', icon: TrendingUp, path: '/app/sales' },
+            { label: 'Yeni Görev', icon: CheckSquare, path: '/app/tasks' },
             { label: 'Yeni İptal', icon: AlertTriangle, onClick: () => setIsCancelModalOpen(true) }
         ]
         : [
-            { label: 'Yeni Şube', icon: Building2, path: '/branches' },
-            { label: 'Yeni Personel', icon: Users, path: '/users' },
-            { label: 'Yeni Satış', icon: TrendingUp, path: '/sales' },
+            ...(user?.tenant?.isSingleBranch ? [] : [{ label: 'Yeni Şube', icon: Building2, path: '/app/branches' }]),
+            { label: 'Yeni Personel', icon: Users, path: '/app/users' },
+            { label: 'Yeni Satış', icon: TrendingUp, path: '/app/sales' },
             { label: 'Yeni İptal', icon: AlertTriangle, onClick: () => setIsCancelModalOpen(true) }
         ];
 
@@ -146,70 +126,7 @@ export default function Layout() {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <div className="relative" ref={notificationRef}>
-                                    <button
-                                        onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                                        className={`relative p-2.5 rounded-xl transition-all ${isNotificationOpen ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-primary hover:bg-primary/10'}`}
-                                    >
-                                        <Bell className="h-5 w-5" />
-                                        {notifications.length > 0 && (
-                                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-destructive border-2 border-background rounded-full"></span>
-                                        )}
-                                    </button>
-
-                                    {isNotificationOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setIsNotificationOpen(false)} />
-                                            <div className="absolute right-0 mt-2 w-[350px] bg-card rounded-2xl shadow-2xl border border-border py-2 z-20 animate-in fade-in zoom-in-95 duration-200">
-                                                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                                                    <h4 className="text-sm font-bold text-foreground">Bildirimler</h4>
-                                                    <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                                                        {notifications.length} Yeni
-                                                    </span>
-                                                </div>
-                                                <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
-                                                    {notifications.length === 0 ? (
-                                                        <div className="p-8 text-center">
-                                                            <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                                                <Bell className="h-6 w-6 text-muted-foreground/30" />
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground font-medium">Herhangi bir bildirim yok</p>
-                                                        </div>
-                                                    ) : (
-                                                        notifications.map((notif) => (
-                                                            <button
-                                                                key={notif.id}
-                                                                onClick={() => {
-                                                                    navigate(notif.link);
-                                                                    setIsNotificationOpen(false);
-                                                                }}
-                                                                className="w-full text-left p-4 hover:bg-muted/50 transition-all border-b border-border last:border-0 flex gap-3 group"
-                                                            >
-                                                                <div className={`shrink-0 w-2 h-2 rounded-full mt-1.5 ${notif.priority === 'HIGH' ? 'bg-destructive' : 'bg-primary'}`}></div>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors uppercase tracking-tight">{notif.title}</p>
-                                                                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed mt-0.5 line-clamp-2">{notif.message}</p>
-                                                                    <p className="text-[9px] text-muted-foreground/50 font-bold mt-1.5">{format(new Date(notif.date), 'd MMMM HH:mm', { locale: tr })}</p>
-                                                                </div>
-                                                            </button>
-                                                        ))
-                                                    )}
-                                                </div>
-                                                <div className="p-2 border-t border-border">
-                                                    <button
-                                                        onClick={() => {
-                                                            navigate('/tasks');
-                                                            setIsNotificationOpen(false);
-                                                        }}
-                                                        className="w-full py-2 text-[10px] font-bold text-muted-foreground hover:text-primary transition-all text-center uppercase tracking-widest"
-                                                    >
-                                                        Tümünü Gör
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
+                                <NotificationBell />
 
                                 <div className="relative group">
                                     <div
@@ -276,6 +193,7 @@ export default function Layout() {
                     window.dispatchEvent(new CustomEvent('refresh-dashboard'));
                 }}
             />
+            <SupportWidget />
         </div>
     );
 }

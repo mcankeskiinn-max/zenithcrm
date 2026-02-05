@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../prisma';
 import * as XLSX from 'xlsx';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, format } from 'date-fns';
+import { tr } from 'date-fns/locale';
 import { SaleStatus } from '@prisma/client';
+import { generateProfessionalPDF, PDFData } from '../utils/pdf.util';
 
 export const exportSalesToExcel = async (req: Request, res: Response) => {
     try {
@@ -99,5 +101,65 @@ export const exportSalesToExcel = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Export Excel error:', error);
         return res.status(500).json({ error: 'Rapor oluşturulurken bir hata oluştu' });
+    }
+};
+
+export const exportCustomerPDF = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const user = req.user!;
+
+        const customer = await prisma.customer.findFirst({
+            where: {
+                id,
+                tenantId: user.tenantId
+            },
+            include: {
+                sales: {
+                    include: {
+                        policyType: { select: { name: true } },
+                        branch: { select: { name: true } }
+                    },
+                    orderBy: { saleDate: 'desc' }
+                },
+                tenant: { select: { name: true } }
+            }
+        });
+
+        if (!customer) {
+            return res.status(404).json({ error: 'Müşteri bulunamadı' });
+        }
+
+        const data: PDFData = {
+            title: 'MÜŞTERİ ÖZET RAPORU',
+            subtitle: `${customer.firstName} ${customer.lastName}`,
+            date: format(new Date(), 'dd MMMM yyyy HH:mm', { locale: tr }),
+            companyName: customer.tenant?.name || 'ZENITH CRM',
+            details: [
+                { label: 'Ad Soyad', value: `${customer.firstName} ${customer.lastName}` },
+                { label: 'Telefon', value: customer.phone || '-' },
+                { label: 'E-posta', value: customer.email || '-' },
+                { label: 'Adres', value: customer.address || '-' }
+            ],
+            table: {
+                headers: ['Poliçe No', 'Branş', 'Tarih', 'Tutar'],
+                rows: customer.sales.map(sale => [
+                    sale.policyNumber || '-',
+                    sale.policyType?.name || '-',
+                    sale.saleDate ? format(new Date(sale.saleDate), 'dd.MM.yyyy') : '-',
+                    `${Number(sale.amount).toLocaleString('tr-TR')} ₺`
+                ])
+            },
+            footer: 'Bu rapor Zenith CRM tarafından oluşturulmuştur.'
+        };
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Musteri_Ozeti_${customer.lastName}.pdf`);
+
+        generateProfessionalPDF(res, data);
+
+    } catch (error) {
+        console.error('Export PDF error:', error);
+        return res.status(500).json({ error: 'PDF oluşturulurken bir hata oluştu' });
     }
 };

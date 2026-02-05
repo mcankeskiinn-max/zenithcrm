@@ -7,14 +7,13 @@ import {
     Briefcase,
     Calendar,
     ChevronRight,
-    Search,
     Filter
 } from 'lucide-react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = '/api';
 
 interface PayrollStats {
     totalSales: number;
@@ -32,6 +31,17 @@ interface PayrollSale {
     estimatedCommission: number;
 }
 
+interface Branch {
+    id: string;
+    name: string;
+}
+
+interface Employee {
+    id: string;
+    name: string;
+    branchId?: string;
+}
+
 const PayrollPage: React.FC = () => {
     const [stats, setStats] = useState<PayrollStats | null>(null);
     const [sales, setSales] = useState<PayrollSale[]>([]);
@@ -42,12 +52,57 @@ const PayrollPage: React.FC = () => {
     const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-01'));
     const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
+    // Branch and Employee Filters
+    const [branches, setBranches] = useState<Branch[]>([]);
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+    const [isSingleBranch, setIsSingleBranch] = useState(false);
+
+
+    const fetchBranches = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`${API_URL}/branches`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setBranches(res.data);
+
+            // Check if single branch
+            setIsSingleBranch(res.data.length === 1);
+
+            // Auto-select if single branch
+            if (res.data.length === 1) {
+                setSelectedBranchId(res.data[0].id);
+            }
+        } catch (error) {
+            console.error('Fetch branches error:', error);
+        }
+    };
+
+    const fetchEmployees = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`${API_URL}/users`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setEmployees(res.data);
+        } catch (error) {
+            console.error('Fetch employees error:', error);
+        }
+    };
+
     const fetchPayrollData = async () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
             const res = await axios.get(`${API_URL}/payroll/summary`, {
-                params: { startDate, endDate },
+                params: {
+                    startDate,
+                    endDate,
+                    branchId: selectedBranchId || undefined,
+                    userId: selectedEmployeeId || undefined
+                },
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStats(res.data.stats);
@@ -63,29 +118,120 @@ const PayrollPage: React.FC = () => {
         setExporting(true);
         try {
             const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('Oturum bulunamadı. Lütfen giriş yapın.');
+                return;
+            }
+
+            console.log('📄 PDF export başlatılıyor...', { startDate, endDate });
+
             const response = await axios.get(`${API_URL}/payroll/export`, {
-                params: { startDate, endDate },
+                params: {
+                    startDate,
+                    endDate,
+                    branchId: selectedBranchId || undefined,
+                    userId: selectedEmployeeId || undefined
+                },
                 headers: { Authorization: `Bearer ${token}` },
-                responseType: 'blob'
+                responseType: 'blob',
+                timeout: 30000  // 30 saniye timeout
             });
 
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            console.log('✅ PDF response alındı:', {
+                status: response.status,
+                contentType: response.headers['content-type'],
+                size: response.data.size
+            });
+
+            if (response.data.size === 0) {
+                alert('PDF boş döndü. Seçilen tarih aralığında satış bulunamadı.');
+                return;
+            }
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `Bordro_${startDate}_${endDate}.pdf`);
+
+            // Dynamic filename with filter info
+            let filename = `Bordro_${startDate}_${endDate}`;
+            if (selectedBranchId) {
+                const branch = branches.find(b => b.id === selectedBranchId);
+                if (branch) filename += `_${branch.name.replace(/\s+/g, '_')}`;
+            }
+            if (selectedEmployeeId) {
+                const employee = employees.find(e => e.id === selectedEmployeeId);
+                if (employee) filename += `_${employee.name.replace(/\s+/g, '_')}`;
+            }
+            filename += '.pdf';
+
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
             link.remove();
-        } catch (error) {
-            console.error('Export PDF error:', error);
+            window.URL.revokeObjectURL(url);
+
+            console.log('✅ PDF başarıyla indirildi!');
+            alert('PDF başarıyla indirildi!');
+
+        } catch (error: any) {
+            console.error('❌ Export PDF error:', error);
+
+            if (error.response) {
+                // Backend hatası
+                console.error('Backend error:', {
+                    status: error.response.status,
+                    data: error.response.data
+                });
+
+                if (error.response.status === 404) {
+                    alert('Seçilen tarih aralığında satış bulunamadı.');
+                } else if (error.response.status === 401) {
+                    alert('Oturumunuz sona erdi. Lütfen tekrar giriş yapın.');
+                    localStorage.clear();
+                    window.location.href = '/login';
+                } else {
+                    alert(`Sunucu hatası: ${error.response.data?.error || 'Bilinmeyen hata'}`);
+                }
+            } else if (error.request) {
+                // Network hatası
+                console.error('Network error:', error.request);
+                alert('Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.');
+            } else {
+                // Diğer hatalar
+                console.error('Unexpected error:', error.message);
+                alert(`Beklenmeyen hata: ${error.message}`);
+            }
         } finally {
             setExporting(false);
         }
     };
 
+    // Load branches and employees on mount
+    useEffect(() => {
+        fetchBranches();
+        fetchEmployees();
+    }, []);
+
+    // Reload data when filters change
     useEffect(() => {
         fetchPayrollData();
-    }, [startDate, endDate]);
+    }, [startDate, endDate, selectedBranchId, selectedEmployeeId]);
+
+    // Reset employee selection when branch changes
+    useEffect(() => {
+        if (selectedBranchId) {
+            setSelectedEmployeeId('');
+        }
+    }, [selectedBranchId]);
+
+    // Filtered employees based on selected branch
+    const filteredEmployees = React.useMemo(() => {
+        if (!selectedBranchId) return employees;
+        return employees.filter(emp => emp.branchId === selectedBranchId);
+    }, [employees, selectedBranchId]);
+
 
     return (
         <div className="space-y-6">
@@ -112,37 +258,112 @@ const PayrollPage: React.FC = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 items-end">
-                <div className="space-y-1">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Başlangıç</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                        />
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className={`grid gap-4 ${isSingleBranch ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-4'}`}>
+                    {/* Start Date */}
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Başlangıç</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* End Date */}
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Bitiş</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Branch Filter (only for multi-branch) */}
+                    {!isSingleBranch && (
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Şube</label>
+                            <div className="relative">
+                                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <select
+                                    value={selectedBranchId}
+                                    onChange={(e) => setSelectedBranchId(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none appearance-none cursor-pointer"
+                                >
+                                    <option value="">Tüm Şubeler</option>
+                                    {branches.map(branch => (
+                                        <option key={branch.id} value={branch.id}>
+                                            {branch.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 rotate-90 pointer-events-none" size={16} />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Employee Filter */}
+                    <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Personel</label>
+                        <div className="relative">
+                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <select
+                                value={selectedEmployeeId}
+                                onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none appearance-none cursor-pointer"
+                            >
+                                <option value="">Tüm Personeller</option>
+                                {filteredEmployees.map(emp => (
+                                    <option key={emp.id} value={emp.id}>
+                                        {emp.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 rotate-90 pointer-events-none" size={16} />
+                        </div>
                     </div>
                 </div>
-                <div className="space-y-1">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Bitiş</label>
-                    <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 outline-none"
-                        />
+
+                {/* Active Filter Summary */}
+                {(selectedBranchId || selectedEmployeeId) && (
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <Filter size={14} className="text-gray-400" />
+                        <span className="text-xs text-gray-500 font-medium">Aktif Filtreler:</span>
+                        {selectedBranchId && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-md text-xs font-medium">
+                                <Briefcase size={12} />
+                                {branches.find(b => b.id === selectedBranchId)?.name}
+                                <button
+                                    onClick={() => setSelectedBranchId('')}
+                                    className="ml-1 hover:text-orange-900 dark:hover:text-orange-200"
+                                >
+                                    ×
+                                </button>
+                            </span>
+                        )}
+                        {selectedEmployeeId && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-md text-xs font-medium">
+                                <Users size={12} />
+                                {employees.find(e => e.id === selectedEmployeeId)?.name}
+                                <button
+                                    onClick={() => setSelectedEmployeeId('')}
+                                    className="ml-1 hover:text-blue-900 dark:hover:text-blue-200"
+                                >
+                                    ×
+                                </button>
+                            </span>
+                        )}
                     </div>
-                </div>
-                <button
-                    onClick={fetchPayrollData}
-                    className="p-2.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                    <Search size={20} />
-                </button>
+                )}
             </div>
 
             {/* Stats Grid */}

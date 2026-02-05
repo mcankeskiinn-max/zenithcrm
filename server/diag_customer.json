@@ -1,0 +1,103 @@
+[
+  {
+    "id": "feae547e-41dc-4631-ae44-055a644d950f",
+    "firstName": "Eda",
+    "lastName": "Can",
+    "email": "eda@gmail.com",
+    "phone": "05354569875",
+    "identityNo": null,
+    "birthDate": null,
+    "gender": null,
+    "address": null,
+    "notes": null,
+    "tenantId": "303676a5-ec74-4a47-8cb0-37c6de18cdb2",
+    "createdAt": "2026-02-01T11:48:39.296Z",
+    "updatedAt": "2026-02-01T11:48:39.296Z",
+    "sales": [
+      {
+        "id": "0b01715e-f588-4e84-ba32-2f6b531b07e3",
+        "policyNumber": "POL2026-02",
+        "amount": "10000",
+        "status": "ACTIVE",
+        "customerId": "feae547e-41dc-4631-ae44-055a644d950f",
+        "branchId": "160bbda1-8ca5-43b4-81bd-c3d134566602",
+        "employeeId": "002b2ead-868c-4f90-8d0c-663827ee5704",
+        "policyTypeId": "a65849d0-e597-4c83-9a70-faaea5d4e9c1",
+        "tenantId": "303676a5-ec74-4a47-8cb0-37c6de18cdb2",
+        "saleDate": "2026-01-25T00:00:00.000Z",
+        "startDate": "2026-02-01T11:48:39.908Z",
+        "endDate": "2027-02-01T11:48:39.908Z",
+        "cancelReason": null,
+        "notes": null,
+        "createdAt": "2026-02-01T11:48:40.525Z",
+        "updatedAt": "2026-02-01T11:48:40.525Z"
+      }
+    ],
+    "documents": [],
+    "_count": {
+      "documents": 0,
+      "sales": 1
+    }
+  },
+  {
+    "id": "5ca10e2f-8be3-4e85-9174-86cd23a13c8a",
+    "firstName": "Murat",
+    "lastName": "Can",
+    "email": "muratcan@gmail.com",
+    "phone": "05350633350",
+    "identityNo": null,
+    "birthDate": null,
+    "gender": null,
+    "address": null,
+    "notes": null,
+    "tenantId": "303676a5-ec74-4a47-8cb0-37c6de18cdb2",
+    "createdAt": "2026-02-01T11:38:13.744Z",
+    "updatedAt": "2026-02-01T11:38:13.744Z",
+    "sales": [
+      {
+        "id": "9cc5d3b7-3127-4aa4-b496-e7fe25d777c2",
+        "policyNumber": "POL-2026-01",
+        "amount": "5000",
+        "status": "ACTIVE",
+        "customerId": "5ca10e2f-8be3-4e85-9174-86cd23a13c8a",
+        "branchId": "160bbda1-8ca5-43b4-81bd-c3d134566602",
+        "employeeId": "002b2ead-868c-4f90-8d0c-663827ee5704",
+        "policyTypeId": "a65849d0-e597-4c83-9a70-faaea5d4e9c1",
+        "tenantId": "303676a5-ec74-4a47-8cb0-37c6de18cdb2",
+        "saleDate": "2026-02-01T11:38:14.358Z",
+        "startDate": "2026-02-01T11:38:14.358Z",
+        "endDate": "2027-02-01T11:38:14.358Z",
+        "cancelReason": null,
+        "notes": null,
+        "createdAt": "2026-02-01T11:32:46.898Z",
+        "updatedAt": "2026-02-01T11:38:14.973Z"
+      }
+    ],
+    "documents": [],
+    "_count": {
+      "documents": 0,
+      "sales": 1
+    }
+  },
+  {
+    "id": "82b42d69-cc53-43d2-9947-163357036299",
+    "firstName": "Murat",
+    "lastName": "Can",
+    "email": null,
+    "phone": null,
+    "identityNo": null,
+    "birthDate": null,
+    "gender": null,
+    "address": null,
+    "notes": null,
+    "tenantId": "303676a5-ec74-4a47-8cb0-37c6de18cdb2",
+    "createdAt": "2026-01-31T22:41:31.307Z",
+    "updatedAt": "2026-01-31T22:41:31.307Z",
+    "sales": [],
+    "documents": [],
+    "_count": {
+      "documents": 0,
+      "sales": 0
+    }
+  }
+]

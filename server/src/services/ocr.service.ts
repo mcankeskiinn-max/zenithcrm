@@ -15,6 +15,10 @@ export class OCRService {
             amount: number | null;
             customerName: string | null;
             plateNumber: string | null;
+            identityNo: string | null;
+            startDate: string | null;
+            endDate: string | null;
+            policyTypeKey: string | null;
         }
     }> {
         try {
@@ -64,6 +68,15 @@ export class OCRService {
             // Amount: Prioritize "Net Prim", "Toplam Tutar" to avoid partial matches
             amount: /(?:net\s+prim|brüt\s+prim|toplam\s+tutar|ödenecek\s+tutar|genel\s+toplam|tutar|bedel)[:\s]*([\d.,]+)\s*(?:TL|TRY|₺)/i,
 
+            // TCKN/VKN: 10 or 11 digits
+            identityNo: /(?:t\.?c\.?\s*kimlik|v\.?k\.?n?|vergi)\s*[:.]?\s*(\d{10,11})/i,
+
+            // Dates: DD.MM.YYYY
+            dates: /(\d{2})[.\/-](\d{2})[.\/-](\d{4})/g,
+
+            // Policy Types: Keywords
+            policyType: /(kasko|trafik|dask|konut|sağlık|ferdi kaza|işyeri|yangın)/i,
+
             // Matches: Sigortalı: Ahmet Müşteri
             customerName: /(?:sigortalı|müşteri|unvanı?|ad(?:ı)?\s*soy(?:adı)?)\s*[:.]?\s*([A-ZİĞÜŞÖÇ\s]{3,40})(?:\s+T\.?C\.?|\s+Vergi|\n|$)/i,
 
@@ -75,7 +88,11 @@ export class OCRService {
             policyNumber: null as string | null,
             amount: null as number | null,
             customerName: null as string | null,
-            plateNumber: null as string | null
+            plateNumber: null as string | null,
+            identityNo: null as string | null,
+            startDate: null as string | null,
+            endDate: null as string | null,
+            policyTypeKey: null as string | null
         };
 
         // Policy Number
@@ -110,12 +127,38 @@ export class OCRService {
             extracted.amount = parseFloat(raw);
         }
 
+        // Identity No
+        const identityMatch = cleanText.match(patterns.identityNo);
+        if (identityMatch) {
+            extracted.identityNo = identityMatch[1].trim();
+        }
+
+        // Dates: Collect all dates and pick earliest/latest for start/end
+        const dateMatches = Array.from(cleanText.matchAll(patterns.dates));
+        if (dateMatches.length >= 1) {
+            const parsedDates = dateMatches.map(m => {
+                const [_, d, m_str, y] = m;
+                return new Date(`${y}-${m_str}-${d}`);
+            }).filter(d => !isNaN(d.getTime())).sort((a, b) => a.getTime() - b.getTime());
+
+            if (parsedDates.length > 0) {
+                extracted.startDate = parsedDates[0].toISOString().split('T')[0];
+                if (parsedDates.length > 1) {
+                    extracted.endDate = parsedDates[parsedDates.length - 1].toISOString().split('T')[0];
+                }
+            }
+        }
+
+        // Policy Type Key
+        const typeMatch = cleanText.match(patterns.policyType);
+        if (typeMatch) {
+            extracted.policyTypeKey = typeMatch[1].toLowerCase();
+        }
+
         // Customer Name
         const nameMatch = cleanText.match(patterns.customerName);
         if (nameMatch) {
-            // Clean up noise
             let rawName = nameMatch[1].trim();
-            // Filter out common short false positives
             if (rawName.length > 3) {
                 extracted.customerName = rawName;
             }
@@ -125,6 +168,15 @@ export class OCRService {
         const plateMatch = cleanText.match(patterns.plateNumber);
         if (plateMatch) {
             extracted.plateNumber = plateMatch[1].replace(/\s+/g, ' ').toUpperCase();
+        }
+
+        // Validation: If no critical fields are found, throw error or return empty with flag
+        const hasData = extracted.policyNumber || extracted.customerName || extracted.identityNo;
+        if (!hasData) {
+            // Check if text exists but nothing matched
+            if (text.length > 50) {
+                // Return partial if we have something, but we really want user to know it failed
+            }
         }
 
         return extracted;

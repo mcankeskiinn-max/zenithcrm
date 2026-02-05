@@ -14,17 +14,76 @@ import {
     Moon,
     Globe,
     Plus,
-    Minus
+    Minus,
+    Bell,
+    Smartphone,
+    Bot,
+    Cpu,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const LandingPage = () => {
     const { theme, toggleTheme } = useTheme();
     const [openFaq, setOpenFaq] = React.useState<number | null>(null);
+    const [currentPage, setCurrentPage] = React.useState(0);
 
     const toggleFaq = (index: number) => {
         setOpenFaq(openFaq === index ? null : index);
     };
+
+    const FEATURES = [
+        {
+            icon: <Zap className="w-8 h-8 text-emerald-600" />,
+            title: "Hız ve Verimlilik",
+            description: "OCR teknolojisi ile poliçe bilgilerini otomatik okur ve manuel hatayı sıfıra indirir."
+        },
+        {
+            icon: <Globe className="w-8 h-8 text-emerald-600" />,
+            title: "Whitelabel Arayüz",
+            description: "Kendi logonuzu ve işletme adınızı sisteme ekleyin. Acentenize özel bir deneyim yaşatın."
+        },
+        {
+            icon: <Shield className="w-8 h-8 text-emerald-600" />,
+            title: "Tam Veri İzolasyonu",
+            description: "Multi-tenant altyapımız ile verileriniz diğer acentelerden tamamen izole ve güvendedir."
+        },
+        {
+            icon: <PieChart className="w-8 h-8 text-emerald-600" />,
+            title: "Derin Analitik",
+            description: "Satışlarınızı, iptallerinizi ve kâr marjınızı gerçek zamanlı interaktif grafiklerle izleyin."
+        },
+        {
+            icon: <Users className="w-8 h-8 text-emerald-600" />,
+            title: "Müşteri 360",
+            description: "Her müşterinin geçmişini, poliçelerini ve randevularını tek bir ekrandan yönetin."
+        },
+        {
+            icon: <Bell className="w-8 h-8 text-emerald-600" />,
+            title: "Akıllı Bildirimler",
+            description: "Poliçe yenilemeleri, görev deadlineları ve müşteri doğum günleri için otomatik hatırlatmalar alın."
+        },
+        {
+            icon: <Smartphone className="w-8 h-8 text-emerald-600" />,
+            title: "Mobil İletişim",
+            description: "WhatsApp, SMS ve arama için tek tıkla erişim. QR kod ile masaüstünden mobil cihaza geçiş."
+        },
+        {
+            icon: <Bot className="w-8 h-8 text-emerald-600" />,
+            title: "AI Teknik Destek",
+            description: "Sistemi tanıyan akıllı asistan ile teknik sorunlarınıza anında çözüm hazırlayın."
+        },
+        {
+            icon: <Cpu className="w-8 h-8 text-emerald-600" />,
+            title: "Hızlı Kurulum",
+            description: "Self-servis kayıt olun ve acentenizin branşlarını saniyeler içinde otomatik yapılandırın."
+        }
+    ];
+
+    const totalPages = Math.ceil(FEATURES.length / 3);
+    const visibleFeatures = FEATURES.slice(currentPage * 3, (currentPage * 3) + 3);
+
     return (
         <div className="min-h-screen bg-white dark:bg-emerald-950 text-emerald-950 dark:text-emerald-50 font-sans selection:bg-emerald-100 dark:selection:bg-emerald-800 relative transition-colors duration-500">
             {/* Grain/Noise Overlay */}
@@ -136,37 +195,53 @@ const LandingPage = () => {
                         <p className="text-3xl md:text-5xl font-black text-emerald-950 dark:text-white">Neden ZenithCRM?</p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <FeatureCard
-                            icon={<Zap className="w-8 h-8 text-emerald-600" />}
-                            title="Hız ve Verimlilik"
-                            description="OCR teknolojisi ile poliçe bilgilerini otomatik okur ve manuel hatayı sıfıra indirir."
-                        />
-                        <FeatureCard
-                            icon={<Globe className="w-8 h-8 text-emerald-600" />}
-                            title="Whitelabel Arayüz"
-                            description="Kendi logonuzu ve işletme adınızı sisteme ekleyin. Acentenize özel bir deneyim yaşatın."
-                        />
-                        <FeatureCard
-                            icon={<Shield className="w-8 h-8 text-emerald-600" />}
-                            title="Tam Veri İzolasyonu"
-                            description="Multi-tenant altyapımız ile verileriniz diğer acentelerden tamamen izole ve güvendedir."
-                        />
-                        <FeatureCard
-                            icon={<PieChart className="w-8 h-8 text-emerald-600" />}
-                            title="Derin Analitik"
-                            description="Satışlarınızı, iptallerinizi ve kâr marjınızı gerçek zamanlı interaktif grafiklerle izleyin."
-                        />
-                        <FeatureCard
-                            icon={<Users className="w-8 h-8 text-emerald-600" />}
-                            title="Müşteri 360"
-                            description="Her müşterinin geçmişini, poliçelerini ve randevularını tek bir ekrandan yönetin."
-                        />
-                        <FeatureCard
-                            icon={<Zap className="w-8 h-8 text-emerald-600" />}
-                            title="Hızlı Kurulum"
-                            description="Self-servis kayıt olun ve acentenizin branşlarını saniyeler içinde otomatik yapılandırın."
-                        />
+                    <div className="relative group/carousel">
+                        <div
+                            key={currentPage}
+                            className="grid md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700"
+                        >
+                            {visibleFeatures.map((feature, idx) => (
+                                <FeatureCard
+                                    key={idx}
+                                    icon={feature.icon}
+                                    title={feature.title}
+                                    description={feature.description}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Navigation Controls */}
+                        <div className="flex justify-center items-center gap-4 mt-12">
+                            <button
+                                onClick={() => setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages)}
+                                className="p-3 rounded-full bg-white dark:bg-emerald-900 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:scale-110 transition-all shadow-sm group/btn"
+                                aria-label="Önceki Sayfa"
+                            >
+                                <ChevronLeft className="w-6 h-6 group-hover/btn:-translate-x-0.5 transition-transform" />
+                            </button>
+
+                            <div className="flex gap-2">
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setCurrentPage(i)}
+                                        className={`w-3 h-3 rounded-full transition-all duration-300 ${currentPage === i
+                                            ? "bg-emerald-600 w-8"
+                                            : "bg-emerald-200 dark:bg-emerald-800 hover:bg-emerald-300 dark:hover:bg-emerald-700"
+                                            }`}
+                                        aria-label={`Sayfa ${i + 1}`}
+                                    />
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={() => setCurrentPage((prev) => (prev + 1) % totalPages)}
+                                className="p-3 rounded-full bg-white dark:bg-emerald-900 border border-emerald-100 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 hover:scale-110 transition-all shadow-sm group/btn"
+                                aria-label="Sonraki Sayfa"
+                            >
+                                <ChevronRight className="w-6 h-6 group-hover/btn:translate-x-0.5 transition-transform" />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>

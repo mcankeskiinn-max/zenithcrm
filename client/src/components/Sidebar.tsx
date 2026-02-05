@@ -56,7 +56,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     useEffect(() => {
         const userStr = localStorage.getItem('user');
         if (userStr) {
-            setUser(JSON.parse(userStr));
+            const parsedUser = JSON.parse(userStr);
+            console.log('Sidebar User Check:', parsedUser);
+            console.log('Tenant isSingleBranch:', parsedUser.tenant?.isSingleBranch);
+            setUser(parsedUser);
         }
     }, []);
 
@@ -67,6 +70,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         }
         if (user.role === 'MANAGER') {
             return !['Sistem Günlükleri'].includes(item.label);
+        }
+        if (user.tenant?.isSingleBranch && item.label === 'Şube Yönetimi') {
+            return false;
         }
         return true;
     });

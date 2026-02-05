@@ -23,7 +23,11 @@ export default function BranchesPage() {
     const [editName, setEditName] = useState('');
     const [editRate, setEditRate] = useState('');
 
+    const [user, setUser] = useState<any>(null);
+
     useEffect(() => {
+        const userStr = localStorage.getItem('user');
+        if (userStr) setUser(JSON.parse(userStr));
         fetchBranches();
     }, []);
 
@@ -131,48 +135,50 @@ export default function BranchesPage() {
                 {/* Left: Stats & Form */}
                 <div className="space-y-6">
                     {/* Add Branch Form */}
-                    <div className="bg-card p-8 rounded-[32px] border border-border shadow-sm">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-                                <Plus size={24} />
+                    {!user?.tenant?.isSingleBranch && (
+                        <div className="bg-card p-8 rounded-[32px] border border-border shadow-sm">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                                    <Plus size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-foreground">Yeni Şube</h3>
+                                    <p className="text-xs text-muted-foreground font-medium tracking-wide">Sisteme yeni bir şube tanımlayın</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-foreground">Yeni Şube</h3>
-                                <p className="text-xs text-muted-foreground font-medium tracking-wide">Sisteme yeni bir şube tanımlayın</p>
-                            </div>
-                        </div>
 
-                        <form onSubmit={handleCreate} className="space-y-5">
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Şube Adı</label>
-                                <Input
-                                    value={newBranchName}
-                                    onChange={(e) => setNewBranchName(e.target.value)}
-                                    placeholder="Örn: İstanbul Kadıköy Şubesi"
-                                    className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all text-sm font-bold"
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Varsayılan Komisyon Oranı</label>
-                                <div className="relative">
+                            <form onSubmit={handleCreate} className="space-y-5">
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Şube Adı</label>
                                     <Input
-                                        type="number"
-                                        step="0.01"
-                                        value={defaultRate}
-                                        onChange={(e) => setDefaultRate(e.target.value)}
-                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all pl-10 text-sm font-bold"
+                                        value={newBranchName}
+                                        onChange={(e) => setNewBranchName(e.target.value)}
+                                        placeholder="Örn: İstanbul Kadıköy Şubesi"
+                                        className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all text-sm font-bold"
                                         required
                                     />
-                                    <TrendingUp size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
                                 </div>
-                                <p className="text-[10px] text-muted-foreground font-medium mt-1 ml-1 text-right">0.10 formatı %10 anlamına gelir.</p>
-                            </div>
-                            <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5 mt-2">
-                                Şubeyi Oluştur
-                            </Button>
-                        </form>
-                    </div>
+                                <div className="space-y-2">
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Varsayılan Komisyon Oranı</label>
+                                    <div className="relative">
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            value={defaultRate}
+                                            onChange={(e) => setDefaultRate(e.target.value)}
+                                            className="h-12 bg-muted border-none rounded-xl focus:ring-4 focus:ring-emerald-500/5 transition-all pl-10 text-sm font-bold"
+                                            required
+                                        />
+                                        <TrendingUp size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500" />
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground font-medium mt-1 ml-1 text-right">0.10 formatı %10 anlamına gelir.</p>
+                                </div>
+                                <Button type="submit" className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5 mt-2">
+                                    Şubeyi Oluştur
+                                </Button>
+                            </form>
+                        </div>
+                    )}
 
                     {/* Quick Stat */}
                     <div className="bg-emerald-600 p-8 rounded-[32px] text-white relative overflow-hidden shadow-xl shadow-emerald-500/20">

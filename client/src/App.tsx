@@ -26,6 +26,7 @@ import RevenuePage from './pages/RevenuePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import LandingPage from './pages/LandingPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -36,38 +37,40 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <NotificationProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-          <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/app/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="dashboard/sales" element={<SalesDashboard />} />
-            <Route path="dashboard/cancellations" element={<CancellationDashboard />} />
-            <Route path="branches" element={<BranchesPage />} />
-            <Route path="policy-types" element={<PolicyTypesPage />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route path="sales" element={<SalesPage />} />
-            <Route path="commissions" element={<CommissionsPage />} />
-            <Route path="tasks" element={<TasksPage />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="commission-rules" element={<CommissionRulesPage />} />
-            <Route path="messaging" element={<MessagingPage />} />
-            <Route path="audit" element={<AuditLogsPage />} />
-            <Route path="customers" element={<CustomersPage />} />
-            <Route path="customers/:id" element={<CustomerProfilePage />} />
-            <Route path="payroll" element={<PayrollPage />} />
-            <Route path="quotes/compare" element={<QuoteComparisonPage />} />
-            <Route path="revenue" element={<RevenuePage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
-      </Router>
+            <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+              <Route index element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="dashboard/sales" element={<SalesDashboard />} />
+              <Route path="dashboard/cancellations" element={<CancellationDashboard />} />
+              <Route path="branches" element={<BranchesPage />} />
+              <Route path="policy-types" element={<PolicyTypesPage />} />
+              <Route path="users" element={<UsersPage />} />
+              <Route path="sales" element={<SalesPage />} />
+              <Route path="commissions" element={<CommissionsPage />} />
+              <Route path="tasks" element={<TasksPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="commission-rules" element={<CommissionRulesPage />} />
+              <Route path="messaging" element={<MessagingPage />} />
+              <Route path="audit" element={<AuditLogsPage />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="customers/:id" element={<CustomerProfilePage />} />
+              <Route path="payroll" element={<PayrollPage />} />
+              <Route path="quotes/compare" element={<QuoteComparisonPage />} />
+              <Route path="revenue" element={<RevenuePage />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Routes>
+        </Router>
+      </NotificationProvider>
     </ThemeProvider>
   );
 }

@@ -24,7 +24,7 @@ const QuoteComparisonPage = () => {
     const fetchOffers = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/dashboard/sales`, {
+            const response = await axios.get(`/api/sales?status=OFFER&v=${Date.now()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             // Filter only OFFERS locally for now
@@ -49,7 +49,7 @@ const QuoteComparisonPage = () => {
         setUploading(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/quotes/upload`, formData, {
+            await axios.post('/api/quotes/upload', formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
@@ -85,7 +85,7 @@ const QuoteComparisonPage = () => {
     const downloadPDF = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/quotes/compare/pdf`,
+            const response = await axios.post('/api/quotes/compare/pdf',
                 { saleIds: selectedIds },
                 {
                     headers: { Authorization: `Bearer ${token}` },

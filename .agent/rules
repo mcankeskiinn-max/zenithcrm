@@ -1,0 +1,24 @@
+# Project Safety Rules (ZenithCRM)
+
+## Data Protection & Database Integrity
+- **NO DESTRUCTIVE COMMANDS**: Never run `npx prisma migrate reset`, `npx prisma db push --force-reset`, or any command that deletes existing data without explicit, double-confirmed user permission.
+- **DATABASE_URL SAFETY**: Always verify the `DATABASE_URL` in `.env` before running migrations. Ensure it points to the intended environment (Cloud vs Local).
+- **SCHEMA MODIFICATIONS**: When modifying `prisma/schema.prisma`, use `npx prisma migrate dev` to create named migrations. Never bypass the migration system for structural changes.
+- **BACKUP BEFORE RESET**: If a database reset is absolutely necessary for development, an export/backup of the current data must be performed first.
+
+## Security & Isolation
+- **TENANT ISOLATION**: Every database query MUST include a `tenantId` filter to prevent data leakage between agencies.
+- **ROLE-BASED ACCESS**: Controllers must verify user roles (ADMIN, MANAGER, EMPLOYEE) before performing sensitive operations like user deletion or branch setting updates.
+
+## Stability
+- **NULL SAFETY & DEFENSIVE RENDERING**: Always use optional chaining (`?.`) and nullish coalescing (`||`) for all nested data access in React components. This prevents "White Screen" crashes when relations are empty or data is missing.
+- **BACKEND DATA HARDENING**: Controllers should provide safe defaults for relational counts and arrays. Map database fields (e.g., `identityNo`) to frontend-expected names (e.g., `identityNumber`) and compute summary fields (like full name) server-side.
+- **TYPE SAFETY**: Maintain strict TypeScript interfaces for API responses.
+
+## Routing & Navigation
+- **SPA ROUTING**: Use `useNavigate()` from `react-router-dom` for all internal navigation. Avoid `window.location.href` as it triggers a full page reload and can bypass application state.
+- **PATH PREFIXING**: Ensure all protected routes are correctly prefixed (e.g., `/app/customers/:id`). Verify path names against `App.tsx` routing configuration before implementation.
+
+## Deletion Patterns
+- **USER CONFIRMATION**: Always implement a browser `confirm()` or modal confirmation before executing `DELETE` requests.
+- **RELATIONAL CHECKS**: Before deleting a core entity (Client, Policy), check for existing relations (Sales, Documents). Restrict deletion to ADMIN/MANAGER roles if the record is not "empty" to maintain audit integrity.

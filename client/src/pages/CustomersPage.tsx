@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
     Users,
     Search,
@@ -8,7 +9,8 @@ import {
     Mail,
     Calendar,
     ChevronRight,
-    SearchX
+    SearchX,
+    Trash2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -26,9 +28,25 @@ interface Customer {
 }
 
 export default function CustomersPage() {
+    const navigate = useNavigate();
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const handleDelete = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        if (!window.confirm('Bu müşteri kaydını silmek istediğinize emin misiniz?')) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`/api/customers/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setCustomers(prev => prev.filter(c => c.id !== id));
+        } catch (error: any) {
+            alert(error.response?.data?.error || 'Müşteri silinirken bir hata oluştu.');
+        }
+    };
 
     useEffect(() => {
         fetchCustomers();
@@ -49,7 +67,7 @@ export default function CustomersPage() {
     };
 
     const filteredCustomers = customers.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (c.phone && c.phone.includes(searchTerm)) ||
         (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
@@ -108,7 +126,7 @@ export default function CustomersPage() {
                     <div
                         key={customer.id}
                         className="bg-card p-6 rounded-3xl border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group cursor-pointer"
-                        onClick={() => window.location.href = `/customers/${customer.id}`}
+                        onClick={() => navigate(`/app/customers/${customer.id}`)}
                     >
                         <div className="flex items-start justify-between mb-6">
                             <div className="flex items-center gap-4">
@@ -120,8 +138,17 @@ export default function CustomersPage() {
                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Müşteri ID: {customer.id.slice(0, 8)}</p>
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                                <ChevronRight size={18} />
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={(e) => handleDelete(e, customer.id)}
+                                    className="w-8 h-8 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center"
+                                    title="Müşteriyi Sil"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                                <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                    <ChevronRight size={18} />
+                                </div>
                             </div>
                         </div>
 

@@ -24,12 +24,6 @@ export class RenewalService {
                         endDate: {
                             gt: now,
                             lte: futureLimit
-                        },
-                        tasks: {
-                            none: {
-                                title: { contains: 'Yenileme' },
-                                isCompleted: false
-                            }
                         }
                     },
                     include: {
@@ -40,15 +34,24 @@ export class RenewalService {
                 });
 
                 for (const sale of expiringSales) {
+                    // Check if renewal task already exists
+                    const existingTask = await prisma.task.findFirst({
+                        where: {
+                            tenantId: tenant.id,
+                            title: { contains: `Yenileme: ${sale.policyNumber}` },
+                            isCompleted: false
+                        }
+                    });
+
+                    if (existingTask) continue;
+
                     await prisma.task.create({
                         data: {
-                            title: `Yenileme: ${sale.customer?.name || 'Müşteri'} - ${sale.policyType.name}`,
+                            title: `Yenileme: ${sale.customer?.firstName || ''} ${sale.customer?.lastName || 'Müşteri'} - ${sale.policyType.name}`,
                             description: `${sale.policyNumber || 'Bilinmeyen'} nolu poliçe ${sale.endDate?.toLocaleDateString()} tarihinde sona eriyor. Lütfen yenileme için iletişime geçin.`,
                             dueDate: sale.endDate || futureLimit,
                             priority: 'HIGH',
                             assignedToId: sale.employeeId,
-                            saleId: sale.id,
-                            customerId: sale.customerId,
                             tenantId: tenant.id
                         }
                     });
