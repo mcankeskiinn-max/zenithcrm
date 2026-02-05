@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export interface SessionInfo {
-    token: string;
+    id: string;
+    tokenSuffix: string;
     createdAt: string;
     expiresAt: string;
     userId: string;
@@ -53,8 +54,8 @@ export const SessionPanel = () => {
             ) : (
                 <div className="space-y-3">
                     {sessions.map((s) => (
-                        <div key={s.token} className="p-4 rounded-2xl border border-border bg-muted/40">
-                            <div className="text-xs text-muted-foreground">Token: {s.token.slice(0, 8)}...</div>
+                        <div key={s.id} className="p-4 rounded-2xl border border-border bg-muted/40">
+                            <div className="text-xs text-muted-foreground">Token: {s.tokenSuffix}...</div>
                             <div className="text-xs text-muted-foreground">Oluþturma: {new Date(s.createdAt).toLocaleString()}</div>
                             <div className="text-xs text-muted-foreground">Bitiþ: {new Date(s.expiresAt).toLocaleString()}</div>
                         </div>
@@ -64,3 +65,4 @@ export const SessionPanel = () => {
         </div>
     );
 };
+

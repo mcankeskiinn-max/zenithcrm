@@ -113,11 +113,11 @@ app.use(cors({
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
 }));
 
 app.use(morgan('dev'));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(csrfProtection);
 
@@ -165,10 +165,18 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     fs.appendFileSync(path.join(__dirname, '../debug_errors.log'), logEntry);
 
     console.error('Global Error:', err);
+    const isProd = process.env.NODE_ENV === 'production';
     res.status(500).json({
         error: 'Global Sunucu Hatası',
-        message: err.message
+        ...(isProd ? {} : { message: err.message })
     });
 });
 
 export default app;
+
+
+
+
+
+
+

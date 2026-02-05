@@ -108,7 +108,8 @@ const PayrollPage: React.FC = () => {
 
     const handleExportPDF = async () => {
         setExporting(true);
-        try {\n            console.log('📄 PDF export başlatılıyor...', { startDate, endDate });
+        try {
+            console.log('PDF export baslatiliyor...', { startDate, endDate });
 
             const response = await axios.get(`${API_URL}/payroll/export`, {
                 params: {
@@ -117,19 +118,18 @@ const PayrollPage: React.FC = () => {
                     branchId: selectedBranchId || undefined,
                     userId: selectedEmployeeId || undefined
                 },
-                ,
                 responseType: 'blob',
-                timeout: 30000  // 30 saniye timeout
+                timeout: 30000 // 30s timeout
             });
 
-            console.log('✅ PDF response alındı:', {
+            console.log('PDF response alindi:', {
                 status: response.status,
                 contentType: response.headers['content-type'],
                 size: response.data.size
             });
 
             if (response.data.size === 0) {
-                alert('PDF boş döndü. Seçilen tarih aralığında satış bulunamadı.');
+                alert('PDF bos dondu. Secilen tarih araliginda satis bulunamadi.');
                 return;
             }
 
@@ -156,34 +156,34 @@ const PayrollPage: React.FC = () => {
             link.remove();
             window.URL.revokeObjectURL(url);
 
-            console.log('✅ PDF başarıyla indirildi!');
-            alert('PDF başarıyla indirildi!');
+            console.log('PDF basariyla indirildi!');
+            alert('PDF basariyla indirildi!');
 
         } catch (error: any) {
-            console.error('❌ Export PDF error:', error);
+            console.error('Export PDF error:', error);
 
             if (error.response) {
-                // Backend hatası
+                // Backend hatasi
                 console.error('Backend error:', {
                     status: error.response.status,
                     data: error.response.data
                 });
 
                 if (error.response.status === 404) {
-                    alert('Seçilen tarih aralığında satış bulunamadı.');
+                    alert('Secilen tarih araliginda satis bulunamadi.');
                 } else if (error.response.status === 401) {
-                    alert('Oturumunuz sona erdi. Lütfen tekrar giriş yapın.');
+                    alert('Oturumunuz sona erdi. Lutfen tekrar giris yapin.');
                     localStorage.clear();
                     window.location.href = '/login';
                 } else {
-                    alert(`Sunucu hatası: ${error.response.data?.error || 'Bilinmeyen hata'}`);
+                    alert(`Sunucu hatasi: ${error.response.data?.error || 'Bilinmeyen hata'}`);
                 }
             } else if (error.request) {
-                // Network hatası
+                // Network hatasi
                 console.error('Network error:', error.request);
-                alert('Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.');
+                alert('Baglanti hatasi. Lutfen internet baglantinizi kontrol edin.');
             } else {
-                // Diğer hatalar
+                // Diger hatalar
                 console.error('Unexpected error:', error.message);
                 alert(`Beklenmeyen hata: ${error.message}`);
             }
@@ -462,5 +462,7 @@ const PayrollPage: React.FC = () => {
 };
 
 export default PayrollPage;
+
+
 
 

@@ -61,3 +61,8 @@
 - Login baþarýsýzlýðýnda kalan deneme sayýsý backend tarafýndan dönülüyor; UI mesajý güncellendi.
 - Added remaining login attempt count to failed login responses and UI display.
 - Re-ran server/client tests: all passing.
+- Created threat model draft for internet-exposed, multi-tenant deployment in zenithcrm-threat-model.md.
+- Fixed client PayrollPage PDF export block (removed stray characters, fixed syntax + ASCII-only logs/alerts) to allow Vite dev server to start.
+- Ran Playwright automation for login + sales/customers/portfolio/cancellations/commissions flows; screenshots and summary saved under output/playwright/.
+- Set up local server env in server/.env for dev runs (DATABASE_URL + JWT secrets + CORS/CLIENT URL).
+- Extended Playwright automation to create sale, create cancellation, and update commission; rerun successful (see output/playwright/summary.json).

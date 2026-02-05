@@ -45,3 +45,7 @@ prisma/migrations/migration_lock.toml
 testsprite_tests/
 test_results*.log
 test-summary.json
+
+# Local artifacts
+output/
+client/output/

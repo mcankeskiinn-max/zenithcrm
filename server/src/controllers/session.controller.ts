@@ -30,6 +30,7 @@ export const listSessions = async (req: Request, res: Response) => {
 
         const sessions = await prisma.refreshToken.findMany({
             select: {
+                id: true,
                 token: true,
                 createdAt: true,
                 expiresAt: true,
@@ -38,9 +39,18 @@ export const listSessions = async (req: Request, res: Response) => {
             orderBy: { createdAt: 'desc' }
         });
 
-        res.json({ sessions });
+        const safeSessions = sessions.map((s) => ({
+            id: s.id,
+            userId: s.userId,
+            createdAt: s.createdAt,
+            expiresAt: s.expiresAt,
+            tokenSuffix: s.token.slice(0, 8)
+        }));
+
+        res.json({ sessions: safeSessions });
     } catch (error) {
         console.error('ListSessions error:', error);
         res.status(500).json({ error: 'List sessions failed' });
     }
 };
+
