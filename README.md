@@ -138,8 +138,9 @@ npm test
 DATABASE_URL=postgresql://...
 JWT_SECRET=your-secret-key
 JWT_REFRESH_SECRET=your-refresh-secret
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=30d
+JWT_REFRESH_EXPIRES_IN_SHORT=7d
 CLIENT_URL=http://localhost:5175
 PORT=3000
 NODE_ENV=development
@@ -154,6 +155,7 @@ Notes:
 - `VITE_API_URL` should be the API host root (not ending with `/api`), since the client calls `/api/*`.
 - In production, ensure `JWT_SECRET` and `JWT_REFRESH_SECRET` are long random values.
 - Auth uses httpOnly cookies; the client sends a CSRF header automatically for mutating requests.
+- `Beni Hatırla` seçilirse refresh token süresi `JWT_REFRESH_EXPIRES_IN` ile uzatılır.
 
 ---
 

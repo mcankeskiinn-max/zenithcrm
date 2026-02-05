@@ -36,3 +36,8 @@
 - Added refresh token endpoint with rotation and client auto-refresh on 401.
 - Re-ran server and client tests: all passing.
 - Added SECURITY_HARDENING_CHECKLIST.md for production readiness.
+- Added Remember Me support: short access TTL + short/long refresh TTL based on rememberMe.
+- Added refresh token rotation to respect rememberMe TTL.
+- Updated env examples and README for new TTLs.
+- Remember Me login now sends flag; access TTL shortened and refresh TTL varies by rememberMe.
+- Re-ran server/client tests: all passing.

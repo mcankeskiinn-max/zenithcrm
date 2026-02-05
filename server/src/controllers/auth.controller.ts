@@ -13,6 +13,24 @@ const LOCK_TIME = 15 * 60 * 1000; // 15 dakika
 const ACCESS_COOKIE = 'access_token';
 const REFRESH_COOKIE = 'refresh_token';
 const CSRF_COOKIE = 'XSRF-TOKEN';
+const ACCESS_TTL_DEFAULT = process.env.JWT_EXPIRES_IN || '15m';
+const REFRESH_TTL_SHORT = process.env.JWT_REFRESH_EXPIRES_IN_SHORT || '7d';
+const REFRESH_TTL_LONG = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+
+const parseDurationMs = (value: string, fallbackMs: number) => {
+    const match = /^(\d+)([smhd])$/i.exec(value.trim());
+    if (!match) return fallbackMs;
+    const amount = Number(match[1]);
+    const unit = match[2].toLowerCase();
+    if (!Number.isFinite(amount)) return fallbackMs;
+    switch (unit) {
+        case 's': return amount * 1000;
+        case 'm': return amount * 60 * 1000;
+        case 'h': return amount * 60 * 60 * 1000;
+        case 'd': return amount * 24 * 60 * 60 * 1000;
+        default: return fallbackMs;
+    }
+};
 
 const getCookieOptions = () => {
     const isProduction = process.env.NODE_ENV === 'production';
@@ -48,6 +66,7 @@ export const login = async (req: Request, res: Response) => {
 
         const email = req.body.email?.toString().trim().toLowerCase();
         const password = req.body.password?.toString().trim();
+        const rememberMe = Boolean(req.body.rememberMe);
 
         console.log('Login attempt for:', email);
 
@@ -90,20 +109,22 @@ export const login = async (req: Request, res: Response) => {
         const accessToken = jwt.sign(
             { userId: user.id, role: user.role, tenantId: user.tenantId },
             process.env.JWT_SECRET,
-            { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
+            { expiresIn: ACCESS_TTL_DEFAULT as any }
         );
 
+        const refreshTtl = rememberMe ? REFRESH_TTL_LONG : REFRESH_TTL_SHORT;
         const refreshToken = jwt.sign(
-            { userId: user.id },
+            { userId: user.id, rm: rememberMe },
             process.env.JWT_REFRESH_SECRET,
-            { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '30d') as any }
+            { expiresIn: refreshTtl as any }
         );
 
+        const refreshMs = parseDurationMs(refreshTtl, 30 * 24 * 60 * 60 * 1000);
         await prisma.refreshToken.create({
             data: {
                 token: refreshToken,
                 userId: user.id,
-                expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                expiresAt: new Date(Date.now() + refreshMs)
             }
         });
 
@@ -122,9 +143,10 @@ export const login = async (req: Request, res: Response) => {
         const refreshCookie = getCookieOptions();
         const csrfToken = crypto.randomBytes(32).toString('hex');
 
-        res.cookie(ACCESS_COOKIE, accessToken, { ...accessCookie, maxAge: 7 * 24 * 60 * 60 * 1000 });
-        res.cookie(REFRESH_COOKIE, refreshToken, { ...refreshCookie, maxAge: 30 * 24 * 60 * 60 * 1000 });
-        res.cookie(CSRF_COOKIE, csrfToken, { ...getCsrfCookieOptions(), maxAge: 30 * 24 * 60 * 60 * 1000 });
+        const accessMs = parseDurationMs(ACCESS_TTL_DEFAULT, 15 * 60 * 1000);
+        res.cookie(ACCESS_COOKIE, accessToken, { ...accessCookie, maxAge: accessMs });
+        res.cookie(REFRESH_COOKIE, refreshToken, { ...refreshCookie, maxAge: refreshMs });
+        res.cookie(CSRF_COOKIE, csrfToken, { ...getCsrfCookieOptions(), maxAge: refreshMs });
 
         res.json({
             message: 'Login successful',
@@ -208,7 +230,7 @@ export const refresh = async (req: Request, res: Response) => {
 
         let decoded: any;
         try {
-            decoded = jwt.verify(refreshToken, refreshSecret) as { userId: string };
+            decoded = jwt.verify(refreshToken, refreshSecret) as { userId: string; rm?: boolean };
         } catch {
             return res.status(401).json({ error: 'Invalid refresh token' });
         }
@@ -231,19 +253,22 @@ export const refresh = async (req: Request, res: Response) => {
         }
 
         // Rotate refresh token
+        const rememberMe = Boolean(decoded.rm);
+        const refreshTtl = rememberMe ? REFRESH_TTL_LONG : REFRESH_TTL_SHORT;
         const newRefreshToken = jwt.sign(
-            { userId: user.id },
+            { userId: user.id, rm: rememberMe },
             refreshSecret,
-            { expiresIn: (process.env.JWT_REFRESH_EXPIRES_IN || '30d') as any }
+            { expiresIn: refreshTtl as any }
         );
 
+        const refreshMs = parseDurationMs(refreshTtl, 30 * 24 * 60 * 60 * 1000);
         await prisma.$transaction([
             prisma.refreshToken.deleteMany({ where: { token: refreshToken } }),
             prisma.refreshToken.create({
                 data: {
                     token: newRefreshToken,
                     userId: user.id,
-                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                    expiresAt: new Date(Date.now() + refreshMs)
                 }
             })
         ]);
@@ -256,16 +281,17 @@ export const refresh = async (req: Request, res: Response) => {
         const accessToken = jwt.sign(
             { userId: user.id, role: user.role, tenantId: user.tenantId },
             accessSecret,
-            { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as any }
+            { expiresIn: ACCESS_TTL_DEFAULT as any }
         );
 
         const accessCookie = getCookieOptions();
         const refreshCookie = getCookieOptions();
         const csrfToken = crypto.randomBytes(32).toString('hex');
 
-        res.cookie(ACCESS_COOKIE, accessToken, { ...accessCookie, maxAge: 7 * 24 * 60 * 60 * 1000 });
-        res.cookie(REFRESH_COOKIE, newRefreshToken, { ...refreshCookie, maxAge: 30 * 24 * 60 * 60 * 1000 });
-        res.cookie(CSRF_COOKIE, csrfToken, { ...getCsrfCookieOptions(), maxAge: 30 * 24 * 60 * 60 * 1000 });
+        const accessMs = parseDurationMs(ACCESS_TTL_DEFAULT, 15 * 60 * 1000);
+        res.cookie(ACCESS_COOKIE, accessToken, { ...accessCookie, maxAge: accessMs });
+        res.cookie(REFRESH_COOKIE, newRefreshToken, { ...refreshCookie, maxAge: refreshMs });
+        res.cookie(CSRF_COOKIE, csrfToken, { ...getCsrfCookieOptions(), maxAge: refreshMs });
 
         res.json({ message: 'Token refreshed', token: accessToken, accessToken });
     } catch (error) {

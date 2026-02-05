@@ -10,6 +10,7 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(true);
     const navigate = useNavigate();
 
     const onSubmit = async (data: any) => {
@@ -22,7 +23,7 @@ export default function LoginPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify({ ...data, rememberMe }),
                 credentials: 'include' });
 
             const json = await res.json();
@@ -141,7 +142,12 @@ export default function LoginPage() {
 
                         <div className="flex items-center justify-between ml-1">
                             <label className="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" className="w-4 h-4 rounded border-border bg-muted dark:bg-emerald-900/40 dark:border-emerald-800 text-emerald-600 focus:ring-emerald-500 transition-all" />
+                                <input
+                                    type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 rounded border-border bg-muted dark:bg-emerald-900/40 dark:border-emerald-800 text-emerald-600 focus:ring-emerald-500 transition-all"
+                                />
                                 <span className="text-sm text-muted-foreground dark:text-emerald-300/60 group-hover:text-foreground dark:group-hover:text-emerald-50 transition-colors">Beni Hatırla</span>
                             </label>
                             <Link to="/forgot-password" className="text-sm font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">Şifremi Unuttum</Link>
