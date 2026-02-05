@@ -74,6 +74,18 @@ const authLimiter = rateLimit({
     message: { error: 'Too many login attempts, please try again later.' }
 });
 
+const heavyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    message: { error: 'Too many requests, please try again later.' }
+});
+
+const docsLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    message: { error: 'Too many document requests, please try again later.' }
+});
+
 // App configuration
 if (!isProduction) {
     console.log('CORS Setup - ENV CORS_ORIGIN:', process.env.CORS_ORIGIN);
@@ -125,6 +137,10 @@ app.use(csrfProtection);
 if (isProduction) {
     app.use('/api/', apiLimiter);
     app.use('/api/auth/login', authLimiter);
+    app.use('/api/reports', heavyLimiter);
+    app.use('/api/analytics', heavyLimiter);
+    app.use('/api/ocr', heavyLimiter);
+    app.use('/api/documents', docsLimiter);
 }
 
 app.get('/', async (req, res) => {

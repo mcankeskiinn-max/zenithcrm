@@ -12,6 +12,26 @@ const canAccessSale = (user: NonNullable<Request['user']>, sale: { branchId: str
     return sale.employeeId === user.id;
 };
 
+const isAllowedSignature = (filePath: string, mimetype: string) => {
+    try {
+        const fd = fs.openSync(filePath, 'r');
+        const buffer = Buffer.alloc(8);
+        fs.readSync(fd, buffer, 0, 8, 0);
+        fs.closeSync(fd);
+
+        const pdf = buffer.slice(0, 5).toString('ascii') === '%PDF-';
+        const png = buffer.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+        const jpg = buffer.slice(0, 3).equals(Buffer.from([0xFF, 0xD8, 0xFF]));
+
+        if (mimetype.includes('pdf')) return pdf;
+        if (mimetype.includes('png')) return png;
+        if (mimetype.includes('jpeg') || mimetype.includes('jpg')) return jpg;
+        return false;
+    } catch {
+        return false;
+    }
+};
+
 export const uploadDocument = async (req: Request, res: Response) => {
     try {
         console.log('[UPLOAD] Initializing upload for saleId:', req.body?.saleId);
@@ -50,6 +70,11 @@ export const uploadDocument = async (req: Request, res: Response) => {
         if (!canAccessSale(currentUser, sale)) {
             if (req.file) fs.unlinkSync(req.file.path);
             return res.status(403).json({ error: 'Insufficient permissions' });
+        }
+
+        if (!isAllowedSignature(req.file.path, req.file.mimetype)) {
+            if (req.file) fs.unlinkSync(req.file.path);
+            return res.status(400).json({ error: 'Invalid file content' });
         }
 
         console.log('[UPLOAD] Creating database record for:', req.file.originalname);
