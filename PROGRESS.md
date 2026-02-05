@@ -131,3 +131,6 @@ pm test (Vitest) passed.
 
 - CSP tightened: inline styles disabled by default (ALLOW_INLINE_STYLES to override). Prod logging uses morgan combined.
 
+
+- Security report updated with applied fixes status.
+

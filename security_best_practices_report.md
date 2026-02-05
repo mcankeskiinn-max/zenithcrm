@@ -103,3 +103,10 @@ Prod?da daha sade log format? (or. `combined` + PII mask) veya conditional log k
 2. `trust proxy` ve 404 handler?i production icin tanimlayin.
 3. CSP?yi inline style olmadan calisacak sekilde kademeli sikilastirin.
 4. Prod logging politikasini gozden gecirin (PII mask/rotation).
+
+
+## Status (Uygulandi)
+- Input dogrulama: customer ve sale create/update icin schema validation eklendi.
+- trust proxy + 404 handler eklendi.
+- CSP inline style varsayilan kapali (ALLOW_INLINE_STYLES ile acilabilir).
+- Prod logging morgan('combined') olarak guncellendi.
