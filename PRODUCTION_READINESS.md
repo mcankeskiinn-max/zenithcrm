@@ -44,5 +44,6 @@
 ## Release Gate
 - CI: `server-tests` and `client-tests` must pass (server-tests may be skipped if secrets are missing).
 - UI flow checks (Playwright) must pass (may be skipped if CRM secrets are missing).
+- UI flow artifacts (summary + screenshots) are stored by CI for review.
 - Critical flows (login/sales/customer/commission) must be validated.
 - Review `RELEASE_GATE.md` checklist before production release.

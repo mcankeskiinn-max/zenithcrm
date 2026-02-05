@@ -73,6 +73,14 @@ jobs:
           CRM_PASSWORD: ${{ secrets.CRM_PASSWORD }}
           NODE_PATH: client/node_modules
         run: node tools/playwright/run-flow.js
+      - name: Upload UI Flow Artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-flow-artifacts
+          path: |
+            output/playwright/summary.json
+            output/playwright/*.png
 
   release-gate:
     runs-on: ubuntu-latest

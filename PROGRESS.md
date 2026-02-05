@@ -101,3 +101,6 @@ pm test (Vitest) passed.
 
 - CI: Playwright UI akisi eklendi (tools/playwright/run-flow.js). Secrets yoksa job skipped.
 
+
+- CI UI akisi hizlandirildi (kritik akislara odaklandi) ve artifacts upload eklendi.
+

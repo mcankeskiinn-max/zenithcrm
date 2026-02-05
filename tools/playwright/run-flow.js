@@ -225,7 +225,7 @@ async function step(page, name, fn) {
       'button:has-text("Yeni")',
       'a:has-text("Yeni")'
     ]);
-    await sleep(1000);
+    await sleep(500);
   }));
 
   results.push(await step(page, '05_sales_page', async () => {
@@ -234,7 +234,7 @@ async function step(page, name, fn) {
       'button:has-text("Yeni")',
       'button:has-text("Satis Ekle")'
     ]);
-    await sleep(1000);
+    await sleep(500);
   }));
 
   results.push(await step(page, '06_create_sale', async () => {
@@ -243,7 +243,7 @@ async function step(page, name, fn) {
       'button:has-text("Yeni")',
       'button:has-text("Satis Ekle")'
     ]);
-    await sleep(800);
+    await sleep(500);
     const dialog = page.locator('[role="dialog"], .modal, .dialog, .sheet').first();
     const dialogCount = await dialog.count();
     if (dialogCount) {
@@ -258,7 +258,7 @@ async function step(page, name, fn) {
       'button:has-text("Olustur")',
       'button[type="submit"]'
     ]);
-    await sleep(1200);
+    await sleep(700);
     await softCheckSuccess(page);
     await assertNoFormErrors(page);
   }));
@@ -274,7 +274,7 @@ async function step(page, name, fn) {
       'button:has-text("Yeni")'
     ]);
     if (!opened) throw new Error('Yeni Musteri butonu bulunamadi');
-    await sleep(800);
+    await sleep(500);
     const dialog = page.locator('[role="dialog"], .modal, .dialog, .sheet').first();
     const dialogCount = await dialog.count();
     if (dialogCount) {
@@ -288,7 +288,7 @@ async function step(page, name, fn) {
       'button:has-text("Olustur")',
       'button[type="submit"]'
     ]);
-    await sleep(1200);
+    await sleep(700);
     await softCheckSuccess(page);
     await assertNoFormErrors(page);
   }));
@@ -312,7 +312,7 @@ async function step(page, name, fn) {
       'button:has-text("Komisyon")',
       'button:has-text("Ekle")'
     ]);
-    await sleep(800);
+    await sleep(500);
     const dialog = page.locator('[role="dialog"], .modal, .dialog, .sheet').first();
     const dialogCount = await dialog.count();
     if (dialogCount) {
@@ -327,7 +327,7 @@ async function step(page, name, fn) {
       'button:has-text("Kaydet")',
       'button[type="submit"]'
     ]);
-    await sleep(1200);
+    await sleep(700);
     await softCheckSuccess(page);
     await assertNoFormErrors(page);
   }));

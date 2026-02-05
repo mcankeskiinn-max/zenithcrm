@@ -5,6 +5,7 @@ Bu dosya, `PRODUCTION_READINESS.md` ile birlikte uretime cikis icin zorunlu kosu
 ## Zorunlu Kosullar (Release Gate)
 - [ ] CI: `server-tests` ve `client-tests` basarili (server-tests secrets yoksa skipped olabilir)
 - [ ] UI akislari (Playwright) basarili (secrets yoksa skipped olabilir)
+  UI flow artifacts CI'da kaydedilir (summary + screenshots).
 - [ ] Manuel kritik akis kontrolu (giris, satis, musteri, komisyon) tamamlandi
 - [ ] Veritabani migration plani hazir
 - [ ] Rollback plani hazir
