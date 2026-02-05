@@ -49,15 +49,41 @@ jobs:
         working-directory: client
         run: npm test
 
+  ui-flow:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.CRM_BASE_URL != '' && secrets.CRM_EMAIL != '' && secrets.CRM_PASSWORD != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Install Client Deps
+        working-directory: client
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run UI Flow
+        env:
+          CRM_BASE_URL: ${{ secrets.CRM_BASE_URL }}
+          CRM_EMAIL: ${{ secrets.CRM_EMAIL }}
+          CRM_PASSWORD: ${{ secrets.CRM_PASSWORD }}
+          NODE_PATH: client/node_modules
+        run: node tools/playwright/run-flow.js
+
   release-gate:
     runs-on: ubuntu-latest
-    needs: [server-tests, client-tests]
+    needs: [server-tests, client-tests, ui-flow]
     if: ${{ always() }}
     steps:
       - name: Release Gate Summary
         run: |
           echo "server-tests: ${{ needs.server-tests.result }}"
           echo "client-tests: ${{ needs.client-tests.result }}"
+          echo "ui-flow: ${{ needs.ui-flow.result }}"
       - name: Fail if tests did not pass
         run: |
           if [ "${{ needs.server-tests.result }}" = "failure" ]; then
@@ -68,6 +94,13 @@ jobs:
             echo "Release gate failed: client-tests failed."
             exit 1
           fi
+          if [ "${{ needs.ui-flow.result }}" = "failure" ]; then
+            echo "Release gate failed: ui-flow failed."
+            exit 1
+          fi
           if [ "${{ needs.server-tests.result }}" = "skipped" ]; then
             echo "Release gate warning: server-tests skipped (missing secrets)."
+          fi
+          if [ "${{ needs.ui-flow.result }}" = "skipped" ]; then
+            echo "Release gate warning: ui-flow skipped (missing CRM secrets)."
           fi

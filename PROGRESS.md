@@ -95,3 +95,9 @@ pm test (Vitest) passed.
 - Release gate: server-tests skipped durumunda uyarý, failure durumunda bloklama.
 - Playwright akýþý: form submit sonrasý yumuþak baþarý doðrulamasý eklendi.
 
+
+- Playwright akisi: form submit sonrasi hata metni/aria-invalid yakalama eklendi ve akisi gecti.
+
+
+- CI: Playwright UI akisi eklendi (tools/playwright/run-flow.js). Secrets yoksa job skipped.
+
