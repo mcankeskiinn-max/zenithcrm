@@ -52,3 +52,9 @@
 - Added Settings security section for logout-all-devices.
 - Added admin action to force logout a user (server guard added).
 - Re-ran server/client tests: all passing.
+- Added admin session management endpoints (list + revoke all/one).
+- Added SessionPanel in Settings for admins.
+- Added CSP headers in production.
+- Added admin session management endpoints and SessionPanel in Settings.
+- Added CSP headers for production.
+- Re-ran server/client tests: all passing.

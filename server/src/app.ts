@@ -26,6 +26,7 @@ import quoteRoutes from './routes/quote.routes';
 import ocrRoutes from './routes/ocr.routes';
 import tenantRoutes from './routes/tenant.routes'; // Added tenantRoutes import
 import supportRoutes from './routes/support.routes';
+import sessionRoutes from './routes/session.routes';
 import prisma from './prisma';
 import { csrfProtection } from './middleware/csrf.middleware';
 
@@ -43,7 +44,21 @@ if (isProduction) {
 }
 
 // Security middleware
-app.use(helmet());
+const cspDirectives = {
+    defaultSrc: ["'self'"],
+    baseUri: ["'self'"],
+    objectSrc: ["'none'"],
+    frameAncestors: ["'none'"],
+    imgSrc: ["'self'", "data:", "https:"],
+    styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+    scriptSrc: ["'self'"],
+    connectSrc: ["'self'", "https:"],
+    fontSrc: ["'self'", "https:", "data:"]
+};
+
+app.use(helmet({
+    contentSecurityPolicy: isProduction ? { directives: cspDirectives } : false
+}));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // Serve uploads
 
 // Rate limiting - enabled in production
@@ -141,6 +156,7 @@ app.use('/api/quotes', quoteRoutes);
 app.use('/api/ocr', ocrRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

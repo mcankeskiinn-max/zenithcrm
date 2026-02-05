@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SessionPanel } from '@/components/SessionPanel';
 
 export default function SettingsPage() {
     const [user, setUser] = useState<any>(null);
@@ -340,6 +341,10 @@ await axios.put('/api/tenants/preferences', {
                                 </Button>
                             </div>
                         </div>
+                    )}
+
+                    {activeTab === 'security' && user?.role === 'ADMIN' && (
+                        <SessionPanel />
                     )}
 
                     {activeTab === 'preferences' && user?.role === 'ADMIN' && (
