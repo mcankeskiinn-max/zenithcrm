@@ -224,6 +224,13 @@ export const logout = async (req: Request, res: Response) => {
     }
 };
 
+export const issueCsrfToken = async (_req: Request, res: Response) => {
+    const refreshMs = parseDurationMs(REFRESH_TTL_LONG, 30 * 24 * 60 * 60 * 1000);
+    const csrfToken = crypto.randomBytes(32).toString('hex');
+    res.cookie(CSRF_COOKIE, csrfToken, { ...getCsrfCookieOptions(), maxAge: refreshMs });
+    return res.status(200).json({ ok: true });
+};
+
 export const refresh = async (req: Request, res: Response) => {
     try {
         const cookieRefresh = (req as any).cookies?.[REFRESH_COOKIE];

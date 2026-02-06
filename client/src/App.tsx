@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -30,6 +30,7 @@ import BranchKpiPage from './pages/BranchKpiPage';
 import ApprovalsPage from './pages/ApprovalsPage';
 import RenewalsPage from './pages/RenewalsPage';
 import { NotificationProvider } from './contexts/NotificationContext';
+import axios from 'axios';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const user = localStorage.getItem('user');
@@ -38,6 +39,13 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      axios.get('/api/auth/csrf').catch(() => {});
+    }
+  }, []);
+
   return (
     <ThemeProvider>
       <NotificationProvider>
