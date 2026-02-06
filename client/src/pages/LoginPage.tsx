@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import axios from 'axios';
 
 export default function LoginPage() {
     const { register, handleSubmit } = useForm();
@@ -39,6 +40,7 @@ export default function LoginPage() {
             }
 
             localStorage.setItem('user', JSON.stringify(json.user));
+            await axios.get('/api/auth/csrf').catch(() => {});
 
             navigate('/app/dashboard');
         } catch (err) {
