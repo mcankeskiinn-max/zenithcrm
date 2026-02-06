@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
-import { useTheme } from '../context/ThemeContext';
 import {
     BarChart,
     Bar,
@@ -121,6 +120,11 @@ const response = await axios.get(`/api/reports/export/sales?startDate=${startDat
                     <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Performans Analizi</h1>
                     <p className="text-sm text-muted-foreground font-medium mt-1 uppercase tracking-tighter">İş Zekası & Stratejik Görünüm</p>
                 </div>
+                {isLoading && (
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                        Veri y?kleniyor...
+                    </div>
+                )}
 
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Target Progress Quick View */}

@@ -59,7 +59,6 @@ export default function SalesPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
-    const [statusFilter, setStatusFilter] = useState('ALL');
     const [formStatus, setFormStatus] = useState('ACTIVE');
     const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
     const [searchTerm, setSearchTerm] = useState('');
