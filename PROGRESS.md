@@ -144,3 +144,4 @@ pm test (Vitest) passed.
 - Playwright UI akisi KPI/Onaylar/Yenilemeler adimlari eklendi ve basarili calisti.
 - CI durumu kontrol edildi (son 5 run: hepsi success).
 - Vercel rewrites guncellendi: /api istekleri Railway backend'e yonlendiriliyor (register hatasi icin).
+- Vercel config roota tasindi: client/vercel.json kaldirildi, root vercel.json ile /api Railway proxy ayarlandi.
