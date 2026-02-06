@@ -54,3 +54,10 @@
 - Hata oldugunda ekran goruntusu + ozet sayesinde hizli teshis saglar.
 - Critical flows (login/sales/customer/commission) must be validated.
 - Review `RELEASE_GATE.md` checklist before production release.
+
+## Release Checklist Review (2026-02-06)
+- Lokal server testleri gecti (jest).
+- Lokal client testleri gecti (vitest).
+- Playwright UI smoke testi gecti (summary.json).
+- Dev sunuculari dogrulama sonrasi kapatildi.
+- CI durum kontrolu bu turda yapilmadi.

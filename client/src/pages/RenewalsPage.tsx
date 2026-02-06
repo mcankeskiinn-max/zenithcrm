@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 type RenewalItem = {
@@ -15,6 +15,8 @@ export default function RenewalsPage() {
     const [days, setDays] = useState(30);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [busyId, setBusyId] = useState<string | null>(null);
 
     const load = async (d: number) => {
         setLoading(true);
@@ -23,7 +25,7 @@ export default function RenewalsPage() {
             const res = await axios.get(`/api/renewals?days=${d}`);
             setItems(res.data || []);
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Yenilemeler yuklenemedi');
+            setError(err.response?.data?.error || 'Yenilemeler yüklenemedi');
         } finally {
             setLoading(false);
         }
@@ -34,11 +36,17 @@ export default function RenewalsPage() {
     }, [days]);
 
     const createTask = async (saleId: string) => {
+        setError('');
+        setSuccess('');
+        setBusyId(saleId);
         try {
             await axios.post(`/api/renewals/${saleId}/task`, {});
+            setSuccess('Yenileme görevi oluşturuldu.');
             await load(days);
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Gorev olusturma basarisiz');
+            setError(err.response?.data?.error || 'Görev oluşturma başarısız');
+        } finally {
+            setBusyId(null);
         }
     };
 
@@ -47,7 +55,7 @@ export default function RenewalsPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold text-foreground">Yenilemeler</h1>
-                    <p className="text-sm text-muted-foreground">Yaklasan policeler ve yenileme takibi</p>
+                    <p className="text-sm text-muted-foreground">Yaklaşan poliçeler ve yenileme takibi</p>
                 </div>
                 <div className="flex gap-2">
                     {[30, 60, 90].map((d) => (
@@ -56,39 +64,46 @@ export default function RenewalsPage() {
                             onClick={() => setDays(d)}
                             className={`px-4 py-2 rounded-xl text-sm font-bold border ${days === d ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-muted-foreground border-border'}`}
                         >
-                            {d} gun
+                            {d} gün
                         </button>
                     ))}
                 </div>
             </div>
 
-            {loading && <div className="text-sm text-muted-foreground">Yukleniyor...</div>}
+            {loading && <div className="text-sm text-muted-foreground">Yükleniyor...</div>}
             {error && <div className="text-sm text-red-600">{error}</div>}
+            {success && <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2">{success}</div>}
 
             <div className="bg-card rounded-[28px] border border-border overflow-hidden">
                 <table className="w-full text-sm">
                     <thead className="bg-muted/40 text-muted-foreground">
                         <tr>
-                            <th className="text-left px-4 py-3">Musteri</th>
-                            <th className="text-left px-4 py-3">Police</th>
-                            <th className="text-left px-4 py-3">Bitis</th>
+                            <th className="text-left px-4 py-3">Müşteri</th>
+                            <th className="text-left px-4 py-3">Poliçe</th>
+                            <th className="text-left px-4 py-3">Bitiş</th>
                             <th className="text-left px-4 py-3">Personel</th>
-                            <th className="text-right px-4 py-3">Islem</th>
+                            <th className="text-right px-4 py-3">İşlem</th>
                         </tr>
                     </thead>
                     <tbody>
                         {items.map((item) => (
                             <tr key={item.id} className="border-t border-border/60">
-                                <td className="px-4 py-3 font-semibold">{item.customer?.name || 'Musteri'}</td>
-                                <td className="px-4 py-3">{item.policyNumber || '—'}</td>
+                                <td className="px-4 py-3 font-semibold">{item.customer?.name || 'Müşteri'}</td>
+                                <td className="px-4 py-3">
+                                    <div className="font-medium">{item.policyNumber || '—'}</div>
+                                    {item.policyType?.name && (
+                                        <div className="text-xs text-muted-foreground">{item.policyType.name}</div>
+                                    )}
+                                </td>
                                 <td className="px-4 py-3">{item.endDate ? new Date(item.endDate).toLocaleDateString('tr-TR') : '—'}</td>
                                 <td className="px-4 py-3">{item.employee?.name || '—'}</td>
                                 <td className="px-4 py-3 text-right">
                                     <button
                                         onClick={() => createTask(item.id)}
-                                        className="px-3 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                                        disabled={busyId === item.id}
+                                        className="px-3 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
-                                        Gorev Olustur
+                                        {busyId === item.id ? 'İşleniyor...' : 'Görev Oluştur'}
                                     </button>
                                 </td>
                             </tr>
@@ -96,7 +111,7 @@ export default function RenewalsPage() {
                         {items.length === 0 && !loading && (
                             <tr>
                                 <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
-                                    Kayit bulunamadi.
+                                    Kayıt bulunamadı.
                                 </td>
                             </tr>
                         )}

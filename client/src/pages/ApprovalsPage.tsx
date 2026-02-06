@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 type ApprovalItem = {
@@ -19,6 +19,8 @@ export default function ApprovalsPage() {
     const [items, setItems] = useState<ApprovalItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [busyId, setBusyId] = useState<string | null>(null);
 
     const load = async () => {
         setLoading(true);
@@ -27,7 +29,7 @@ export default function ApprovalsPage() {
             const res = await axios.get('/api/approvals');
             setItems(res.data || []);
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Onaylar yuklenemedi');
+            setError(err.response?.data?.error || 'Onaylar yüklenemedi');
         } finally {
             setLoading(false);
         }
@@ -38,11 +40,17 @@ export default function ApprovalsPage() {
     }, []);
 
     const handle = async (id: string, action: 'approve' | 'reject') => {
+        setError('');
+        setSuccess('');
+        setBusyId(id);
         try {
             await axios.post(`/api/approvals/${id}/${action}`, {});
+            setSuccess(action === 'approve' ? 'Onay başarıyla verildi.' : 'Talep reddedildi.');
             await load();
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Islem basarisiz');
+            setError(err.response?.data?.error || 'İşlem başarısız');
+        } finally {
+            setBusyId(null);
         }
     };
 
@@ -50,11 +58,12 @@ export default function ApprovalsPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-extrabold text-foreground">Onaylar</h1>
-                <p className="text-sm text-muted-foreground">Iptal ve komisyon onay talepleri</p>
+                <p className="text-sm text-muted-foreground">İptal ve komisyon onay talepleri</p>
             </div>
 
-            {loading && <div className="text-sm text-muted-foreground">Yukleniyor...</div>}
+            {loading && <div className="text-sm text-muted-foreground">Yükleniyor...</div>}
             {error && <div className="text-sm text-red-600">{error}</div>}
+            {success && <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-2">{success}</div>}
 
             <div className="space-y-4">
                 {items.length === 0 && !loading && (
@@ -68,11 +77,11 @@ export default function ApprovalsPage() {
                             <div>
                                 <h3 className="text-lg font-bold text-foreground">{item.title}</h3>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    {item.approval?.customerName || 'Musteri'} • {item.approval?.policyNumber || item.approval?.saleId}
+                                    {item.approval?.customerName || 'Müşteri'} • {item.approval?.policyNumber || item.approval?.saleId}
                                 </p>
                                 {item.approval?.reason && (
                                     <p className="text-sm text-muted-foreground mt-2">
-                                        Gerekce: {item.approval.reason}
+                                        Gerekçe: {item.approval.reason}
                                     </p>
                                 )}
                             </div>
@@ -83,15 +92,17 @@ export default function ApprovalsPage() {
                         <div className="flex gap-3 mt-4">
                             <button
                                 onClick={() => handle(item.id, 'approve')}
-                                className="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                                disabled={busyId === item.id}
+                                className="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                                Onayla
+                                {busyId === item.id ? 'İşleniyor...' : 'Onayla'}
                             </button>
                             <button
                                 onClick={() => handle(item.id, 'reject')}
-                                className="px-4 py-2 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700"
+                                disabled={busyId === item.id}
+                                className="px-4 py-2 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                                Reddet
+                                {busyId === item.id ? 'İşleniyor...' : 'Reddet'}
                             </button>
                         </div>
                     </div>
