@@ -43,6 +43,7 @@ export default function LoginPage() {
             if (json.accessToken) {
                 localStorage.setItem('accessToken', json.accessToken);
             }
+            localStorage.removeItem('session_warning_at');
             await axios.get('/api/auth/csrf').catch(() => {});
 
             navigate('/app/dashboard');

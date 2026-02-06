@@ -67,6 +67,7 @@ axios.interceptors.response.use(
       try {
         if (!isAuthEndpoint) {
           await axios.post('/api/auth/refresh', {});
+          localStorage.removeItem('session_warning_at');
           return axios(original);
         }
       } catch {
