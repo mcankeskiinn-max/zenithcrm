@@ -24,18 +24,18 @@ export default function Layout() {
         if (userStr) setUser(JSON.parse(userStr));
 
         const titles: Record<string, string> = {
-            '/app/dashboard': 'Genel BakÄ±Å',
-            '/app/dashboard/sales': 'SatÄ±Å Analizi',
-            '/app/dashboard/cancellations': 'Ä°ptal Analizi',
-            '/app/policy-types': 'BranÅ YÃ¶netimi',
-            '/app/users': 'Sistem KullanÄ±cÄ±larÄ±',
-            '/app/sales': 'SatÄ±Å & PortfÃ¶y',
-            '/app/commissions': 'VarsayÄ±lan Oranlar',
-            '/app/tasks': 'GÃ¶rev & Ajanda',
-            '/app/analytics': 'GeliÅmiÅ Analiz',
+            '/app/dashboard': 'Genel Bakış',
+            '/app/dashboard/sales': 'Satış Analizi',
+            '/app/dashboard/cancellations': 'İptal Analizi',
+            '/app/policy-types': 'Branş Yönetimi',
+            '/app/users': 'Sistem Kullanıcıları',
+            '/app/sales': 'Satış & Portföy',
+            '/app/commissions': 'Varsayılan Oranlar',
+            '/app/tasks': 'Görev & Ajanda',
+            '/app/analytics': 'Gelişmiş Analiz',
             '/app/commission-rules': 'Komisyon Motoru',
-            '/app/messaging': 'Ä°Ã§ Ä°letiÅim & Mesajlar',
-            '/app/audit': 'Sistem GÃ¼nlÃ¼kleri',
+            '/app/messaging': 'İç İletişim & Mesajlar',
+            '/app/audit': 'Sistem Günlükleri',
             '/app/settings': 'Ayarlar'
         };
         setPageTitle(titles[location.pathname] || 'ZenithCRM');
@@ -107,15 +107,15 @@ export default function Layout() {
 
     const menuActions = user?.role === 'EMPLOYEE'
         ? [
-            { label: 'Yeni SatÄ±Å', icon: TrendingUp, path: '/app/sales' },
-            { label: 'Yeni GÃ¶rev', icon: CheckSquare, path: '/app/tasks' },
-            { label: 'Yeni Ä°ptal', icon: AlertTriangle, onClick: () => setIsCancelModalOpen(true) }
+            { label: 'Yeni Satış', icon: TrendingUp, path: '/app/sales' },
+            { label: 'Yeni Görev', icon: CheckSquare, path: '/app/tasks' },
+            { label: 'Yeni İptal', icon: AlertTriangle, onClick: () => setIsCancelModalOpen(true) }
         ]
         : [
-            ...(user?.tenant?.isSingleBranch ? [] : [{ label: 'Yeni Åube', icon: Building2, path: '/app/branches' }]),
+            ...(user?.tenant?.isSingleBranch ? [] : [{ label: 'Yeni Şube', icon: Building2, path: '/app/branches' }]),
             { label: 'Yeni Personel', icon: Users, path: '/app/users' },
-            { label: 'Yeni SatÄ±Å', icon: TrendingUp, path: '/app/sales' },
-            { label: 'Yeni Ä°ptal', icon: AlertTriangle, onClick: () => setIsCancelModalOpen(true) }
+            { label: 'Yeni Satış', icon: TrendingUp, path: '/app/sales' },
+            { label: 'Yeni İptal', icon: AlertTriangle, onClick: () => setIsCancelModalOpen(true) }
         ];
 
     return (
@@ -133,7 +133,7 @@ export default function Layout() {
                         </button>
                         <div className="flex flex-col">
                             <h2 className="text-lg md:text-xl font-bold text-foreground truncate max-w-[150px] md:max-w-none">{pageTitle}</h2>
-                            <p className="hidden md:block text-xs text-muted-foreground font-medium tracking-wide">YÃ¶netim Paneli / {location.pathname.substring(1).split('/')[0]}</p>
+                            <p className="hidden md:block text-xs text-muted-foreground font-medium tracking-wide">Yönetim Paneli / {location.pathname.substring(1).split('/')[0]}</p>
                         </div>
                     </div>
 
@@ -143,7 +143,7 @@ export default function Layout() {
                             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <input
                                 type="text"
-                                placeholder="MÃ¼Återi, poliÃ§e veya gÃ¶rev ara..."
+                                placeholder="Müşteri, poliçe veya görev ara..."
                                 className="bg-transparent border-none outline-none text-sm text-foreground w-full placeholder:text-muted-foreground"
                             />
                         </div>
@@ -155,7 +155,7 @@ export default function Layout() {
                                     className="h-9 md:h-10 px-3 md:px-4 bg-primary text-primary-foreground rounded-xl text-xs md:text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 active:translate-y-0"
                                 >
                                     <Plus size={18} />
-                                    <span className="hidden sm:inline">Yeni KayÄ±t</span>
+                                    <span className="hidden sm:inline">Yeni Kayıt</span>
                                     <ChevronDown size={14} className={`ml-1 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
                                 </button>
 
@@ -203,7 +203,7 @@ export default function Layout() {
                                         </div>
                                         <div className="hidden lg:block text-left">
                                             <p className="text-xs font-bold text-foreground leading-tight">{user?.name}</p>
-                                            <p className="text-[10px] text-muted-foreground font-medium">{user?.role === 'ADMIN' ? 'Sistem YÃ¶neticisi' : user?.role}</p>
+                                            <p className="text-[10px] text-muted-foreground font-medium">{user?.role === 'ADMIN' ? 'Sistem Yöneticisi' : user?.role}</p>
                                         </div>
                                         <ChevronDown size={14} className={`text-muted-foreground ml-1 transition-transform ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                                     </div>
@@ -233,7 +233,7 @@ export default function Layout() {
                                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-destructive hover:bg-destructive/10 transition-all"
                                                 >
                                                     <LogOut size={16} />
-                                                    ÃÄ±kÄ±Å Yap
+                                                    Çıkış Yap
                                                 </button>
                                                 <button
                                                     onClick={() => {
@@ -242,7 +242,7 @@ export default function Layout() {
                                                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted transition-all"
                                                 >
                                                     <LogOut size={16} />
-                                                    TÃ¼m Cihazlardan ÃÄ±kÄ±Å
+                                                    Tüm Cihazlardan Çıkış
                                                 </button>
                                             </div>
                                         </>
@@ -256,8 +256,8 @@ export default function Layout() {
                 {isSessionWarningOpen && (
                     <div className="mx-4 md:mx-8 mt-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 text-sm flex items-center justify-between gap-4">
                         <div>
-                            <strong className="font-semibold">Oturum sÃ¼reniz dolmak Ã¼zere.</strong>
-                            <span className="ml-2">GÃ¼venliÄiniz iÃ§in tekrar giriÅ yapmanÄ±z istenebilir.</span>
+                            <strong className="font-semibold">Oturum süreniz dolmak üzere.</strong>
+                            <span className="ml-2">Güvenliğiniz için tekrar giriş yapmanız istenebilir.</span>
                             {sessionSecondsLeft > 0 && (
                                 <span className="ml-2 font-medium">({sessionSecondsLeft}s)</span>
                             )}
@@ -266,7 +266,7 @@ export default function Layout() {
                             onClick={() => window.location.href = '/login'}
                             className="px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold hover:bg-amber-700"
                         >
-                            Åimdi GiriÅ
+                            Şimdi Giriş
                         </button>
                     </div>
                 )}
