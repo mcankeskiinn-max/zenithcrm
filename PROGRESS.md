@@ -145,3 +145,4 @@ pm test (Vitest) passed.
 - CI durumu kontrol edildi (son 5 run: hepsi success).
 - Vercel rewrites guncellendi: /api istekleri Railway backend'e yonlendiriliyor (register hatasi icin).
 - Vercel config roota tasindi: client/vercel.json kaldirildi, root vercel.json ile /api Railway proxy ayarlandi.
+- Vercel config yeniden client/ altina tasindi (routes + api proxy + SPA fallback). Root vercel.json kaldirildi.
