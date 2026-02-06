@@ -332,6 +332,21 @@ async function step(page, name, fn) {
     await assertNoFormErrors(page);
   }));
 
+  results.push(await step(page, '13_branch_kpi_page', async () => {
+    await page.goto(`${baseURL}/app/kpi`, { waitUntil: 'domcontentloaded' });
+    await sleep(500);
+  }));
+
+  results.push(await step(page, '14_approvals_page', async () => {
+    await page.goto(`${baseURL}/app/approvals`, { waitUntil: 'domcontentloaded' });
+    await sleep(500);
+  }));
+
+  results.push(await step(page, '15_renewals_page', async () => {
+    await page.goto(`${baseURL}/app/renewals`, { waitUntil: 'domcontentloaded' });
+    await sleep(500);
+  }));
+
   const summaryPath = `${outDir}/summary.json`;
   require('fs').writeFileSync(summaryPath, JSON.stringify({ results }, null, 2));
 
