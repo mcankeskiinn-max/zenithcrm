@@ -98,12 +98,7 @@ const docsLimiter = rateLimit({
 });
 
 // App configuration
-if (!isProduction) {
-    console.log('CORS Setup - ENV CORS_ORIGIN:', process.env.CORS_ORIGIN);
-    console.log('CORS Setup - ENV CLIENT_URL:', process.env.CLIENT_URL);
-}
-
-// Hardcode allow list for debugging purposes, combined with env
+// Hardcode allow list combined with env
 // Note: when using credentials: true, 'origin' cannot be '*'
 const normalizeOrigin = (origin: string) => origin.replace(/\/$/, '');
 
@@ -116,10 +111,6 @@ const allowedOrigins = [
     process.env.CORS_ORIGIN,
     process.env.CLIENT_URL
 ].filter((o): o is string => Boolean(o)).map(normalizeOrigin);
-
-if (!isProduction) {
-    console.log('CORS Setup - Allowed Origins:', allowedOrigins);
-}
 
 app.use(cors({
     origin: (origin, callback) => {

@@ -138,3 +138,4 @@ pm test (Vitest) passed.
 - Added branch KPI endpoint, approvals API, renewals API + UI pages (KPI, Onaylar, Yenilemeler). Server tests pass.
 
 - Sidebar etiketleri UTF-8 duzeltildi (mojibake giderildi); client testleri tekrar calisti (vitest: 2 dosya, 4 test passed).
+- CORS debug loglari kaldirildi; global hata mesajindaki Turkce karakter duzeltildi.
