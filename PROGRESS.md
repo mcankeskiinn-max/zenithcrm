@@ -139,3 +139,4 @@ pm test (Vitest) passed.
 
 - Sidebar etiketleri UTF-8 duzeltildi (mojibake giderildi); client testleri tekrar calisti (vitest: 2 dosya, 4 test passed).
 - CORS debug loglari kaldirildi; global hata mesajindaki Turkce karakter duzeltildi.
+- Playwright UI smoke test calisti ve basarili (12 adim, summary.json).
