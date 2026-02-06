@@ -12,6 +12,7 @@ const shouldSkip = (req: Request) => {
     if (path.startsWith('/api/auth/register')) return true;
     if (path.startsWith('/api/auth/forgot-password')) return true;
     if (path.startsWith('/api/auth/reset-password')) return true;
+    if (path.startsWith('/api/auth/refresh')) return true;
     return false;
 };
 
