@@ -4,12 +4,13 @@ import './index.css'
 import App from './App.tsx'
 import axios from 'axios'
 
-// Configure axios - only set baseURL if VITE_API_URL is provided (production)
-// In development, leave it empty so Vite proxy handles /api requests
+// Configure axios
+// In production, prefer same-origin (/api) so cookies + CSRF work with Vercel rewrites.
+// Only set baseURL in non-production (local/dev).
 const apiUrl = import.meta.env.VITE_API_URL;
-if (apiUrl && apiUrl.trim() !== '' && apiUrl !== 'http://localhost:3000') {
-  axios.defaults.baseURL = apiUrl.replace(/\/$/, '');
-  if (import.meta.env.MODE !== 'production') {
+if (import.meta.env.MODE !== 'production') {
+  if (apiUrl && apiUrl.trim() !== '' && apiUrl !== 'http://localhost:3000') {
+    axios.defaults.baseURL = apiUrl.replace(/\/$/, '');
     console.log('Axios baseURL set to:', axios.defaults.baseURL);
   }
 }
@@ -51,6 +52,7 @@ axios.interceptors.response.use(
     const original = error.config || {};
     const status = error.response?.status;
     const url = original.url || '';
+    const message = error.response?.data?.error || '';
 
     const isAuthEndpoint = typeof url === 'string' && url.includes('/api/auth/');
     const isRefresh = typeof url === 'string' && url.includes('/api/auth/refresh');
@@ -71,6 +73,16 @@ axios.interceptors.response.use(
             window.location.href = '/login';
           }, 3000);
         }
+      }
+    }
+
+    if (status === 403 && !original._csrfRetry && typeof message === 'string' && message.toLowerCase().includes('csrf')) {
+      original._csrfRetry = true;
+      try {
+        await axios.get('/api/auth/csrf');
+        return axios(original);
+      } catch {
+        // fall through
       }
     }
 
