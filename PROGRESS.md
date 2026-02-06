@@ -146,3 +146,4 @@ pm test (Vitest) passed.
 - Vercel rewrites guncellendi: /api istekleri Railway backend'e yonlendiriliyor (register hatasi icin).
 - Vercel config roota tasindi: client/vercel.json kaldirildi, root vercel.json ile /api Railway proxy ayarlandi.
 - Vercel config yeniden client/ altina tasindi (routes + api proxy + SPA fallback). Root vercel.json kaldirildi.
+- Pilot baslatildi (Muratcan, 7 gun). Hesap olusturuldu, landing ve register dogrulandi.
