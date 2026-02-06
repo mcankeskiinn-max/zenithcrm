@@ -23,6 +23,12 @@ export const csrfProtection = (req: Request, res: Response, next: NextFunction) 
 
     const cookieToken = (req.cookies && req.cookies[CSRF_COOKIE]) as string | undefined;
     const headerToken = req.headers[CSRF_HEADER] as string | undefined;
+    const authHeader = (req.headers.authorization || req.headers.Authorization) as string | undefined;
+
+    // If request uses Bearer auth (no cookies), CSRF is not required.
+    if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+        return next();
+    }
 
     if (!cookieToken || !headerToken || cookieToken !== headerToken) {
         return res.status(403).json({ error: 'CSRF token invalid or missing' });

@@ -42,6 +42,11 @@ axios.interceptors.request.use((config) => {
     }
   }
 
+  const accessToken = localStorage.getItem('accessToken');
+  if (accessToken && !(headers as any).Authorization) {
+    (headers as any).Authorization = `Bearer ${accessToken}`;
+  }
+
   config.headers = headers;
   return config;
 });

@@ -40,6 +40,9 @@ export default function LoginPage() {
             }
 
             localStorage.setItem('user', JSON.stringify(json.user));
+            if (json.accessToken) {
+                localStorage.setItem('accessToken', json.accessToken);
+            }
             await axios.get('/api/auth/csrf').catch(() => {});
 
             navigate('/app/dashboard');
