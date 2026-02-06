@@ -12,21 +12,21 @@ router.get('/', getCustomers);
 router.get('/:id', getCustomerProfile);
 router.post('/',
     body('name').isString().trim().isLength({ min: 2, max: 120 }),
-    body('email').optional({ nullable: true }).isEmail().normalizeEmail(),
-    body('phone').optional({ nullable: true }).isString().trim().isLength({ min: 5, max: 30 }),
-    body('identityNumber').optional({ nullable: true }).isString().trim().isLength({ min: 5, max: 30 }),
-    body('address').optional({ nullable: true }).isString().trim().isLength({ min: 2, max: 500 }),
-    body('notes').optional({ nullable: true }).isString().trim().isLength({ max: 1000 }),
+    body('email').optional({ nullable: true, checkFalsy: true }).isEmail().normalizeEmail(),
+    body('phone').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ min: 5, max: 30 }),
+    body('identityNumber').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ min: 5, max: 30 }),
+    body('address').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ min: 2, max: 500 }),
+    body('notes').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ max: 1000 }),
     validateRequest,
     createCustomer
 );
 router.patch('/:id',
-    body('name').optional({ nullable: true }).isString().trim().isLength({ min: 2, max: 120 }),
-    body('email').optional({ nullable: true }).isEmail().normalizeEmail(),
-    body('phone').optional({ nullable: true }).isString().trim().isLength({ min: 5, max: 30 }),
-    body('identityNumber').optional({ nullable: true }).isString().trim().isLength({ min: 5, max: 30 }),
-    body('address').optional({ nullable: true }).isString().trim().isLength({ min: 2, max: 500 }),
-    body('notes').optional({ nullable: true }).isString().trim().isLength({ max: 1000 }),
+    body('name').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ min: 2, max: 120 }),
+    body('email').optional({ nullable: true, checkFalsy: true }).isEmail().normalizeEmail(),
+    body('phone').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ min: 5, max: 30 }),
+    body('identityNumber').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ min: 5, max: 30 }),
+    body('address').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ min: 2, max: 500 }),
+    body('notes').optional({ nullable: true, checkFalsy: true }).isString().trim().isLength({ max: 1000 }),
     validateRequest,
     updateCustomer
 );
