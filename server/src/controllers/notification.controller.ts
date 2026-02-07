@@ -27,6 +27,8 @@ export const getNotifications = async (req: Request, res: Response) => {
 export const getUnreadCount = async (req: Request, res: Response) => {
     try {
         const currentUser = req.user!;
+        const buildSha = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT_SHA || 'unknown';
+        res.set('X-App-Build', buildSha);
 
         const cacheKey = `${currentUser.tenantId}:${currentUser.id}`;
         const cached = unreadCache.get(cacheKey);
