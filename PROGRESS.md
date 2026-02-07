@@ -173,3 +173,5 @@ pm test (Vitest) passed.
 - Iptal akisi onaydan vazgecti: modal ve policy iptali dogrudan /api/sales ile iptal ediyor.
 
 - Iptal akisi onayli: iptal talepleri /api/approvals/request ile Onaylar sayfasina dusuyor.
+
+- Dashboard stats endpoint optimized: parallel queries + 30s cache + response cache headers.

@@ -4,6 +4,9 @@ import prisma from '../prisma';
 import { Role } from '../utils/constants';
 import { ForecastEngine } from '../services/forecast.service';
 
+const DASHBOARD_CACHE_TTL_MS = 30 * 1000;
+const dashboardCache = new Map<string, { ts: number; data: any }>();
+
 export const getDashboardStats = async (req: Request, res: Response) => {
     try {
         const user = req.user!;
@@ -13,172 +16,135 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             tenantId: user.tenantId
         };
 
-        // ADMIN sees EVERYTHING (no where clause for branch)
         if (!isAdmin) {
             if (user.branchId) {
                 where.branchId = user.branchId;
             } else if (user.role === Role.MANAGER) {
-                // Defensive: Managers SHOULD have a branch. If none, they see only their own inputs.
                 where.employeeId = user.id;
             } else {
-                // Employees see only their own data
                 where.employeeId = user.id;
             }
         }
 
-
-
-        // 1. Total Sales Amount (ACTIVE ones)
-        let totalSales = 0;
-        try {
-            const totalSalesAgg = await prisma.sale.aggregate({
-                where: { ...where, status: 'ACTIVE' },
-                _sum: { amount: true }
-            });
-            totalSales = totalSalesAgg._sum.amount ? Number(totalSalesAgg._sum.amount) : 0;
-        } catch (e) { }
-
-        // 2. Active Policies
-        let activePolicies = 0;
-        try {
-            activePolicies = await prisma.sale.count({
-                where: { ...where, status: 'ACTIVE' }
-            });
-        } catch (e) { }
-
-        // 3. New Leads
-        let newLeads = 0;
-        try {
-            newLeads = await prisma.sale.count({
-                where: { ...where, status: 'LEAD' }
-            });
-        } catch (e) { }
-
-        // 4. Total Commission
-        let totalCommission = 0;
-        try {
-            const totalCommissionAgg = await prisma.commissionLog.aggregate({
-                where,
-                _sum: { amount: true }
-            });
-            totalCommission = totalCommissionAgg._sum.amount ? Number(totalCommissionAgg._sum.amount) : 0;
-        } catch (e) { }
-
-        // 5. Cancellation Stats
-        let cancellationLoss = 0;
-        let cancellationCount = 0;
-        try {
-            const cancellationsAgg = await prisma.sale.aggregate({
-                where: { ...where, status: 'CANCELLED' },
-                _sum: { amount: true },
-                _count: true
-            });
-            cancellationLoss = cancellationsAgg._sum.amount ? Number(cancellationsAgg._sum.amount) : 0;
-            cancellationCount = cancellationsAgg._count;
-        } catch (e) { }
-
-        // 6. Cancellation Reasons Distribution
-        let cancellationBreakdown: { name: string; count: number; value: number }[] = [];
-        try {
-            // @ts-ignore
-            const cancellationReasons = await prisma.sale.groupBy({
-                by: ['cancelReason'],
-                where: { ...(where as any), status: 'CANCELLED' },
-                _count: { id: true },
-                _sum: { amount: true }
-            });
-
-            cancellationBreakdown = cancellationReasons.map(r => ({
-                name: r.cancelReason || 'Belirtilmemiş',
-                // @ts-ignore
-                count: r._count?.id || 0,
-                // @ts-ignore
-                value: r._sum?.amount ? Number(r._sum.amount) : 0
-            }));
-        } catch (e) { }
-
-        // 7. Dynamic Range & Granularity Chart Data
         const rangeStr = (req.query.range as string) || '6';
-        const range = parseInt(rangeStr) || 6;
+        const range = parseInt(rangeStr, 10) || 6;
+
+        const cacheKey = `${user.tenantId}|${range}|${where.branchId || ''}|${where.employeeId || ''}`;
+        const cached = dashboardCache.get(cacheKey);
+        if (cached && Date.now() - cached.ts < DASHBOARD_CACHE_TTL_MS) {
+            res.set('Cache-Control', 'private, max-age=30');
+            return res.json({ ...cached.data, cached: true });
+        }
+
         const chartData: { name: string; income: number; expenses: number; key: string }[] = [];
+        const now = new Date();
+        const startDate = new Date();
 
-        try {
-            const now = new Date();
-            const startDate = new Date();
-
-            if (range === 1) {
-                // Daily granularity for 1 month
-                for (let i = 29; i >= 0; i--) {
-                    const d = new Date();
-                    d.setHours(0, 0, 0, 0);
-                    d.setDate(now.getDate() - i);
-                    const label = d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
-                    chartData.push({
-                        name: label,
-                        income: 0,
-                        expenses: 0,
-                        key: d.toISOString().split('T')[0] // YYYY-MM-DD
-                    });
-                }
-                startDate.setDate(now.getDate() - 30);
-                startDate.setHours(0, 0, 0, 0);
-            } else {
-                // Monthly granularity for others (3, 6, 12 months)
-                for (let i = range - 1; i >= 0; i--) {
-                    // Get the first day of each target month safely
-                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-                    const monthLabel = d.toLocaleString('tr-TR', { month: 'short' });
-                    chartData.push({
-                        name: monthLabel,
-                        income: 0,
-                        expenses: 0,
-                        key: `${d.getFullYear()}-${d.getMonth()}` // Unique Month Key
-                    });
-                }
-                startDate.setFullYear(now.getFullYear());
-                startDate.setMonth(now.getMonth() - (range - 1));
-                startDate.setDate(1);
-                startDate.setHours(0, 0, 0, 0);
+        if (range == 1) {
+            for (let i = 29; i >= 0; i--) {
+                const d = new Date();
+                d.setHours(0, 0, 0, 0);
+                d.setDate(now.getDate() - i);
+                const label = d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
+                chartData.push({
+                    name: label,
+                    income: 0,
+                    expenses: 0,
+                    key: d.toISOString().split('T')[0]
+                });
             }
+            startDate.setDate(now.getDate() - 30);
+            startDate.setHours(0, 0, 0, 0);
+        } else {
+            for (let i = range - 1; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const monthLabel = d.toLocaleString('tr-TR', { month: 'short' });
+                chartData.push({
+                    name: monthLabel,
+                    income: 0,
+                    expenses: 0,
+                    key: `${d.getFullYear()}-${d.getMonth()}`
+                });
+            }
+            startDate.setFullYear(now.getFullYear());
+            startDate.setMonth(now.getMonth() - (range - 1));
+            startDate.setDate(1);
+            startDate.setHours(0, 0, 0, 0);
+        }
 
-            const recentSales = await prisma.sale.findMany({
+        const results = await Promise.allSettled([
+            prisma.sale.aggregate({ where: { ...where, status: 'ACTIVE' }, _sum: { amount: true } }),
+            prisma.sale.count({ where: { ...where, status: 'ACTIVE' } }),
+            prisma.sale.count({ where: { ...where, status: 'LEAD' } }),
+            prisma.commissionLog.aggregate({ where, _sum: { amount: true } }),
+            prisma.sale.aggregate({ where: { ...where, status: 'CANCELLED' }, _sum: { amount: true }, _count: true }),
+            prisma.sale.groupBy({ by: ['cancelReason'], where: { ...(where as any), status: 'CANCELLED' }, _count: { id: true }, _sum: { amount: true } }),
+            prisma.sale.findMany({ where: { ...where, saleDate: { gte: startDate } }, select: { saleDate: true, createdAt: true, amount: true, status: true } }),
+            prisma.sale.findMany({
                 where: {
                     ...where,
-                    saleDate: { gte: startDate },
+                    status: 'ACTIVE',
+                    endDate: { gte: new Date(), lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
                 },
-                select: { saleDate: true, createdAt: true, amount: true, status: true },
-            });
+                include: { customer: { select: { id: true, firstName: true, lastName: true } } },
+                orderBy: { endDate: 'asc' },
+                take: 5
+            }),
+            ForecastEngine.calculateForecast(user.tenantId, where.branchId, where.employeeId),
+            ForecastEngine.getTargetProgress(user.tenantId, new Date().getMonth() + 1, new Date().getFullYear(), where.branchId, where.employeeId)
+        ]);
 
-            recentSales.forEach(sale => {
-                const saleDate = new Date(sale.saleDate || (sale as any).createdAt);
-                let match;
+        const totalSalesAgg = results[0].status == 'fulfilled' ? results[0].value : null;
+        const activePolicies = results[1].status == 'fulfilled' ? results[1].value : 0;
+        const newLeads = results[2].status == 'fulfilled' ? results[2].value : 0;
+        const totalCommissionAgg = results[3].status == 'fulfilled' ? results[3].value : null;
+        const cancellationsAgg = results[4].status == 'fulfilled' ? results[4].value : null;
+        const cancellationReasons = results[5].status == 'fulfilled' ? results[5].value : [];
+        const recentSales = results[6].status == 'fulfilled' ? results[6].value : [];
+        const upcomingRenewals = results[7].status == 'fulfilled' ? results[7].value : [];
+        const forecast = results[8].status == 'fulfilled' ? results[8].value : null;
+        const targetProgress = results[9].status == 'fulfilled' ? results[9].value : null;
 
-                if (range === 1) {
-                    const key = saleDate.toISOString().split('T')[0];
-                    match = chartData.find(d => d.key === key);
-                } else {
-                    const key = `${saleDate.getFullYear()}-${saleDate.getMonth()}`;
-                    match = chartData.find(d => d.key === key);
-                }
+        const totalSales = totalSalesAgg?._sum?.amount ? Number(totalSalesAgg._sum.amount) : 0;
+        const totalCommission = totalCommissionAgg?._sum?.amount ? Number(totalCommissionAgg._sum.amount) : 0;
+        const cancellationLoss = cancellationsAgg?._sum?.amount ? Number(cancellationsAgg._sum.amount) : 0;
+        const cancellationCount = cancellationsAgg?._count || 0;
 
-                if (match) {
-                    const amt = Number(sale.amount) || 0;
-                    if (sale.status === 'ACTIVE') {
-                        match.income += amt;
-                    } else if (sale.status === 'CANCELLED') {
-                        match.expenses += amt;
-                    }
-                }
-            });
-        } catch (e) { }
+        const cancellationBreakdown = (cancellationReasons || []).map((r: any) => ({
+            name: r.cancelReason || 'Belirtilmemis',
+            count: r._count?.id || 0,
+            value: r._sum?.amount ? Number(r._sum.amount) : 0
+        }));
 
-        // Clean up keys before sending to frontend
+        (recentSales || []).forEach((sale: any) => {
+            const saleDate = new Date(sale.saleDate || sale.createdAt);
+            let match;
+            if (range == 1) {
+                const key = saleDate.toISOString().split('T')[0];
+                match = chartData.find(d => d.key === key);
+            } else {
+                const key = `${saleDate.getFullYear()}-${saleDate.getMonth()}`;
+                match = chartData.find(d => d.key === key);
+            }
+            if (match) {
+                const amt = Number(sale.amount) || 0;
+                if (sale.status === 'ACTIVE') match.income += amt;
+                else if (sale.status === 'CANCELLED') match.expenses += amt;
+            }
+        });
+
         const finalChartData = chartData.map(({ key, ...rest }) => rest);
 
+        const mappedRenewals = (upcomingRenewals || []).map((s: any) => ({
+            ...s,
+            customer: {
+                ...s.customer,
+                name: s.customer ? `${s.customer.firstName} ${s.customer.lastName}`.trim() : 'Bilinmeyen Musteri'
+            }
+        }));
 
-
-        res.json({
-            v: "2.7-fixes",
+        const payload = {
+            v: '2.7-fixes',
             cards: {
                 totalSales,
                 activePolicies,
@@ -189,37 +155,14 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             },
             chartData: finalChartData,
             cancellationBreakdown,
-            forecast: await ForecastEngine.calculateForecast(user.tenantId, where.branchId, where.employeeId),
-            targetProgress: await ForecastEngine.getTargetProgress(
-                user.tenantId,
-                new Date().getMonth() + 1,
-                new Date().getFullYear(),
-                where.branchId,
-                where.employeeId
-            ),
-            upcomingRenewals: (await prisma.sale.findMany({
-                where: {
-                    ...where,
-                    status: 'ACTIVE',
-                    endDate: {
-                        gte: new Date(),
-                        lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                    }
-                },
-                include: {
-                    customer: { select: { id: true, firstName: true, lastName: true } }
-                },
-                orderBy: { endDate: 'asc' },
-                take: 5
-            })).map(s => ({
-                ...s,
-                customer: {
-                    ...s.customer,
-                    name: s.customer ? `${s.customer.firstName} ${s.customer.lastName}`.trim() : 'Bilinmeyen Müşteri'
-                }
-            }))
-        });
+            forecast,
+            targetProgress,
+            upcomingRenewals: mappedRenewals
+        };
 
+        dashboardCache.set(cacheKey, { ts: Date.now(), data: payload });
+        res.set('Cache-Control', 'private, max-age=30');
+        res.json(payload);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
