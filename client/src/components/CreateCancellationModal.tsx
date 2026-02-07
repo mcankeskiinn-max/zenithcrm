@@ -90,7 +90,7 @@ const ptRes = await axios.get('/api/policy-types', {  });
         } finally {
             setLoading(false);
         }
-    };};
+    };
 
     const handleClose = () => {
         setCustomerName('');
