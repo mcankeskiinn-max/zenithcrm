@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import * as Sentry from '@sentry/node';
 import authRoutes from './routes/auth.routes';
 import commissionRoutes from './routes/commission.routes';
 import branchRoutes from './routes/branch.routes';
@@ -35,6 +36,16 @@ import { csrfProtection } from './middleware/csrf.middleware';
 
 
 const app = express();
+
+const sentryDsn = process.env.SENTRY_DSN;
+if (sentryDsn) {
+    Sentry.init({
+        dsn: sentryDsn,
+        environment: process.env.NODE_ENV || 'development',
+        tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE || 0.1)
+    });
+    app.use(Sentry.Handlers.requestHandler());
+}
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -182,6 +193,10 @@ app.use('/api/sessions', sessionRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/renewals', renewalRoutes);
+
+if (sentryDsn) {
+    app.use(Sentry.Handlers.errorHandler());
+}
 
 // 404 handler
 app.use((req, res) => {

@@ -1,6 +1,9 @@
 import { Request, Response } from 'express';
 import { NotificationService } from '../services/notification.service';
 
+const UNREAD_CACHE_TTL_MS = 10 * 1000;
+const unreadCache = new Map<string, { ts: number; count: number }>();
+
 export const getNotifications = async (req: Request, res: Response) => {
     try {
         const currentUser = req.user!;
@@ -25,10 +28,20 @@ export const getUnreadCount = async (req: Request, res: Response) => {
     try {
         const currentUser = req.user!;
 
+        const cacheKey = `${currentUser.tenantId}:${currentUser.id}`;
+        const cached = unreadCache.get(cacheKey);
+        if (cached && Date.now() - cached.ts < UNREAD_CACHE_TTL_MS) {
+            res.set('Cache-Control', 'private, max-age=10');
+            return res.json({ count: cached.count, cached: true });
+        }
+
         const count = await NotificationService.getUnreadCount(
             currentUser.tenantId,
             currentUser.id
         );
+
+        unreadCache.set(cacheKey, { ts: Date.now(), count });
+        res.set('Cache-Control', 'private, max-age=10');
 
         res.json({ count });
     } catch (error) {

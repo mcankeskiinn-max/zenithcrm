@@ -195,6 +195,9 @@ model Sale {
   @@index([tenantId])
   @@index([status])
   @@index([saleDate])
+  @@index([tenantId, status])
+  @@index([tenantId, saleDate])
+  @@index([tenantId, branchId])
   @@map("sales")
 }
 
@@ -220,6 +223,7 @@ model Task {
   @@index([tenantId])
   @@index([dueDate])
   @@index([isCompleted])
+  @@index([tenantId, isCompleted, assignedToId])
   @@map("tasks")
 }
 
@@ -265,6 +269,7 @@ model CommissionLog {
   @@index([employeeId])
   @@index([tenantId])
   @@index([isPaid])
+  @@index([tenantId, createdAt])
   @@map("commission_logs")
 }
 

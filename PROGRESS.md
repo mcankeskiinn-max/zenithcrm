@@ -175,3 +175,6 @@ pm test (Vitest) passed.
 - Iptal akisi onayli: iptal talepleri /api/approvals/request ile Onaylar sayfasina dusuyor.
 
 - Dashboard stats endpoint optimized: parallel queries + 30s cache + response cache headers.
+
+- Performans: dashboard stats paralel sorgu + 30s cache, notifications unread-count 10s cache, yeni DB indexleri eklendi.
+- Sentry entegrasyonu eklendi (SENTRY_DSN varsa aktif).
