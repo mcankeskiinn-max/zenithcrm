@@ -52,21 +52,14 @@ const ptRes = await axios.get('/api/policy-types', {  });
         e.preventDefault();
         setLoading(true);
         try {
-const user = JSON.parse(localStorage.getItem('user') || '{}');
-
-            await axios.post('/api/sales', {
-                customerName,
+            await axios.post('/api/approvals', {
+                type: 'CANCELLATION',
                 policyNumber,
-                amount: Number(amount),
-                branchId,
-                policyTypeId,
-                employeeId: user.id,
-                status: 'CANCELLED',
-                cancelReason
-            }, {
-                
+                reason: cancelReason,
+                amount: Number(amount)
             });
 
+            alert('?ptal talebi onaya g?nderildi.');
             onSuccess();
             handleClose();
         } catch (error: any) {

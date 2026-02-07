@@ -73,14 +73,27 @@ export const listApprovals = async (req: Request, res: Response) => {
 export const requestApproval = async (req: Request, res: Response) => {
     try {
         const user = req.user!;
-        const { type, saleId, reason } = req.body as { type: ApprovalType; saleId: string; reason?: string };
+        const { type, saleId, policyNumber, reason, amount } = req.body as {
+            type: ApprovalType;
+            saleId?: string;
+            policyNumber?: string;
+            reason?: string;
+            amount?: number;
+        };
 
-        if (!type || !saleId || !['CANCELLATION', 'COMMISSION'].includes(type)) {
+        if (!type || !['CANCELLATION', 'COMMISSION'].includes(type)) {
             return res.status(400).json({ error: 'Invalid approval request' });
         }
 
+        if (!saleId && !policyNumber) {
+            return res.status(400).json({ error: 'Sale reference required' });
+        }
+
         const sale = await prisma.sale.findFirst({
-            where: { id: saleId, tenantId: user.tenantId },
+            where: {
+                tenantId: user.tenantId,
+                ...(saleId ? { id: saleId } : { policyNumber: policyNumber })
+            },
             include: { customer: true, policyType: true }
         });
         if (!sale) return res.status(404).json({ error: 'Sale not found' });
@@ -100,7 +113,8 @@ export const requestApproval = async (req: Request, res: Response) => {
             policyNumber: sale.policyNumber,
             customerName: sale.customer ? `${sale.customer.firstName} ${sale.customer.lastName}`.trim() : null,
             requesterId: user.id,
-            reason: reason || null
+            reason: reason || null,
+            amount: typeof amount === 'number' ? amount : null
         };
 
         const title = `${APPROVAL_PREFIX} ${type} - ${sale.policyNumber || sale.id.slice(0, 8)}`;
@@ -163,7 +177,8 @@ export const approveRequest = async (req: Request, res: Response) => {
                 where: { id: approval.saleId },
                 data: {
                     status: SaleStatus.CANCELLED,
-                    cancelReason: approval.reason || 'Onay ile iptal'
+                    cancelReason: approval.reason || 'Onay ile iptal',
+                    amount: approval.amount ? Number(approval.amount) : undefined
                 }
             });
         }

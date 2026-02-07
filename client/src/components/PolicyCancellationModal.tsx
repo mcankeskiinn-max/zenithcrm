@@ -41,14 +41,14 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
         try {
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-            await axios.put(`/api/sales/${policy.id}`, {
-                amount: Number(amount),
-                status: 'CANCELLED',
-                cancelReason
-            }, {
-                
+            await axios.post('/api/approvals', {
+                type: 'CANCELLATION',
+                saleId: policy.id,
+                reason: cancelReason,
+                amount: Number(amount)
             });
 
+            alert('İptal talebi onaya gönderildi.');
             onSuccess();
             handleClose();
         } catch (error: any) {

@@ -161,3 +161,5 @@ pm test (Vitest) passed.
 - Iptal akisi: Sales API artik customerName alanini donuyor; iptal modalinda customerName fallback eklendi; iptal arama filtresi guvenli hale getirildi.
 
 - Iptal islemi: mevcut policede iptal icin PUT /api/sales/:id kullaniliyor; backend cancellation mevcut policede status=Cancelled update ediyor.
+
+- Iptal islemleri artik onay akisi: iptal talebi /api/approvals ile olusturuluyor, onayda satis CANCELLED oluyor; kullaniciya onay bekleniyor mesaji eklendi.
