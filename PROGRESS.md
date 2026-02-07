@@ -157,3 +157,5 @@ pm test (Vitest) passed.
 - Branch KPI 500 hatasi duzeltildi: Prisma findMany icin select+include cakismasi kaldirildi.
 
 - Branch KPI hata detaylari response'a eklendi (teshis icin).
+
+- Iptal akisi: Sales API artik customerName alanini donuyor; iptal modalinda customerName fallback eklendi; iptal arama filtresi guvenli hale getirildi.

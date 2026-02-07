@@ -60,13 +60,22 @@ export const getSales = async (req: Request, res: Response) => {
         });
 
         // Map sales to include composite customer name expected by frontend
-        const mappedSales = sales.map(sale => ({
-            ...sale,
-            customer: sale.customer ? {
-                ...sale.customer,
-                name: `${sale.customer.firstName} ${sale.customer.lastName}`.trim()
-            } : null
-        }));
+        const mappedSales = sales.map(sale => {
+            const customerName = sale.customer
+                ? `${sale.customer.firstName} ${sale.customer.lastName}`.trim()
+                : '';
+
+            return {
+                ...sale,
+                customerName,
+                customer: sale.customer
+                    ? {
+                        ...sale.customer,
+                        name: customerName
+                    }
+                    : null
+            };
+        });
 
         res.json(mappedSales);
     } catch (error) {

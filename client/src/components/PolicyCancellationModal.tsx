@@ -42,7 +42,7 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
             await axios.post('/api/sales', {
-                customerName: policy.customerName,
+                customerName: policy.customerName || policy.customer?.name,
                 policyNumber: policy.policyNumber,
                 amount: Number(amount),
                 branchId: policy.branchId,

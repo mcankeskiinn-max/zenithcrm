@@ -299,10 +299,11 @@ const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Dat
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {activePolicies
-                                    .filter(p =>
-                                        p.policyNumber.toLowerCase().includes(policySearch.toLowerCase()) ||
-                                        p.customerName.toLowerCase().includes(policySearch.toLowerCase())
-                                    )
+                                    .filter(p => {
+                                        const pNum = (p.policyNumber || '').toLowerCase();
+                                        const cName = (p.customerName || p.customer?.name || '').toLowerCase();
+                                        return pNum.includes(policySearch.toLowerCase()) || cName.includes(policySearch.toLowerCase());
+                                    })
                                     .slice(0, 10)
                                     .map((policy) => (
                                         <tr key={policy.id} className="group hover:bg-muted/50 transition-colors">
@@ -320,7 +321,7 @@ const res = await axios.get(`/api/dashboard/stats?range=${selectedRange}&v=${Dat
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-muted-foreground">{policy.customerName}</p>
+                                                        <p className="text-xs text-muted-foreground">{policy.customerName || policy.customer?.name || '-'}</p>
                                                     </div>
                                                 </div>
                                             </td>
