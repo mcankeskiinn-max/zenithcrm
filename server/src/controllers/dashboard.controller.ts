@@ -314,8 +314,11 @@ export const getBranchKpi = async (req: Request, res: Response) => {
                 tenantId: user.tenantId,
                 createdAt: { gte: startDate }
             },
-            select: { amount: true, saleId: true },
-            include: { sale: { select: { branchId: true } } }
+            select: {
+                amount: true,
+                saleId: true,
+                sale: { select: { branchId: true } }
+            }
         });
 
         const renewalWindow = new Date();
@@ -370,7 +373,8 @@ export const getBranchKpi = async (req: Request, res: Response) => {
 
         res.json(Array.from(byBranch.values()));
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch branch KPI' });
+        console.error('[BranchKPI] Error:', error);
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: 'Failed to fetch branch KPI', details: message });
     }
 };

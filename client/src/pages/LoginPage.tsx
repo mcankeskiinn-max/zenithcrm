@@ -40,9 +40,10 @@ export default function LoginPage() {
             }
 
             localStorage.setItem('user', JSON.stringify(json.user));
-            if (json.accessToken) {
-                localStorage.setItem('accessToken', json.accessToken);
-                axios.defaults.headers.common.Authorization = `Bearer ${json.accessToken}`;
+            const token = json.accessToken || json.token;
+            if (token) {
+                localStorage.setItem('accessToken', token);
+                axios.defaults.headers.common.Authorization = `Bearer ${token}`;
             }
             localStorage.removeItem('session_warning_at');
             await axios.get('/api/auth/csrf').catch(() => {});

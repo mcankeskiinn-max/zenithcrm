@@ -163,7 +163,7 @@ model PolicyType {
 
 model Sale {
   id             String          @id @default(uuid())
-  policyNumber   String?         @unique
+  policyNumber   String?
   amount         Decimal         @db.Decimal(12, 2)
   status         SaleStatus      @default(LEAD)
   customerId     String?
@@ -178,6 +178,7 @@ model Sale {
   notes          String?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
   branch         Branch          @relation(fields: [branchId], references: [id])
   customer       Customer?       @relation(fields: [customerId], references: [id])
   employee       User            @relation(fields: [employeeId], references: [id])
@@ -187,6 +188,7 @@ model Sale {
   documents      Document[]
   messages       Message[]
 
+  @@unique([tenantId, policyNumber])
   @@index([branchId])
   @@index([employeeId])
   @@index([policyTypeId])

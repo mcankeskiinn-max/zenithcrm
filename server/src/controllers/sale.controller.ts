@@ -180,7 +180,7 @@ export const createSale = async (req: Request, res: Response) => {
         const targetPolicyNumber = policyNumber && policyNumber.trim() !== "" ? policyNumber.trim() : null;
 
         if (targetPolicyNumber) {
-            // Check if policy number already exists to avoid P2002 error
+            // Reject duplicate policy numbers within the same tenant
             const existingSale = await prisma.sale.findFirst({
                 where: {
                     policyNumber: targetPolicyNumber,
@@ -188,17 +188,15 @@ export const createSale = async (req: Request, res: Response) => {
                 }
             });
             if (existingSale) {
-                // Update existing record
-                sale = await prisma.sale.update({
-                    where: { id: existingSale.id },
-                    data: saleData
-                });
-            } else {
-                // Create new record with policy number
-                sale = await prisma.sale.create({
-                    data: { ...saleData, policyNumber: targetPolicyNumber }
+                return res.status(409).json({
+                    error: 'Poliçe numarası zaten kullanılıyor',
+                    code: 'POLICY_NUMBER_EXISTS'
                 });
             }
+            // Create new record with policy number
+            sale = await prisma.sale.create({
+                data: { ...saleData, policyNumber: targetPolicyNumber }
+            });
         } else {
             // Create new record without policy number (Prisma will use null)
             sale = await prisma.sale.create({
@@ -231,6 +229,14 @@ export const createSale = async (req: Request, res: Response) => {
         console.error('[CreateSale] Critical Failure:', error);
         const message = error instanceof Error ? error.message : 'Unknown error';
         const code = (error as any)?.code;
+
+        if (code === 'P2002') {
+            return res.status(409).json({
+                error: 'Poliçe numarası zaten kullanılıyor',
+                code: 'POLICY_NUMBER_EXISTS'
+            });
+        }
+
         res.status(500).json({
             error: 'Failed to create sale',
             details: message,

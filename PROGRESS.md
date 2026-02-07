@@ -147,3 +147,13 @@ pm test (Vitest) passed.
 - Vercel config roota tasindi: client/vercel.json kaldirildi, root vercel.json ile /api Railway proxy ayarlandi.
 - Vercel config yeniden client/ altina tasindi (routes + api proxy + SPA fallback). Root vercel.json kaldirildi.
 - Pilot baslatildi (Muratcan, 7 gun). Hesap olusturuldu, landing ve register dogrulandi.
+
+- Login yanitinda accessToken yoksa token alanini da kabul edecek sekilde localStorage yazimi guncellendi.
+- Sales Analizi 'Yeni Satis' modalinda Authorization header force edildi (NO_TOKEN hatasi icin).
+
+- Poliçe numarasý unique kuralý tenant bazlý olacak þekilde güncellendi (schema + migration).
+- Satýþ oluþtururken ayný tenant içinde tekrar poliçe numarasý varsa 409 ile net hata veriliyor.
+
+- Branch KPI 500 hatasi duzeltildi: Prisma findMany icin select+include cakismasi kaldirildi.
+
+- Branch KPI hata detaylari response'a eklendi (teshis icin).

@@ -79,6 +79,7 @@ const [bRes, ptRes, uRes] = await Promise.all([
         try {
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
+            const accessToken = localStorage.getItem('accessToken');
             const res = await axios.post('/api/sales', {
                 customerName,
                 customerPhone,
@@ -91,7 +92,7 @@ const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
                 status: 'ACTIVE',
                 saleDate
             }, {
-                
+                headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
             });
 
             onSuccess();
@@ -100,7 +101,13 @@ const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
             // handleClose(); // Don't close immediately
         } catch (error: any) {
             console.error('Failed to create sale:', error);
-            alert('SatÄ±ÅŸ kaydÄ± oluÅŸturulurken bir hata oluÅŸtu: ' + (error.response?.data?.error || error.message));
+            const serverError = error.response?.data?.error;
+            const serverCode = error.response?.data?.code;
+            if (serverCode === 'POLICY_NUMBER_EXISTS') {
+                alert('Bu poliçe numarasý zaten kullanýlýyor. Lütfen farklý bir numara girin.');
+            } else {
+                alert('Satýþ kaydý oluþturulurken bir hata oluþtu: ' + (serverError || error.message));
+            }
         } finally {
             setLoading(false);
         }
@@ -297,4 +304,5 @@ const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
         </div>
     );
 }
+
 
