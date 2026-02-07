@@ -44,7 +44,6 @@ if (sentryDsn) {
         environment: process.env.NODE_ENV || 'development',
         tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE || 0.1)
     });
-    app.use(Sentry.Handlers.requestHandler());
 }
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -195,7 +194,7 @@ app.use('/api/approvals', approvalRoutes);
 app.use('/api/renewals', renewalRoutes);
 
 if (sentryDsn) {
-    app.use(Sentry.Handlers.errorHandler());
+    Sentry.setupExpressErrorHandler(app);
 }
 
 // 404 handler
