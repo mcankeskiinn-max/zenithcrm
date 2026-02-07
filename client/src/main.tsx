@@ -15,6 +15,10 @@ if (import.meta.env.MODE !== 'production') {
   }
 }
 axios.defaults.withCredentials = true;
+const bootstrapToken = localStorage.getItem('accessToken');
+if (bootstrapToken) {
+  axios.defaults.headers.common.Authorization = `Bearer ${bootstrapToken}`;
+}
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 

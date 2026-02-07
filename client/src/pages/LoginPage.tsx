@@ -42,6 +42,7 @@ export default function LoginPage() {
             localStorage.setItem('user', JSON.stringify(json.user));
             if (json.accessToken) {
                 localStorage.setItem('accessToken', json.accessToken);
+                axios.defaults.headers.common.Authorization = `Bearer ${json.accessToken}`;
             }
             localStorage.removeItem('session_warning_at');
             await axios.get('/api/auth/csrf').catch(() => {});
