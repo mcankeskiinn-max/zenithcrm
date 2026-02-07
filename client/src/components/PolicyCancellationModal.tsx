@@ -37,6 +37,15 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
         e.preventDefault();
         if (!policy) return;
 
+        if (!cancelReason) {
+            alert('L?tfen iptal nedenini se?in.');
+            return;
+        }
+        if (!amount || Number.isNaN(Number(amount))) {
+            alert('L?tfen iptal tutar?n? girin.');
+            return;
+        }
+
         setLoading(true);
         try {
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -87,7 +96,7 @@ const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="p-8 space-y-6">
                     <div className="bg-muted p-4 rounded-2xl border border-border flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center text-emerald-500 shadow-sm">
                             <ShieldCheck size={20} />
@@ -140,8 +149,9 @@ const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
                             Vazgeç
                         </Button>
                         <Button
-                            type="submit"
+                            type="button"
                             disabled={loading}
+                            onClick={(e) => handleSubmit(e as any)}
                             className="flex-[2] h-14 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-500/20 transition-all hover:-translate-y-0.5"
                         >
                             {loading ? 'İşleniyor...' : 'İptali Onayla'}
