@@ -169,3 +169,7 @@ pm test (Vitest) passed.
 - Vercel config: /api proxy rewrites eklendi (approvals 404 icin).
 
 - Iptal onay istegi endpointi /api/approvals/request olarak duzeltildi (frontend).
+
+- Iptal akisi onaydan vazgecti: modal ve policy iptali dogrudan /api/sales ile iptal ediyor.
+
+- Iptal akisi onayli: iptal talepleri /api/approvals/request ile Onaylar sayfasina dusuyor.
