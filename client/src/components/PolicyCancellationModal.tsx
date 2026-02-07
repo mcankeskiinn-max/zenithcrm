@@ -48,8 +48,6 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
 
         setLoading(true);
         try {
-const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-
             await axios.post('/api/approvals', {
                 type: 'CANCELLATION',
                 saleId: policy.id,
