@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import * as Sentry from '@sentry/node';
 import { NotificationService } from '../services/notification.service';
 
 const UNREAD_CACHE_TTL_MS = 60 * 1000;
@@ -30,22 +31,33 @@ export const getUnreadCount = async (req: Request, res: Response) => {
         const buildSha = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT_SHA || 'unknown';
         res.set('X-App-Build', buildSha);
 
-        const cacheKey = `${currentUser.tenantId}:${currentUser.id}`;
-        const cached = unreadCache.get(cacheKey);
-        if (cached && Date.now() - cached.ts < UNREAD_CACHE_TTL_MS) {
-            res.set('Cache-Control', 'private, max-age=60');
-            return res.json({ count: cached.count, cached: true });
-        }
+        return await Sentry.startSpan(
+            {
+                name: 'notifications.unreadCount',
+                op: 'http.server',
+                attributes: {
+                    tenantId: currentUser.tenantId
+                }
+            },
+            async () => {
+                const cacheKey = `${currentUser.tenantId}:${currentUser.id}`;
+                const cached = unreadCache.get(cacheKey);
+                if (cached && Date.now() - cached.ts < UNREAD_CACHE_TTL_MS) {
+                    res.set('Cache-Control', 'private, max-age=60');
+                    return res.json({ count: cached.count, cached: true });
+                }
 
-        const count = await NotificationService.getUnreadCount(
-            currentUser.tenantId,
-            currentUser.id
+                const count = await NotificationService.getUnreadCount(
+                    currentUser.tenantId,
+                    currentUser.id
+                );
+
+                unreadCache.set(cacheKey, { ts: Date.now(), count });
+                res.set('Cache-Control', 'private, max-age=60');
+
+                res.json({ count, cached: false });
+            }
         );
-
-        unreadCache.set(cacheKey, { ts: Date.now(), count });
-        res.set('Cache-Control', 'private, max-age=60');
-
-        res.json({ count, cached: false });
     } catch (error) {
         console.error('Get unread count error:', error);
         res.status(500).json({ error: 'Failed to fetch unread count' });
