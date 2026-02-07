@@ -50,6 +50,28 @@ const ptRes = await axios.get('/api/policy-types', {  });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!customerName) {
+            alert('L?tfen m??teri ad?n? girin.');
+            return;
+        }
+        if (!policyNumber) {
+            alert('L?tfen poli?e numaras?n? girin.');
+            return;
+        }
+        if (!amount || Number.isNaN(Number(amount))) {
+            alert('L?tfen iptal tutar?n? girin.');
+            return;
+        }
+        if (!policyTypeId) {
+            alert('L?tfen bran? se?in.');
+            return;
+        }
+        if (!cancelReason) {
+            alert('L?tfen iptal nedenini se?in.');
+            return;
+        }
+
         setLoading(true);
         try {
             await axios.post('/api/approvals', {
@@ -64,11 +86,11 @@ const ptRes = await axios.get('/api/policy-types', {  });
             handleClose();
         } catch (error: any) {
             console.error('Failed to create cancellation:', error);
-            alert('İptal kaydı oluşturulurken bir hata oluştu: ' + (error.response?.data?.error || error.message));
+            alert('?ptal onay? g?nderilirken bir hata olu?tu: ' + (error.response?.data?.error || error.message));
         } finally {
             setLoading(false);
         }
-    };
+    };};
 
     const handleClose = () => {
         setCustomerName('');
@@ -101,7 +123,7 @@ const ptRes = await axios.get('/api/policy-types', {  });
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                <form onSubmit={handleSubmit} noValidate className="p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Müşteri Adı</label>
@@ -181,8 +203,9 @@ const ptRes = await axios.get('/api/policy-types', {  });
                             Vazgeç
                         </Button>
                         <Button
-                            type="submit"
+                            type="button"
                             disabled={loading}
+                            onClick={(e) => handleSubmit(e as any)}
                             className="flex-[2] h-14 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-lg shadow-red-500/20 transition-all hover:-translate-y-0.5"
                         >
                             {loading ? 'Kaydediliyor...' : 'İptali Kaydet'}
