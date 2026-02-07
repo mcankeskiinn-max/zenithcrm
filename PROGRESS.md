@@ -159,3 +159,5 @@ pm test (Vitest) passed.
 - Branch KPI hata detaylari response'a eklendi (teshis icin).
 
 - Iptal akisi: Sales API artik customerName alanini donuyor; iptal modalinda customerName fallback eklendi; iptal arama filtresi guvenli hale getirildi.
+
+- Iptal islemi: mevcut policede iptal icin PUT /api/sales/:id kullaniliyor; backend cancellation mevcut policede status=Cancelled update ediyor.

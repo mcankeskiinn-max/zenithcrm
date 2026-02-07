@@ -41,13 +41,8 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
         try {
 const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-            await axios.post('/api/sales', {
-                customerName: policy.customerName || policy.customer?.name,
-                policyNumber: policy.policyNumber,
+            await axios.put(`/api/sales/${policy.id}`, {
                 amount: Number(amount),
-                branchId: policy.branchId,
-                policyTypeId: policy.policyTypeId,
-                employeeId: currentUser.id,
                 status: 'CANCELLED',
                 cancelReason
             }, {

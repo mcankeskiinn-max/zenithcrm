@@ -189,23 +189,35 @@ export const createSale = async (req: Request, res: Response) => {
         const targetPolicyNumber = policyNumber && policyNumber.trim() !== "" ? policyNumber.trim() : null;
 
         if (targetPolicyNumber) {
-            // Reject duplicate policy numbers within the same tenant
+            // If this is a cancellation, update existing sale when policy exists
             const existingSale = await prisma.sale.findFirst({
                 where: {
                     policyNumber: targetPolicyNumber,
                     tenantId: currentUser.tenantId
                 }
             });
-            if (existingSale) {
+
+            if (existingSale && saleData.status === 'CANCELLED') {
+                sale = await prisma.sale.update({
+                    where: { id: existingSale.id },
+                    data: {
+                        status: 'CANCELLED',
+                        cancelReason: cancelReason || existingSale.cancelReason,
+                        amount: Number(amount),
+                        saleDate: saleData.saleDate
+                    }
+                });
+            } else if (existingSale) {
                 return res.status(409).json({
                     error: 'Poliçe numarası zaten kullanılıyor',
                     code: 'POLICY_NUMBER_EXISTS'
                 });
+            } else {
+                // Create new record with policy number
+                sale = await prisma.sale.create({
+                    data: { ...saleData, policyNumber: targetPolicyNumber }
+                });
             }
-            // Create new record with policy number
-            sale = await prisma.sale.create({
-                data: { ...saleData, policyNumber: targetPolicyNumber }
-            });
         } else {
             // Create new record without policy number (Prisma will use null)
             sale = await prisma.sale.create({
