@@ -48,7 +48,7 @@ export default function PolicyCancellationModal({ isOpen, onClose, onSuccess, po
 
         setLoading(true);
         try {
-            await axios.post('/api/approvals', {
+            await axios.post('/api/approvals/request', {
                 type: 'CANCELLATION',
                 saleId: policy.id,
                 reason: cancelReason,

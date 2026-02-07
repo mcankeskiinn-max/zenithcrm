@@ -167,3 +167,5 @@ pm test (Vitest) passed.
 - Iptal modalinda submit tetiklenmeme sorununa karsi noValidate + manuel submit + alan dogrulama eklendi.
 
 - Vercel config: /api proxy rewrites eklendi (approvals 404 icin).
+
+- Iptal onay istegi endpointi /api/approvals/request olarak duzeltildi (frontend).

@@ -74,7 +74,7 @@ const ptRes = await axios.get('/api/policy-types', {  });
 
         setLoading(true);
         try {
-            await axios.post('/api/approvals', {
+            await axios.post('/api/approvals/request', {
                 type: 'CANCELLATION',
                 policyNumber,
                 reason: cancelReason,
