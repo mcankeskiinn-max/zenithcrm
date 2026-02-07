@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { Request, Response } from 'express';
-import * as Sentry from '@sentry/node';
 import prisma from '../prisma';
 import { Role } from '../utils/constants';
 import { ForecastEngine } from '../services/forecast.service';
@@ -30,28 +29,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const rangeStr = (req.query.range as string) || '6';
         const range = parseInt(rangeStr, 10) || 6;
 
-        const sentryAny = Sentry as any;
-        const transaction =
-            typeof sentryAny.startTransaction === 'function'
-                ? sentryAny.startTransaction({
-                      name: 'dashboard.stats',
-                      op: 'http.server',
-                      attributes: { range, tenantId: user.tenantId, isAdmin }
-                  })
-                : sentryAny.startSpan?.({
-                      name: 'dashboard.stats',
-                      op: 'http.server',
-                      attributes: { range, tenantId: user.tenantId, isAdmin },
-                      forceTransaction: true
-                  });
-
-        try {
-            const cacheKey = `${user.tenantId}|${range}|${where.branchId || ''}|${where.employeeId || ''}`;
-            const cached = dashboardCache.get(cacheKey);
-            if (cached && Date.now() - cached.ts < DASHBOARD_CACHE_TTL_MS) {
-                res.set('Cache-Control', 'private, max-age=30');
-                return res.json({ ...cached.data, cached: true });
-            }
+        const cacheKey = `${user.tenantId}|${range}|${where.branchId || ''}|${where.employeeId || ''}`;
+        const cached = dashboardCache.get(cacheKey);
+        if (cached && Date.now() - cached.ts < DASHBOARD_CACHE_TTL_MS) {
+            res.set('Cache-Control', 'private, max-age=30');
+            return res.json({ ...cached.data, cached: true });
+        }
 
         const chartData: { name: string; income: number; expenses: number; key: string }[] = [];
         const now = new Date();
@@ -177,16 +160,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             upcomingRenewals: mappedRenewals
         };
 
-            dashboardCache.set(cacheKey, { ts: Date.now(), data: payload });
-            res.set('Cache-Control', 'private, max-age=30');
-            res.json(payload);
-        } finally {
-            if (transaction?.finish) {
-                transaction.finish();
-            } else if (transaction?.end) {
-                transaction.end();
-            }
-        }
+        dashboardCache.set(cacheKey, { ts: Date.now(), data: payload });
+        res.set('Cache-Control', 'private, max-age=30');
+        res.json(payload);
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
