@@ -37,15 +37,6 @@ import { csrfProtection } from './middleware/csrf.middleware';
 
 const app = express();
 
-const sentryDsn = process.env.SENTRY_DSN;
-if (sentryDsn) {
-    Sentry.init({
-        dsn: sentryDsn,
-        environment: process.env.NODE_ENV || 'development',
-        tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE || 0.1)
-    });
-}
-
 const isProduction = process.env.NODE_ENV === 'production';
 
 if (isProduction) {
@@ -139,6 +130,16 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
 }));
+
+const sentryDsn = process.env.SENTRY_DSN;
+if (sentryDsn) {
+    Sentry.init({
+        dsn: sentryDsn,
+        environment: process.env.NODE_ENV || 'development',
+        tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE || 0.1),
+        integrations: [Sentry.httpIntegration(), Sentry.expressIntegration({ app })]
+    });
+}
 
 if (isProduction) {
     app.use(morgan('combined'));
