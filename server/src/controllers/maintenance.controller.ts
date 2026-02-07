@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
+import * as Sentry from '@sentry/node';
 
 const TEST_POLICY_PREFIX = 'POL-TEST';
 const TEST_NAME_PREFIX = 'Test';
@@ -90,5 +91,15 @@ export const cleanupTestData = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Test data cleanup failed' });
+    }
+};
+
+export const sentryTest = async (_req: Request, res: Response) => {
+    try {
+        const eventId = Sentry.captureMessage('Sentry test message from maintenance endpoint');
+        return res.json({ ok: true, eventId });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ ok: false, error: 'Sentry test failed' });
     }
 };
