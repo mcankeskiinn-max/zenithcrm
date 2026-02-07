@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { NotificationService } from '../services/notification.service';
 
-const UNREAD_CACHE_TTL_MS = 10 * 1000;
+const UNREAD_CACHE_TTL_MS = 60 * 1000;
 const unreadCache = new Map<string, { ts: number; count: number }>();
 
 export const getNotifications = async (req: Request, res: Response) => {
@@ -31,7 +31,7 @@ export const getUnreadCount = async (req: Request, res: Response) => {
         const cacheKey = `${currentUser.tenantId}:${currentUser.id}`;
         const cached = unreadCache.get(cacheKey);
         if (cached && Date.now() - cached.ts < UNREAD_CACHE_TTL_MS) {
-            res.set('Cache-Control', 'private, max-age=10');
+            res.set('Cache-Control', 'private, max-age=60');
             return res.json({ count: cached.count, cached: true });
         }
 
@@ -41,9 +41,9 @@ export const getUnreadCount = async (req: Request, res: Response) => {
         );
 
         unreadCache.set(cacheKey, { ts: Date.now(), count });
-        res.set('Cache-Control', 'private, max-age=10');
+        res.set('Cache-Control', 'private, max-age=60');
 
-        res.json({ count });
+        res.json({ count, cached: false });
     } catch (error) {
         console.error('Get unread count error:', error);
         res.status(500).json({ error: 'Failed to fetch unread count' });
