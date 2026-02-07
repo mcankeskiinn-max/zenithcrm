@@ -23,6 +23,7 @@
 - Capture server errors (platform logs or Sentry).
 - Alert on login failures, rate-limit spikes, and 5xx errors.
 - Ensure no sensitive data is logged (tokens, passwords, PII).
+- Sentry Issues aktif, en az bir test event gorunur.
 
 ## Backups & Recovery
 - Enable scheduled Supabase backups.
@@ -33,6 +34,7 @@
 - Keep CSP and helmet enabled in production.
 - Keep CSRF protection enabled.
 - Keep rate limits enabled for /api and auth endpoints.
+- Tenant/branch isolation kontrolu yapildi (liste + detay endpointleri).
 
 ## Access Control
 - Verify tenant + branch + role rules are configured for every admin/manager/employee.
@@ -47,6 +49,8 @@
 - CI: `server-tests` and `client-tests` must pass (server-tests may be skipped if secrets are missing).
 - UI flow checks (Playwright) must pass (may be skipped if CRM secrets are missing).
 - UI flow artifacts (summary + screenshots) are stored by CI for review.
+- Security audit (npm audit high+) notlari gozden gecirildi.
+- `SECURITY_REVIEW_TEMPLATE.md` dolduruldu.
 
 ## Neden Bu Kontroller?
 - Kritik akislari otomatik kontrol ederek yayin oncesi hatalari yakalar.

@@ -3,6 +3,7 @@
 Bu dosya, `PRODUCTION_READINESS.md` ile birlikte uretime cikis icin zorunlu kosullari ozetler.
 
 ## Zorunlu Kosullar (Release Gate)
+- [ ] Security audit (npm audit high+) sonucu gozden gecirildi
 - [ ] CI: `server-tests` ve `client-tests` basarili (server-tests secrets yoksa skipped olabilir)
 - [ ] UI akislari (Playwright) basarili (secrets yoksa skipped olabilir)
   UI flow artifacts CI'da kaydedilir (summary + screenshots).
@@ -11,6 +12,7 @@ Bu dosya, `PRODUCTION_READINESS.md` ile birlikte uretime cikis icin zorunlu kosu
 - [ ] Rollback plani hazir
 - [ ] Saglik/observability kontrolleri (log, alarm) hazir
 - [ ] Guvenlik kontrol listesi (SECURITY_HARDENING_CHECKLIST.md) gozden gecirildi
+- [ ] SECURITY_REVIEW_TEMPLATE.md dolduruldu ve onaylandi
 
 ## Notlar
 - Release gate gecilmeden uretime cikis yapilmamalidir.
