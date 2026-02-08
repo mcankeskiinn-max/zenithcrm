@@ -5,6 +5,7 @@ node_modules/
 
 # Testing
 coverage/
+server/coverage/
 *.log
 
 # Production
@@ -49,4 +50,5 @@ test-summary.json
 # Local artifacts
 output/
 client/output/
+audit-report.html
 audit-report.html

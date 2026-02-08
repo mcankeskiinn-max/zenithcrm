@@ -8,4 +8,6 @@ module.exports = {
     },
     setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
     testTimeout: 15000,
+    coverageDirectory: '<rootDir>/coverage',
+    coverageReporters: ['json-summary', 'text', 'lcov'],
 };
