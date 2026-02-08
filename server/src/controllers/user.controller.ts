@@ -12,8 +12,17 @@ export const getUsers = async (req: Request, res: Response) => {
         const where: { tenantId: string; branchId?: string; role?: Role } = {
             tenantId: currentUser.tenantId
         };
-        if (branchId) where.branchId = String(branchId);
-        if (role) where.role = role as Role;
+        if (currentUser.role === Role.MANAGER) {
+            if (!currentUser.branchId) {
+                return res.status(400).json({ error: 'Sube bilgisi olmayan yonetici kullanicilar liste alamaz.' });
+            }
+            where.branchId = currentUser.branchId;
+        } else if (currentUser.role !== Role.ADMIN) {
+            return res.status(403).json({ error: 'Yetersiz yetki.' });
+        } else {
+            if (branchId) where.branchId = String(branchId);
+            if (role) where.role = role as Role;
+        }
 
         const users = await prisma.user.findMany({
             where,

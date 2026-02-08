@@ -7,9 +7,8 @@ const router = Router();
 
 router.use(authenticate);
 
-// List users (Admin sees all, Managers see their branch - logic in controller needed or filtered by query)
-// For now, allow reading list to authenticated users
-router.get('/', getUsers);
+// List users: Admin sees all, Managers see their branch
+router.get('/', authorize(Role.ADMIN, Role.MANAGER), getUsers);
 
 // Create user: Admin or Manager
 router.post('/', authorize(Role.ADMIN, Role.MANAGER), createUser);
