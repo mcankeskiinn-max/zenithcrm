@@ -144,6 +144,9 @@ const checkAuditLogging = async (): Promise<AuditResult> => {
 
 const checkTestCoverage = async (): Promise<AuditResult> => {
     const coverageFile = path.join(REPO_ROOT, 'server', 'coverage', 'coverage-summary.json');
+    const coverageFinal = path.join(REPO_ROOT, 'server', 'coverage', 'coverage-final.json');
+    const tenantOnly = readEnv('TENANT_COVERAGE_ONLY') === 'true';
+    const minPct = Number(readEnv('TENANT_COVERAGE_MIN') || 95);
     if (!fs.existsSync(coverageFile)) {
         return {
             category: 'tests',
@@ -153,13 +156,61 @@ const checkTestCoverage = async (): Promise<AuditResult> => {
             action: 'Run npm run test:coverage'
         };
     }
+    if (tenantOnly) {
+        if (!fs.existsSync(coverageFinal)) {
+            return {
+                category: 'tests',
+                status: 'WARN',
+                message: 'coverage-final.json not found for tenant-only coverage',
+                severity: 'MEDIUM',
+                action: 'Run npm run test:coverage'
+            };
+        }
+
+        const data = JSON.parse(fs.readFileSync(coverageFinal, 'utf-8'));
+        const tenantCriticalFiles = [
+            path.join(REPO_ROOT, 'server', 'src', 'lib', 'prisma-tenant-middleware.ts'),
+            path.join(REPO_ROOT, 'server', 'src', 'utils', 'tenant-bypass.ts'),
+            path.join(REPO_ROOT, 'server', 'src', 'utils', 'tenant-context.ts'),
+            path.join(REPO_ROOT, 'server', 'src', 'utils', 'tenant-errors.ts'),
+            path.join(REPO_ROOT, 'server', 'src', 'middleware', 'auth.middleware.ts')
+        ];
+
+        let total = 0;
+        let covered = 0;
+        for (const file of tenantCriticalFiles) {
+            const entry = data[file];
+            if (!entry || !entry.s) continue;
+            const stmtKeys = Object.keys(entry.s);
+            total += stmtKeys.length;
+            covered += stmtKeys.filter((k) => entry.s[k] > 0).length;
+        }
+
+        const pct = total > 0 ? Number(((covered / total) * 100).toFixed(2)) : 0;
+        if (pct < minPct) {
+            return {
+                category: 'tests',
+                status: 'FAIL',
+                message: `Tenant-critical coverage below ${minPct}% (${pct}%)`,
+                severity: 'HIGH',
+                action: 'Improve tenant-critical tests or adjust TENANT_COVERAGE_MIN'
+            };
+        }
+        return {
+            category: 'tests',
+            status: 'PASS',
+            message: `Tenant-critical coverage ${pct}%`,
+            severity: 'LOW'
+        };
+    }
+
     const data = JSON.parse(fs.readFileSync(coverageFile, 'utf-8'));
     const pct = data.total?.lines?.pct || 0;
-    if (pct < 95) {
+    if (pct < minPct) {
         return {
             category: 'tests',
             status: 'FAIL',
-            message: `Coverage below 95% (${pct}%)`,
+            message: `Coverage below ${minPct}% (${pct}%)`,
             severity: 'HIGH'
         };
     }
