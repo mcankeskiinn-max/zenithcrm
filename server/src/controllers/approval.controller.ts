@@ -173,6 +173,13 @@ export const approveRequest = async (req: Request, res: Response) => {
 
         const approval = parseApprovalDetails(task.description);
         if (approval?.type === 'CANCELLATION' && approval.saleId) {
+            const sale = await prisma.sale.findFirst({
+                where: { id: approval.saleId, tenantId: user.tenantId }
+            });
+            if (!sale) {
+                return res.status(404).json({ error: 'Sale not found' });
+            }
+
             await prisma.sale.update({
                 where: { id: approval.saleId },
                 data: {
