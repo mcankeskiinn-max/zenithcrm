@@ -11,6 +11,8 @@ jobs:
     outputs:
       server_audit: ${{ steps.server-audit.outputs.result }}
       client_audit: ${{ steps.client-audit.outputs.result }}
+      server_depcheck: ${{ steps.server-depcheck.outputs.result }}
+      client_depcheck: ${{ steps.client-depcheck.outputs.result }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,6 +39,34 @@ jobs:
           else
             echo "result=failed" >> $GITHUB_OUTPUT
           fi
+      - name: Server depcheck (SAST-lite)
+        id: server-depcheck
+        working-directory: server
+        run: |
+          npx depcheck --json > depcheck.json || true
+          MISSING=$(cat depcheck.json | jq '.missing | length')
+          UNUSED=$(cat depcheck.json | jq '.dependencies | length')
+          if [ "$MISSING" -gt 0 ]; then
+            echo "result=failed" >> $GITHUB_OUTPUT
+          else
+            echo "result=passed" >> $GITHUB_OUTPUT
+          fi
+          echo "missing=$MISSING" >> $GITHUB_OUTPUT
+          echo "unused=$UNUSED" >> $GITHUB_OUTPUT
+      - name: Client depcheck (SAST-lite)
+        id: client-depcheck
+        working-directory: client
+        run: |
+          npx depcheck --json > depcheck.json || true
+          MISSING=$(cat depcheck.json | jq '.missing | length')
+          UNUSED=$(cat depcheck.json | jq '.dependencies | length')
+          if [ "$MISSING" -gt 0 ]; then
+            echo "result=failed" >> $GITHUB_OUTPUT
+          else
+            echo "result=passed" >> $GITHUB_OUTPUT
+          fi
+          echo "missing=$MISSING" >> $GITHUB_OUTPUT
+          echo "unused=$UNUSED" >> $GITHUB_OUTPUT
 
   server-tests:
     runs-on: ubuntu-latest
@@ -150,6 +180,8 @@ jobs:
         run: |
           echo "security-audit (server): ${{ needs.security-audit.outputs.server_audit }}"
           echo "security-audit (client): ${{ needs.security-audit.outputs.client_audit }}"
+          echo "depcheck (server): ${{ needs.security-audit.outputs.server_depcheck }}"
+          echo "depcheck (client): ${{ needs.security-audit.outputs.client_depcheck }}"
           echo "server-tests: ${{ needs.server-tests.result }}"
           echo "server-tests skipped: ${{ needs.server-tests.outputs.skipped }}"
           echo "client-tests: ${{ needs.client-tests.result }}"
@@ -162,6 +194,12 @@ jobs:
           fi
           if [ "${{ needs.security-audit.outputs.client_audit }}" = "failed" ]; then
             echo "Release gate warning: client npm audit reported high+ issues."
+          fi
+          if [ "${{ needs.security-audit.outputs.server_depcheck }}" = "failed" ]; then
+            echo "Release gate warning: server depcheck found missing dependencies."
+          fi
+          if [ "${{ needs.security-audit.outputs.client_depcheck }}" = "failed" ]; then
+            echo "Release gate warning: client depcheck found missing dependencies."
           fi
           if [ "${{ needs.server-tests.result }}" = "failure" ]; then
             echo "Release gate failed: server-tests failed."
