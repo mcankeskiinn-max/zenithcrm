@@ -49,3 +49,4 @@ test-summary.json
 # Local artifacts
 output/
 client/output/
+audit-report.html

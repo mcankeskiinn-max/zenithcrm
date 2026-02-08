@@ -33,6 +33,7 @@ import approvalRoutes from './routes/approval.routes';
 import renewalRoutes from './routes/renewal.routes';
 import prisma from './prisma';
 import { csrfProtection } from './middleware/csrf.middleware';
+import { TenantIsolationError } from './utils/tenant-errors';
 
 
 const app = express();

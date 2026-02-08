@@ -9,9 +9,30 @@
 
 import fs from 'fs';
 import path from 'path';
-import { PrismaClient } from '@prisma/client';
+// @ts-ignore - runtime require for shared prisma instance
+const prisma = require('../../server/src/prisma').default;
 
-const prisma = new PrismaClient();
+const REPO_ROOT = path.join(__dirname, '..', '..');
+const loadEnvFromFile = (filePath: string) => {
+    if (!fs.existsSync(filePath)) {
+        return;
+    }
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const lines = content.split(/\r?\n/);
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const idx = trimmed.indexOf('=');
+        if (idx === -1) continue;
+        const key = trimmed.slice(0, idx).trim();
+        const value = trimmed.slice(idx + 1).trim();
+        if (!process.env[key]) {
+            process.env[key] = value.replace(/^"|"$/g, '');
+        }
+    }
+};
+
+loadEnvFromFile(path.join(REPO_ROOT, 'server', '.env'));
 
 type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
@@ -35,10 +56,10 @@ const CRITICAL_BLOCK = (results: AuditResult[]) =>
 const readEnv = (key: string) => process.env[key] || '';
 
 const checkSchemaHasTenantId = async (): Promise<AuditResult> => {
-    const models = await prisma.$queryRawUnsafe<any[]>(
+    const models = (await prisma.$queryRawUnsafe(
         `SELECT table_name FROM information_schema.columns WHERE column_name = 'tenantId' AND table_schema = 'public'`
-    );
-    const hasTenantTables = models.map((r) => r.table_name);
+    )) as { table_name: string }[];
+    const hasTenantTables = models.map((r: { table_name: string }) => r.table_name);
     if (hasTenantTables.length === 0) {
         return {
             category: 'schema',
@@ -124,7 +145,7 @@ const checkAuditLogging = async (): Promise<AuditResult> => {
 };
 
 const checkTestCoverage = async (): Promise<AuditResult> => {
-    const coverageFile = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
+    const coverageFile = path.join(REPO_ROOT, 'server', 'coverage', 'coverage-summary.json');
     if (!fs.existsSync(coverageFile)) {
         return {
             category: 'tests',
@@ -155,7 +176,7 @@ const checkTestCoverage = async (): Promise<AuditResult> => {
 
 const checkEndpointProtection = async (): Promise<AuditResult> => {
     try {
-        const appPath = path.join(process.cwd(), 'server', 'src', 'app.ts');
+        const appPath = path.join(REPO_ROOT, 'server', 'src', 'app.ts');
         if (!fs.existsSync(appPath)) {
             return {
                 category: 'endpoints',
@@ -178,11 +199,11 @@ const checkEndpointProtection = async (): Promise<AuditResult> => {
                 // Heuristic: route file should have authenticate middleware
                 // We flag if route line exists but authenticate is not referenced in the route file
                 const routeName = ep.split('/').pop() || '';
-                const routeFile = path.join(process.cwd(), 'server', 'src', 'routes', `${routeName}.routes.ts`);
+                const routeFile = path.join(REPO_ROOT, 'server', 'src', 'routes', `${routeName}.routes.ts`);
                 if (fs.existsSync(routeFile)) {
                     const routeSource = fs.readFileSync(routeFile, 'utf-8');
                     if (!routeSource.includes('authenticate')) {
-                        unprotected.append(ep);
+                        unprotected.push(ep);
                     }
                 }
             }
@@ -239,9 +260,9 @@ const checkBypassConfig = async (): Promise<AuditResult> => {
 };
 
 const checkDatabaseIndexes = async (): Promise<AuditResult> => {
-    const indexes = await prisma.$queryRawUnsafe<any[]>(
+    const indexes = (await prisma.$queryRawUnsafe(
         `SELECT tablename, indexname FROM pg_indexes WHERE indexname ILIKE '%tenantid%' AND schemaname = 'public'`
-    );
+    )) as { tablename: string; indexname: string }[];
     if (indexes.length < 5) {
         return {
             category: 'database',
