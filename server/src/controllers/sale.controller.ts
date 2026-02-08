@@ -364,9 +364,14 @@ export const updateSale = async (req: Request, res: Response) => {
         });
 
         res.json({ ...sale, commission: commissionAmount });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to update sale' });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        const code = (error as any)?.code;
+        console.error('UpdateSale error:', { message, code, error });
+        res.status(500).json({
+            error: 'Failed to update sale',
+            ...(process.env.DEBUG_ERRORS === 'true' ? { details: message, code } : {})
+        });
     }
 };
 
