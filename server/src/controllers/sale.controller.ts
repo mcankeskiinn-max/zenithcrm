@@ -292,10 +292,14 @@ export const updateSale = async (req: Request, res: Response) => {
                 include: { customer: true }
             });
             if (sale?.customerId) {
+                const nameParts = customerName.trim().split(/\s+/);
+                const lastNameStr = nameParts.length > 1 ? nameParts.pop() || '' : '';
+                const firstNameStr = nameParts.join(' ') || customerName.trim();
                 await prisma.customer.update({
                     where: { id: sale.customerId },
                     data: {
-                        name: customerName,
+                        firstName: firstNameStr,
+                        lastName: lastNameStr || '-',
                         email: customerEmail,
                         phone: customerPhone
                     }
@@ -330,8 +334,24 @@ export const updateSale = async (req: Request, res: Response) => {
             data: updateData
         });
 
-        // RECALCULATE COMMISSION ON UPDATE
-        const commissionAmount = await determineCommission(currentUser.tenantId, sale.id, Number(sale.amount), sale.branchId, sale.policyTypeId, sale.employeeId);
+        // RECALCULATE COMMISSION ON UPDATE (only for ACTIVE)
+        let commissionAmount = 0;
+        if (sale.status === 'ACTIVE') {
+            try {
+                commissionAmount = await determineCommission(
+                    currentUser.tenantId,
+                    sale.id,
+                    Number(sale.amount),
+                    sale.branchId,
+                    sale.policyTypeId,
+                    sale.employeeId
+                );
+            } catch (commError) {
+                console.warn('[UpdateSale] Commission calculation failed:', commError);
+            }
+        } else {
+            await prisma.commissionLog.deleteMany({ where: { saleId: sale.id, tenantId: currentUser.tenantId } });
+        }
 
         // Audit Log
         await logAudit({
