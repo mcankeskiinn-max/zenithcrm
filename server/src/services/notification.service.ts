@@ -1,6 +1,5 @@
-import { PrismaClient, NotificationType, NotificationPriority } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { NotificationType, NotificationPriority } from '@prisma/client';
+import prisma from '../prisma';
 
 interface CreateNotificationInput {
     tenantId: string;
@@ -101,11 +100,24 @@ export class NotificationService {
     /**
      * Mark notification as read
      */
-    static async markAsRead(id: string, userId: string) {
-        return await prisma.notification.update({
-            where: { id },
+    static async markAsRead(tenantId: string, userId: string, id: string) {
+        const result = await prisma.notification.updateMany({
+            where: {
+                id,
+                tenantId,
+                OR: [
+                    { userId },
+                    { userId: null }
+                ]
+            },
             data: { isRead: true }
         });
+
+        if (result.count === 0) {
+            throw new Error('Notification not found');
+        }
+
+        return result;
     }
 
     /**
