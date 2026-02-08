@@ -182,3 +182,5 @@ pm test (Vitest) passed.
 [2026-02-07] Security discipline updates: added security audit job to CI, expanded SECURITY_HARDENING_CHECKLIST.md, added SECURITY_REVIEW_TEMPLATE.md, updated RELEASE_GATE.md and PRODUCTION_READINESS.md with audit/sign-off items.
 
 - Kanban durum degisimi icin optimistic UI eklendi; PUT basarili olana kadar beklemeden arayuz guncelleniyor, hata olursa geri aliniyor.
+
+- Tenant izolasyonu baslangic: AsyncLocalStorage ile tenant context eklendi ve Prisma tarafinda tenantId scoping (findMany/findFirst/updateMany/deleteMany + create/createMany) otomatik uygulaniyor.

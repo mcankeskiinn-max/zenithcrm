@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../prisma';
 import { Role } from '../utils/constants';
+import { runWithTenant } from '../utils/tenant-context';
 
 declare global {
     namespace Express {
@@ -116,6 +117,10 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
             branchId: user.branchId || undefined,
             tenantId: decoded.tenantId || user.tenantId // Fallback to DB if token doesn't have it
         };
+
+        if (req.user.tenantId) {
+            return runWithTenant(req.user.tenantId, () => next());
+        }
 
         next();
     } catch (error) {
