@@ -188,3 +188,5 @@ pm test (Vitest) passed.
 - SupportService icin tenant izolasyonu sertlestirildi: shared prisma kullanimi ve kullanici-bazli filtreleme eklendi (destek mesajlari sadece sahibine doner).
 
 - Onay akisi sale update oncesi tenant kontrollu; approval icin satis kaydi tenantId ile dogrulaniyor.
+
+- Mesajlasma endpointlerinde tenant izolasyonu guclendirildi (receiver dogrulamasi + mesaj sorgularina tenantId filtreleri).

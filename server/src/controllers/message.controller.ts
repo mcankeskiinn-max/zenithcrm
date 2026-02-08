@@ -14,6 +14,13 @@ export const sendMessage = async (req: Request, res: Response) => {
         const sender = await prisma.user.findUnique({ where: { id: senderId } });
         if (!sender) return res.status(404).json({ error: 'Sender not found' });
 
+        const receiver = await prisma.user.findFirst({
+            where: { id: receiverId, tenantId: sender.tenantId, isActive: true }
+        });
+        if (!receiver) {
+            return res.status(404).json({ error: 'Receiver not found' });
+        }
+
         const message = await prisma.message.create({
             data: {
                 content,
@@ -48,6 +55,7 @@ export const getConversations = async (req: Request, res: Response) => {
         const conversations = await Promise.all(users.map(async (u) => {
             const lastMessage = await prisma.message.findFirst({
                 where: {
+                    tenantId: user.tenantId,
                     OR: [
                         { senderId: userId, receiverId: u.id },
                         { senderId: u.id, receiverId: userId }
@@ -60,6 +68,7 @@ export const getConversations = async (req: Request, res: Response) => {
                 where: {
                     senderId: u.id,
                     receiverId: userId,
+                    tenantId: user.tenantId,
                     isRead: false
                 }
             });
@@ -92,6 +101,7 @@ export const getMessages = async (req: Request, res: Response) => {
 
         const messages = await prisma.message.findMany({
             where: {
+                tenantId: req.user!.tenantId,
                 OR: [
                     { senderId: userId, receiverId: otherUserId },
                     { senderId: otherUserId, receiverId: userId }
@@ -104,6 +114,7 @@ export const getMessages = async (req: Request, res: Response) => {
             where: {
                 senderId: otherUserId,
                 receiverId: userId,
+                tenantId: req.user!.tenantId,
                 isRead: false
             },
             data: { isRead: true }
@@ -123,7 +134,7 @@ export const getAllSystemConversations = async (req: Request, res: Response) => 
             return res.status(403).json({ error: 'Access denied' });
         }
 
-        const where: { branchId?: string } = {};
+        const where: { branchId?: string; tenantId: string } = { tenantId: user.tenantId };
         if (user.role === 'MANAGER' && user.branchId) {
             where.branchId = user.branchId;
         }
