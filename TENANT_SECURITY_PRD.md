@@ -33,29 +33,45 @@ Multi-tenant CRM'lerde en kritik risk, tenantlar arasi veri sizintisidir. Uygula
    - `authenticate` middleware'i tenant context'i baslatir.
 
 2. Prisma Tenant Scoping
-   - findMany/findFirst/count/aggregate/groupBy/updateMany/deleteMany:
+   - findMany/findFirst/findUnique/count/aggregate/groupBy/updateMany/deleteMany:
      otomatik `tenantId` filtresi ekleniyor.
-   - create/createMany:
+   - findUnique/findUniqueOrThrow cagrilari otomatik findFirst/findFirstOrThrow'a donusuyor.
+   - create/createMany/upsert:
      tenantId yoksa ekleniyor, farkli ise hata.
 
-3. Yazma Islemlerinde TenantId Zorunlulugu
-   - branch, customer, policyType, user, task, sale, document,
-     commissionRule, salesTarget update/delete islemlerinde
-     `tenantId` scoping uygulandi.
+3. Update/Delete Guvenligi
+   - update/delete oncesi tenantId uyumlulugu kontrol ediliyor.
+   - Yanlis tenant icin "Record not found or access denied" (404) donuyor.
 
-4. Servis Katmani Sertlestirme
-   - NotificationService ve SupportService artık ortak prisma kullaniyor.
-   - Message endpoints tenantId ile filtrelendi.
-   - SupportMessage artik tenantId ile kayit altinda ve filtreleniyor.
-   - Notification cron job'lari tenantId bazli calisiyor.
+4. Foreign Key Tenant Consistency
+   - Iliskili kayitlar (customer, branch, user, policyType, sale, vb.) ayni tenant'a ait degilse islem reddediliyor.
+   - Hem create hem update/upsert akislari icin uygulanir.
+
+5. Servis Katmani Sertlestirme
+   - NotificationService ve SupportService ortak prisma kullanir.
+   - Message ve SupportMessage tenantId ile filtrelenir.
+   - Notification cron job'lari tenantId bazli calisir.
+
+6. Auth / JWT Tenant Dogrulamasi
+   - JWT'deki tenantId ile DB tenantId uyusmazsa 401.
+   - (Opsiyonel) x-tenant-id / x-tenant-slug header kontrolu.
+   - Login'de tenantId/tenantSlug dogrulama destegi.
+
+7. Bypass Mekanizmasi
+   - Scope'lu bypass context mevcut.
+   - Bypass kullanimi audit log'a yazilir.
 
 ## Kalan Riskler / Eksikler
-1. Auth/Token bazli findUnique kullanimi
-   - Login/refresh akislari tenantId kullanmiyor (email global unique).
-   - Bu akislarda risk dusuk ama yine de tenant match kontrolu opsiyonel.
+1. Mevcut veri tutarliligi
+   - Gecmisten kalan cross-tenant iliski varsa include'lar gorunebilir.
+   - Bu durumda veri temizligi / migration ile duzeltme gerekir.
 
-2. Cron/Job sorgulari tenant bazli calisiyor (tamamlandi)
-   - Tüm job sorgulari aktif tenant listesi ile tenantId scoping yapar.
+2. Role bazli bypass politikasinin kurum politikasina baglanmasi
+   - Bypass izinleri env ile ayarlanir. Super-admin dogrulamasi ihtiyaca gore sertlestirilmeli.
+
+3. Auth/Token gecis sureci
+   - Eski token'larda tenantId eksik olabilir. Refresh sonrasinda otomatik duzelir.
+
 
 ## Kabul Kriterleri
 - Her API yazma islemi (update/delete) tenantId ile scope edilmis olacak.
@@ -73,9 +89,19 @@ Multi-tenant CRM'lerde en kritik risk, tenantlar arasi veri sizintisidir. Uygula
 3. Admin kullanici (tenant icinde) -> sadece kendi tenant verilerini goruyor.
 
 ## Devam Plani
-1. SupportMessage modeline tenantId ekleme (migrasyon).
+1. Composite key / FK guclendirme (DB seviyesinde tenant consistency).
 2. Row-level security (RLS) degerlendirmesi.
 3. Audit log ile tenantId tutarlilik kontrol raporlari.
 
+
 ## Notlar
 Bu PRD, tenant izolasyonu icin uygulama seviyesinde yapilan ve planlanan degisiklikleri kapsar. KVKK, MFA, encryption gibi basliklar ayri PRD'lerde ele alinacaktir.
+
+## Son Tarama Durumu
+- Tenant consistency taramasi: 2026-02-08T17:52:01.025Z
+- Ihlal sayisi: 0
+
+## Son Guncelleme Notu
+- Bypass mekanizmasi sertlestirme (role-based izin, audit log, abuse detection) paketi hazirlandi.
+- Otomatik test coverage icin E2E tenant izolasyon testleri ve CI pipeline taslagi eklendi.
+- Gap ve risk raporlarina bu kapanis notlari islendi.

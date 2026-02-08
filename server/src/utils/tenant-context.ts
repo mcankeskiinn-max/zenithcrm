@@ -6,7 +6,15 @@ type TenantContext = {
 
 const tenantStore = new AsyncLocalStorage<TenantContext>();
 
-export const runWithTenant = (tenantId: string, fn: () => void) =>
+export const runWithTenant = <T>(tenantId: string, fn: () => T) =>
     tenantStore.run({ tenantId }, fn);
 
 export const getTenantId = () => tenantStore.getStore()?.tenantId;
+
+export const requireTenantId = () => {
+    const tenantId = getTenantId();
+    if (!tenantId) {
+        throw new Error('Tenant context is missing');
+    }
+    return tenantId;
+};

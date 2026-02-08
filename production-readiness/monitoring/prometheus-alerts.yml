@@ -1,0 +1,48 @@
+groups:
+  - name: tenant_isolation
+    interval: 1m
+    rules:
+      - alert: HighCrossTenantAttempts
+        expr: rate(tenant_violations_total[5m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of cross-tenant access attempts"
+          description: "{{ $value }} violations per second in the last 5 minutes"
+
+      - alert: CriticalCrossTenantAttempts
+        expr: rate(tenant_violations_total[5m]) > 20
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: Mass cross-tenant attack detected"
+          description: "{{ $value }} violations per second in the last 5 minutes"
+
+      - alert: BypassAbuseDetected
+        expr: increase(bypass_usage_total{user_id!~"system.*"}[1h]) > 20
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "User {{ $labels.user_id }} exceeded bypass limit"
+          description: "{{ $value }} bypass operations in 1 hour"
+
+      - alert: BypassCriticalAbuse
+        expr: increase(bypass_usage_total{user_id!~"system.*"}[1h]) > 50
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: Excessive bypass usage detected"
+          description: "{{ $value }} bypass operations in 1 hour"
+
+      - alert: MiddlewareDisabled
+        expr: tenant_middleware_enabled == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tenant isolation middleware is disabled!"
+          description: "IMMEDIATE ACTION REQUIRED - system is vulnerable"

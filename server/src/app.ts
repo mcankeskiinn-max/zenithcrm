@@ -210,6 +210,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     fs.appendFileSync(path.join(__dirname, '../debug_errors.log'), logEntry);
 
     console.error('Global Error:', err);
+    if (err instanceof TenantIsolationError) {
+        return res.status(err.statusCode).json({
+            error: err.message,
+            code: err.code,
+            ...(err.details ? { details: err.details } : {})
+        });
+    }
     const isProd = process.env.NODE_ENV === 'production';
     res.status(500).json({
         error: 'Global Sunucu Hatası',

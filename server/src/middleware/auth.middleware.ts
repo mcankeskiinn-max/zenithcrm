@@ -85,7 +85,12 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
                 branchId: true,
                 tenantId: true,
                 isActive: true,
-                lockedUntil: true
+                lockedUntil: true,
+                tenant: {
+                    select: {
+                        slug: true
+                    }
+                }
             }
         });
 
@@ -110,12 +115,36 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
             });
         }
 
+        if (decoded.tenantId && decoded.tenantId !== user.tenantId) {
+            return res.status(401).json({
+                error: 'Tenant mismatch',
+                code: 'TENANT_MISMATCH'
+            });
+        }
+
+        const headerTenantId = req.header('x-tenant-id');
+        const headerTenantSlug = req.header('x-tenant-slug') || req.header('x-tenant-domain');
+
+        if (headerTenantId && headerTenantId !== user.tenantId) {
+            return res.status(401).json({
+                error: 'Tenant mismatch',
+                code: 'TENANT_MISMATCH'
+            });
+        }
+
+        if (headerTenantSlug && user.tenant?.slug && headerTenantSlug !== user.tenant.slug) {
+            return res.status(401).json({
+                error: 'Tenant mismatch',
+                code: 'TENANT_MISMATCH'
+            });
+        }
+
         req.user = {
             id: user.id,
             email: user.email,
             role: user.role as Role,
             branchId: user.branchId || undefined,
-            tenantId: decoded.tenantId || user.tenantId // Fallback to DB if token doesn't have it
+            tenantId: user.tenantId
         };
 
         if (req.user.tenantId) {

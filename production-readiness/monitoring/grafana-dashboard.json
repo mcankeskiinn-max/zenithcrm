@@ -1,0 +1,32 @@
+{
+  "dashboard": {
+    "title": "Tenant Isolation Security",
+    "panels": [
+      {
+        "title": "Cross-Tenant Access Attempts",
+        "targets": [{
+          "rawSql": "SELECT COUNT(*) FROM audit_log WHERE action = 'ACCESS_DENIED' AND error_type = 'TENANT_MISMATCH' AND $__timeFilter(created_at)"
+        }],
+        "alert": {
+          "conditions": [{
+            "query": { "model": "A" },
+            "evaluator": { "type": "gt", "params": [10] }
+          }],
+          "message": "High volume of cross-tenant access attempts detected"
+        }
+      },
+      {
+        "title": "Bypass Usage by Role",
+        "targets": [{
+          "rawSql": "SELECT user_role, COUNT(*) FROM audit_log WHERE action = 'BYPASS_USED' GROUP BY user_role"
+        }]
+      },
+      {
+        "title": "Tenant Middleware Performance",
+        "targets": [{
+          "rawSql": "SELECT AVG(duration_ms) FROM metrics WHERE middleware = 'tenant-isolation'"
+        }]
+      }
+    ]
+  }
+}

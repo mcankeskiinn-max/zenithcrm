@@ -67,6 +67,8 @@ export const login = async (req: Request, res: Response) => {
         const email = req.body.email?.toString().trim().toLowerCase();
         const password = req.body.password?.toString().trim();
         const rememberMe = Boolean(req.body.rememberMe);
+        const requestedTenantId = req.body.tenantId?.toString().trim();
+        const requestedTenantSlug = req.body.tenantSlug?.toString().trim() || req.body.tenantDomain?.toString().trim();
 
         console.log('Login attempt for:', email);
 
@@ -82,6 +84,20 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({
                 error: 'Invalid credentials',
                 code: 'INVALID_CREDENTIALS'
+            });
+        }
+
+        if (requestedTenantId && requestedTenantId !== user.tenantId) {
+            return res.status(401).json({
+                error: 'Tenant mismatch',
+                code: 'TENANT_MISMATCH'
+            });
+        }
+
+        if (requestedTenantSlug && (user.tenant as any)?.slug && requestedTenantSlug !== (user.tenant as any).slug) {
+            return res.status(401).json({
+                error: 'Tenant mismatch',
+                code: 'TENANT_MISMATCH'
             });
         }
 
