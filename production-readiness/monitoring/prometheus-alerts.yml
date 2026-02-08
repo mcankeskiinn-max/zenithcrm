@@ -46,3 +46,21 @@ groups:
         annotations:
           summary: "Tenant isolation middleware is disabled!"
           description: "IMMEDIATE ACTION REQUIRED - system is vulnerable"
+
+      - alert: HighServerErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate"
+          description: "{{ $value }} 5xx responses per second in the last 5 minutes"
+
+      - alert: CriticalServerErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: 5xx error rate spike"
+          description: "{{ $value }} 5xx responses per second in the last 5 minutes"

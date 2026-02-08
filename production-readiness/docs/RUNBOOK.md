@@ -12,6 +12,15 @@ npm run report:bypass-abuse --since=yesterday
 npm run report:suspicious-activity --since=yesterday
 ```
 
+## Gunluk Hizli Saglik Kontrolu (09:05)
+```bash
+# Son 1 saatte 5xx artisi var mi?
+npm run report:api-5xx --since=1h
+
+# En cok hata veren endpoint'ler
+npm run report:top-errors --since=1h --limit=10
+```
+
 ## Haftalik Kontroller (Pazartesi)
 ```bash
 npm run check:tenant-consistency
@@ -73,6 +82,19 @@ WHERE action = 'BYPASS_USED'
 GROUP BY user_id, reason
 HAVING COUNT(*) > 20
 ORDER BY count DESC;
+```
+
+### 5xx Orani (API Sagligi)
+```sql
+SELECT 
+    endpoint,
+    COUNT(*) as error_count
+FROM api_logs
+WHERE status_code >= 500
+AND created_at > NOW() - INTERVAL '1 hour'
+GROUP BY endpoint
+ORDER BY error_count DESC
+LIMIT 10;
 ```
 
 ## Incident Response (Genislet)
@@ -163,3 +185,26 @@ npm run tenant:fix-violations --strategy=move-to-parent-tenant
 ```sql
 SELECT * FROM audit_log WHERE action = 'CREATE' AND resource_id = [problematic_policy_id] ORDER BY created_at DESC;
 ```
+
+### Senaryo 4: 5xx Alarmi (Servis Cokuyor)
+**Alert:** "High 5xx error rate"
+
+**Adimlar:**
+1. **Hangi endpoint patliyor?**
+```sql
+SELECT endpoint, COUNT(*) as count
+FROM api_logs
+WHERE status_code >= 500
+AND created_at > NOW() - INTERVAL '10 minutes'
+GROUP BY endpoint
+ORDER BY count DESC;
+```
+
+2. **Son deploy ile iliski var mi?**
+```bash
+npm run deploy:recent --limit=5
+```
+
+3. **Acil aksiyon**
+- Rollback uygula (bkz: ROLLBACK_PLAN.md)
+- DB ve external servis sagligini kontrol et
