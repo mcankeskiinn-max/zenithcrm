@@ -7,6 +7,7 @@ import {
     PointerSensor,
     useSensor,
     useSensors,
+    useDroppable,
     defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
@@ -34,6 +35,39 @@ const statusColumns = [
     { id: 'LOST', label: 'Kaybedildi', color: 'bg-red-500', glow: 'shadow-red-500/20' },
     { id: 'CANCELLED', label: 'İptal Edildi', color: 'bg-gray-500', glow: 'shadow-gray-500/20' },
 ];
+
+function DroppableColumn({
+    id,
+    children,
+    isEmpty
+}: {
+    id: string;
+    children: React.ReactNode;
+    isEmpty: boolean;
+}) {
+    const { setNodeRef, isOver } = useDroppable({
+        id,
+        data: { status: id }
+    });
+
+    return (
+        <div
+            ref={setNodeRef}
+            id={id}
+            className={
+                `flex-1 space-y-4 p-3 rounded-3xl bg-muted/40 border border-border/50 transition-colors ` +
+                (isOver ? 'ring-2 ring-emerald-400/60 bg-emerald-500/5' : '')
+            }
+        >
+            {children}
+            {isEmpty && (
+                <div className="h-32 border-2 border-dashed border-border/40 rounded-3xl flex items-center justify-center text-muted-foreground/30 text-[10px] font-bold uppercase tracking-widest bg-card/20 group">
+                    Buraya Bırakın
+                </div>
+            )}
+        </div>
+    );
+}
 
 function SortableSaleCard({ sale, onEdit, onShowDocs }: { sale: any, onEdit: (s: any) => void, onShowDocs: (id: string) => void }) {
     const {
@@ -140,15 +174,16 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
         const saleId = active.id as string;
         const overId = over.id as string;
 
-        // If over a column container (id matches status)
-        if (statusColumns.some(col => col.id === overId)) {
-            if (activeSale && activeSale.status !== overId) {
-                onStatusChange(saleId, overId);
+        // Prefer droppable column status
+        const overStatus = (over.data?.current as any)?.status as string | undefined;
+        if (overStatus) {
+            if (activeSale && activeSale.status !== overStatus) {
+                onStatusChange(saleId, overStatus);
             }
             return;
         }
 
-        // If over another card, find that card's column
+        // If dropped over another card, use that card's status
         const overSale = sales.find(s => s.id === overId);
         if (overSale && activeSale && activeSale.status !== overSale.status) {
             onStatusChange(saleId, overSale.status);
@@ -179,7 +214,10 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
                             </div>
                         </div>
 
-                        <div className="flex-1 space-y-4 p-3 rounded-3xl bg-muted/40 border border-border/50 transition-colors">
+                        <DroppableColumn
+                            id={column.id}
+                            isEmpty={sales.filter(s => s.status === column.id).length === 0}
+                        >
                             <SortableContext
                                 id={column.id}
                                 items={sales.filter(s => s.status === column.id).map(s => s.id)}
@@ -196,13 +234,7 @@ export default function SalesKanban({ sales, onStatusChange, onEdit, onShowDocs 
                                         />
                                     ))}
                             </SortableContext>
-
-                            {sales.filter(s => s.status === column.id).length === 0 && (
-                                <div className="h-32 border-2 border-dashed border-border/40 rounded-3xl flex items-center justify-center text-muted-foreground/30 text-[10px] font-bold uppercase tracking-widest bg-card/20 group">
-                                    Buraya Bırakın
-                                </div>
-                            )}
-                        </div>
+                        </DroppableColumn>
                     </div>
                 ))}
             </div>
