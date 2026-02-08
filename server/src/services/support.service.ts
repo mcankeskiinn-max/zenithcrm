@@ -1,6 +1,5 @@
-import { PrismaClient, SupportStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { SupportStatus } from '@prisma/client';
+import prisma from '../prisma';
 
 export class SupportService {
     static async createMessage(userId: string, message: string, metadata?: any) {
@@ -21,14 +20,34 @@ export class SupportService {
         });
     }
 
-    static async getMessageById(id: string) {
+    static async getMessageById(id: string, userId?: string) {
         return await prisma.supportMessage.findUnique({
-            where: { id },
+            where: { id, ...(userId ? { userId } : {}) },
             include: { user: true },
         });
     }
 
-    static async updateMessageResponse(id: string, response: string, status: SupportStatus = SupportStatus.RESOLVED) {
+    static async updateMessageResponse(
+        id: string,
+        response: string,
+        status: SupportStatus = SupportStatus.RESOLVED,
+        userId?: string
+    ) {
+        if (userId) {
+            const result = await prisma.supportMessage.updateMany({
+                where: { id, userId },
+                data: {
+                    response,
+                    status,
+                    aiProcessed: true,
+                },
+            });
+            if (result.count === 0) {
+                throw new Error('Support message not found');
+            }
+            return result;
+        }
+
         return await prisma.supportMessage.update({
             where: { id },
             data: {
@@ -39,7 +58,18 @@ export class SupportService {
         });
     }
 
-    static async updateStatus(id: string, status: SupportStatus) {
+    static async updateStatus(id: string, status: SupportStatus, userId?: string) {
+        if (userId) {
+            const result = await prisma.supportMessage.updateMany({
+                where: { id, userId },
+                data: { status },
+            });
+            if (result.count === 0) {
+                throw new Error('Support message not found');
+            }
+            return result;
+        }
+
         return await prisma.supportMessage.update({
             where: { id },
             data: { status },

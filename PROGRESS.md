@@ -184,3 +184,5 @@ pm test (Vitest) passed.
 - Kanban durum degisimi icin optimistic UI eklendi; PUT basarili olana kadar beklemeden arayuz guncelleniyor, hata olursa geri aliniyor.
 
 - Tenant izolasyonu baslangic: AsyncLocalStorage ile tenant context eklendi ve Prisma tarafinda tenantId scoping (findMany/findFirst/updateMany/deleteMany + create/createMany) otomatik uygulaniyor.
+
+- SupportService icin tenant izolasyonu sertlestirildi: shared prisma kullanimi ve kullanici-bazli filtreleme eklendi (destek mesajlari sadece sahibine doner).

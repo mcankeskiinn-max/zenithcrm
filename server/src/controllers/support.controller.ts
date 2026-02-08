@@ -41,14 +41,18 @@ export class SupportController {
     static async getMessageById(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const message = await SupportService.getMessageById(id);
+            const currentUser = (req as any).user;
+            const message = await SupportService.getMessageById(
+                id,
+                currentUser.role === "ADMIN" ? undefined : currentUser.id
+            );
 
             if (!message) {
                 return res.status(404).json({ error: 'Mesaj bulunamadı' });
             }
 
             // Check if user owns the message or is admin
-            if (message.userId !== (req as any).user.id && (req as any).user.role !== 'ADMIN') {
+            if (message.userId !== currentUser.id && currentUser.role !== 'ADMIN') {
                 return res.status(403).json({ error: 'Bu mesaja erişim yetkiniz yok' });
             }
 
