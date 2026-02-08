@@ -127,6 +127,9 @@ export const updateUser = async (req: Request, res: Response) => {
         const user = await prisma.user.findFirst({
             where: { id, tenantId: currentUser.tenantId }
         });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
         if (currentUser) {
             await logAudit({
