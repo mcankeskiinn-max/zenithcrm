@@ -194,3 +194,5 @@ pm test (Vitest) passed.
 - Tenant izolasyonu hardening: update/delete islemlerinde tenantId scoping (branch, customer, policyType, user, task, sale, document, commission rule, sales target).
 
 - SupportMessage modeline tenantId eklendi (migrasyon). Support servisi ve AI islemleri tenantId ile sinirlandi. Notification cron job'lari tenant bazli calisiyor.
+
+- Prisma datasource icin DIRECT_URL eklendi (migrasyonlar pooler yerine direct URL ile calisacak).
