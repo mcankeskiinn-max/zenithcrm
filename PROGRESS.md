@@ -180,3 +180,5 @@ pm test (Vitest) passed.
 - Sentry entegrasyonu eklendi (SENTRY_DSN varsa aktif).
 
 [2026-02-07] Security discipline updates: added security audit job to CI, expanded SECURITY_HARDENING_CHECKLIST.md, added SECURITY_REVIEW_TEMPLATE.md, updated RELEASE_GATE.md and PRODUCTION_READINESS.md with audit/sign-off items.
+
+- Kanban durum degisimi icin optimistic UI eklendi; PUT basarili olana kadar beklemeden arayuz guncelleniyor, hata olursa geri aliniyor.

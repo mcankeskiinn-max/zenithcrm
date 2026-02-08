@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -64,6 +64,7 @@ export default function SalesPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [refreshDocs, setRefreshDocs] = useState(0);
     const [showDocsId, setShowDocsId] = useState<string | null>(null);
+    const updatingStatusIds = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         const userStr = localStorage.getItem('user');
@@ -244,13 +245,30 @@ await axios.put(`/api/sales/${editingId}`, {
     };
 
     const handleStatusChange = async (saleId: string, newStatus: string) => {
+        const currentSale = sales.find(s => s.id === saleId);
+        if (!currentSale || currentSale.status === newStatus) return;
+        if (updatingStatusIds.current.has(saleId)) return;
+
+        updatingStatusIds.current.add(saleId);
+        const previousStatus = currentSale.status;
+
+        // Optimistic UI update
+        setSales(prev =>
+            prev.map(s => (s.id === saleId ? { ...s, status: newStatus } : s))
+        );
+
         try {
 await axios.put(`/api/sales/${saleId}`, { status: newStatus }, {
-                
+
             });
-            fetchSales();
         } catch (error) {
-            alert('Durum güncellenemedi');
+            // Revert on failure
+            setSales(prev =>
+                prev.map(s => (s.id === saleId ? { ...s, status: previousStatus } : s))
+            );
+            alert('Durum g??ncellenemedi');
+        } finally {
+            updatingStatusIds.current.delete(saleId);
         }
     };
 
