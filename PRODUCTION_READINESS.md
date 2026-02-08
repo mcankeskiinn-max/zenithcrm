@@ -65,3 +65,13 @@
 - Playwright UI smoke testi gecti (summary.json).
 - Dev sunuculari dogrulama sonrasi kapatildi.
 - CI durum kontrolu bu turda yapilmadi.
+
+
+<!-- TENANT_AUDIT_START -->
+## Son Tarama Durumu
+- Tarih: 2026-02-08T21:11:01.312Z
+- Sonuc: READY
+- PASS: 7
+- WARN: 1
+- FAIL: 0
+<!-- TENANT_AUDIT_END -->
