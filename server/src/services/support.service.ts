@@ -2,10 +2,11 @@ import { SupportStatus } from '@prisma/client';
 import prisma from '../prisma';
 
 export class SupportService {
-    static async createMessage(userId: string, message: string, metadata?: any) {
+    static async createMessage(userId: string, tenantId: string, message: string, metadata?: any) {
         return await prisma.supportMessage.create({
             data: {
                 userId,
+                tenantId,
                 message,
                 status: SupportStatus.PENDING,
                 metadata: metadata || {},
@@ -13,16 +14,16 @@ export class SupportService {
         });
     }
 
-    static async getMessages(userId: string) {
+    static async getMessages(userId: string, tenantId: string) {
         return await prisma.supportMessage.findMany({
-            where: { userId },
+            where: { userId, tenantId },
             orderBy: { createdAt: 'asc' },
         });
     }
 
-    static async getMessageById(id: string, userId?: string) {
+    static async getMessageById(id: string, tenantId?: string, userId?: string) {
         return await prisma.supportMessage.findUnique({
-            where: { id, ...(userId ? { userId } : {}) },
+            where: { id, ...(tenantId ? { tenantId } : {}), ...(userId ? { userId } : {}) },
             include: { user: true },
         });
     }
@@ -31,11 +32,12 @@ export class SupportService {
         id: string,
         response: string,
         status: SupportStatus = SupportStatus.RESOLVED,
+        tenantId?: string,
         userId?: string
     ) {
-        if (userId) {
+        if (userId || tenantId) {
             const result = await prisma.supportMessage.updateMany({
-                where: { id, userId },
+                where: { id, ...(tenantId ? { tenantId } : {}), ...(userId ? { userId } : {}) },
                 data: {
                     response,
                     status,
@@ -58,10 +60,10 @@ export class SupportService {
         });
     }
 
-    static async updateStatus(id: string, status: SupportStatus, userId?: string) {
-        if (userId) {
+    static async updateStatus(id: string, status: SupportStatus, tenantId?: string, userId?: string) {
+        if (userId || tenantId) {
             const result = await prisma.supportMessage.updateMany({
-                where: { id, userId },
+                where: { id, ...(tenantId ? { tenantId } : {}), ...(userId ? { userId } : {}) },
                 data: { status },
             });
             if (result.count === 0) {

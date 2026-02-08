@@ -7,13 +7,14 @@ export class SupportController {
     static async createMessage(req: Request, res: Response) {
         try {
             const { message, metadata } = req.body;
-            const userId = (req as any).user.id;
+            const currentUser = (req as any).user;
+            const userId = currentUser.id;
 
             if (!message) {
                 return res.status(400).json({ error: 'Mesaj alanı boş bırakılamaz' });
             }
 
-            const supportMessage = await SupportService.createMessage(userId, message, metadata);
+            const supportMessage = await SupportService.createMessage(userId, currentUser.tenantId, message, metadata);
 
             // Trigger AI processing in the background
             AISupportService.processSupportMessage(supportMessage.id).catch(err => {
@@ -29,8 +30,9 @@ export class SupportController {
 
     static async getMessages(req: Request, res: Response) {
         try {
-            const userId = (req as any).user.id;
-            const messages = await SupportService.getMessages(userId);
+            const currentUser = (req as any).user;
+            const userId = currentUser.id;
+            const messages = await SupportService.getMessages(userId, currentUser.tenantId);
             res.json(messages);
         } catch (error) {
             console.error('Support fetch error:', error);
@@ -44,6 +46,7 @@ export class SupportController {
             const currentUser = (req as any).user;
             const message = await SupportService.getMessageById(
                 id,
+                currentUser.tenantId,
                 currentUser.role === "ADMIN" ? undefined : currentUser.id
             );
 

@@ -402,6 +402,7 @@ enum NotificationPriority {
 model SupportMessage {
   id          String        @id @default(uuid())
   userId      String
+  tenantId    String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   message     String        @db.Text
   response    String?       @db.Text
@@ -410,8 +411,10 @@ model SupportMessage {
   metadata    Json?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([tenantId])
   @@index([status])
   @@map("support_messages")
 }

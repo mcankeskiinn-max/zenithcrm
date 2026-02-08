@@ -192,3 +192,5 @@ pm test (Vitest) passed.
 - Mesajlasma endpointlerinde tenant izolasyonu guclendirildi (receiver dogrulamasi + mesaj sorgularina tenantId filtreleri).
 
 - Tenant izolasyonu hardening: update/delete islemlerinde tenantId scoping (branch, customer, policyType, user, task, sale, document, commission rule, sales target).
+
+- SupportMessage modeline tenantId eklendi (migrasyon). Support servisi ve AI islemleri tenantId ile sinirlandi. Notification cron job'lari tenant bazli calisiyor.

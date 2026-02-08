@@ -22,7 +22,7 @@ export class AISupportService {
         if (!supportMessage) return;
 
         // Update status to processing
-        await SupportService.updateStatus(messageId, SupportStatus.PROCESSING);
+        await SupportService.updateStatus(messageId, SupportStatus.PROCESSING, supportMessage.user?.tenantId);
 
         try {
             let aiResponse = "";
@@ -43,13 +43,14 @@ export class AISupportService {
             }
 
             // Update with response
-            await SupportService.updateMessageResponse(messageId, aiResponse, SupportStatus.RESOLVED);
+            await SupportService.updateMessageResponse(messageId, aiResponse, SupportStatus.RESOLVED, supportMessage.user?.tenantId);
         } catch (error) {
             console.error('AI Processing Error:', error);
             await SupportService.updateMessageResponse(
                 messageId,
                 "Üzgünüm, talebinizi işlerken bir hata oluştu. Lütfen daha sonra tekrar deneyin veya sistem yöneticisine başvurun.",
-                SupportStatus.FAILED
+                SupportStatus.FAILED,
+                supportMessage.user?.tenantId
             );
         }
     }
