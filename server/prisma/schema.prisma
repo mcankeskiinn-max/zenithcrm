@@ -351,6 +351,7 @@ enum SaleStatus {
   OFFER
   ACTIVE
   CANCELLED
+  LOST
 }
 
 enum Priority {
