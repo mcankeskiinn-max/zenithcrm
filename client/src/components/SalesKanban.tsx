@@ -7,20 +7,17 @@ import {
     PointerSensor,
     useSensor,
     useSensors,
-    DragStartEvent,
-    DragOverEvent,
-    DragEndEvent,
     defaultDropAnimationSideEffects
 } from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import {
-    arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
     useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { MoreVertical, User, FileText, Building2, Upload, GripVertical } from 'lucide-react';
+import { FileText, Building2, Upload, GripVertical } from 'lucide-react';
 import { useState } from 'react';
 
 interface SalesKanbanProps {
