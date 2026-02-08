@@ -116,9 +116,16 @@ export const updateUser = async (req: Request, res: Response) => {
         });
         if (!existing) return res.status(404).json({ error: 'User not found' });
 
-        const user = await prisma.user.update({
-            where: { id },
+        const result = await prisma.user.updateMany({
+            where: { id, tenantId: currentUser.tenantId },
             data
+        });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = await prisma.user.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
         });
 
         if (currentUser) {
@@ -166,7 +173,12 @@ export const deleteUser = async (req: Request, res: Response) => {
             });
         }
 
-        await prisma.user.delete({ where: { id } });
+        const result = await prisma.user.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
 
         if (currentUser) {
             await logAudit({

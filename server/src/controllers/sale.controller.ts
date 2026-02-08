@@ -198,14 +198,20 @@ export const createSale = async (req: Request, res: Response) => {
             });
 
             if (existingSale && saleData.status === 'CANCELLED') {
-                sale = await prisma.sale.update({
-                    where: { id: existingSale.id },
+                const result = await prisma.sale.updateMany({
+                    where: { id: existingSale.id, tenantId: currentUser.tenantId },
                     data: {
                         status: 'CANCELLED',
                         cancelReason: cancelReason || existingSale.cancelReason,
                         amount: Number(amount),
                         saleDate: saleData.saleDate
                     }
+                });
+                if (result.count === 0) {
+                    return res.status(404).json({ error: 'Sale not found' });
+                }
+                sale = await prisma.sale.findFirst({
+                    where: { id: existingSale.id, tenantId: currentUser.tenantId }
                 });
             } else if (existingSale) {
                 return res.status(409).json({
@@ -329,9 +335,14 @@ export const updateSale = async (req: Request, res: Response) => {
             return res.status(403).json({ error: 'Bu işlem için yetkiniz yok (Farklı şube).' });
         }
 
-        const sale = await prisma.sale.update({
-            where: { id },
+        const updateResult = await prisma.sale.updateMany({
+            where: { id, tenantId: currentUser.tenantId },
             data: updateData
+        });
+        if (updateResult.count === 0) return res.status(404).json({ error: 'Sale not found' });
+
+        const sale = await prisma.sale.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
         });
 
         // RECALCULATE COMMISSION ON UPDATE (only for ACTIVE)
@@ -381,12 +392,12 @@ export const deleteSale = async (req: Request, res: Response) => {
 
     try {
         // First delete related commission logs (Foreign key constraint)
+        const currentUser = req.user!;
         await prisma.commissionLog.deleteMany({
-            where: { saleId: id }
+            where: { saleId: id, tenantId: currentUser.tenantId }
         });
 
         // Check permissions
-        const currentUser = req.user!;
         const existingSale = await prisma.sale.findFirst({
             where: { id, tenantId: currentUser.tenantId }
         });
@@ -404,9 +415,10 @@ export const deleteSale = async (req: Request, res: Response) => {
         }
 
         // Then delete the sale
-        await prisma.sale.delete({
-            where: { id }
+        const result = await prisma.sale.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
         });
+        if (result.count === 0) return res.status(404).json({ error: 'Sale not found' });
 
         // Audit Log
         await logAudit({

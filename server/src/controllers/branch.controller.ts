@@ -81,12 +81,20 @@ export const updateBranch = async (req: Request, res: Response) => {
 
         const settings = commissionRate ? { commissionRate: Number(commissionRate) } : undefined;
 
-        const branch = await prisma.branch.update({
-            where: { id },
+        const result = await prisma.branch.updateMany({
+            where: { id, tenantId: currentUser.tenantId },
             data: {
                 name,
                 settings
             }
+        });
+
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Branch not found' });
+        }
+
+        const branch = await prisma.branch.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
         });
 
         res.json(branch);
@@ -107,7 +115,12 @@ export const deleteBranch = async (req: Request, res: Response) => {
         });
         if (!existing) return res.status(404).json({ error: 'Branch not found' });
 
-        await prisma.branch.delete({ where: { id } });
+        const result = await prisma.branch.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Branch not found' });
+        }
         res.json({ message: 'Branch deleted successfully' });
     } catch (error) {
         console.error(error);

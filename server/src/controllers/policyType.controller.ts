@@ -77,7 +77,12 @@ export const deletePolicyType = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Bu poliçe tipine bağlı satışlar olduğu için silinemez.' });
         }
 
-        await prisma.policyType.delete({ where: { id } });
+        const result = await prisma.policyType.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Policy type not found' });
+        }
         if (currentUser) {
             await logAudit({
                 userId: currentUser.id,
@@ -103,9 +108,16 @@ export const updatePolicyType = async (req: Request, res: Response) => {
         });
         if (!existing) return res.status(404).json({ error: 'Policy type not found' });
 
-        const type = await prisma.policyType.update({
-            where: { id },
+        const result = await prisma.policyType.updateMany({
+            where: { id, tenantId: currentUser.tenantId },
             data: { name }
+        });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Policy type not found' });
+        }
+
+        const type = await prisma.policyType.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
         });
         if (currentUser) {
             await logAudit({

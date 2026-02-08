@@ -208,9 +208,15 @@ export const setSalesTarget = async (req: Request, res: Response) => {
 
         let target;
         if (existing) {
-            target = await prisma.salesTarget.update({
-                where: { id: existing.id },
+            const result = await prisma.salesTarget.updateMany({
+                where: { id: existing.id, tenantId: currentUser.tenantId },
                 data: { amount: parseFloat(amount) }
+            });
+            if (result.count === 0) {
+                return res.status(404).json({ error: 'Sales target not found' });
+            }
+            target = await prisma.salesTarget.findFirst({
+                where: { id: existing.id, tenantId: currentUser.tenantId }
             });
         } else {
             target = await prisma.salesTarget.create({

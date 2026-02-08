@@ -145,9 +145,14 @@ export const updateTask = async (req: Request, res: Response) => {
         if (isCompleted !== undefined) updateData.isCompleted = isCompleted;
         if (assignedToId !== undefined) updateData.assignedToId = assignedToId;
 
-        const task = await prisma.task.update({
-            where: { id },
+        const result = await prisma.task.updateMany({
+            where: { id, tenantId: currentUser.tenantId },
             data: updateData
+        });
+        if (result.count === 0) return res.status(404).json({ error: 'Task not found' });
+
+        const task = await prisma.task.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
         });
 
         res.json(task);
@@ -181,9 +186,10 @@ export const deleteTask = async (req: Request, res: Response) => {
             }
         }
 
-        await prisma.task.delete({
-            where: { id }
+        const result = await prisma.task.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
         });
+        if (result.count === 0) return res.status(404).json({ error: 'Task not found' });
         res.json({ message: 'Task deleted successfully' });
     } catch (error) {
         console.error(error);

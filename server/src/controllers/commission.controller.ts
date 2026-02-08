@@ -97,7 +97,10 @@ export const deleteRule = async (req: Request, res: Response) => {
         });
         if (!existing) return res.status(404).json({ error: 'Rule not found' });
 
-        await prisma.commissionRule.delete({ where: { id } });
+        const result = await prisma.commissionRule.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
+        });
+        if (result.count === 0) return res.status(404).json({ error: 'Rule not found' });
         res.json({ message: 'Rule deleted' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete rule' });

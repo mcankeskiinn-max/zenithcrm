@@ -175,9 +175,16 @@ export const updateCustomer = async (req: Request, res: Response) => {
             updateData.identityNo = identityNumber;
         }
 
-        const customer = await prisma.customer.update({
-            where: { id },
+        const result = await prisma.customer.updateMany({
+            where: { id, tenantId: currentUser.tenantId },
             data: updateData
+        });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Müşteri bulunamadı.' });
+        }
+
+        const customer = await prisma.customer.findFirst({
+            where: { id, tenantId: currentUser.tenantId }
         });
         res.json(customer);
     } catch (error) {
@@ -208,9 +215,12 @@ export const deleteCustomer = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Satış kaydı bulunan müşteriler sadece yönetici tarafından silinebilir.' });
         }
 
-        await prisma.customer.delete({
-            where: { id }
+        const result = await prisma.customer.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
         });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Müşteri bulunamadı.' });
+        }
 
         res.json({ message: 'Müşteri başarıyla silindi.' });
     } catch (error) {

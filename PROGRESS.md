@@ -190,3 +190,5 @@ pm test (Vitest) passed.
 - Onay akisi sale update oncesi tenant kontrollu; approval icin satis kaydi tenantId ile dogrulaniyor.
 
 - Mesajlasma endpointlerinde tenant izolasyonu guclendirildi (receiver dogrulamasi + mesaj sorgularina tenantId filtreleri).
+
+- Tenant izolasyonu hardening: update/delete islemlerinde tenantId scoping (branch, customer, policyType, user, task, sale, document, commission rule, sales target).

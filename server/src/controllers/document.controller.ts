@@ -233,9 +233,12 @@ export const deleteDocument = async (req: Request, res: Response) => {
         }
 
         // Delete from DB
-        await prisma.document.delete({
-            where: { id }
+        const result = await prisma.document.deleteMany({
+            where: { id, tenantId: currentUser.tenantId }
         });
+        if (result.count === 0) {
+            return res.status(404).json({ error: 'Document not found' });
+        }
 
         res.json({ message: 'Document deleted successfully' });
     } catch (error) {
