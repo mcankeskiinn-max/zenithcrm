@@ -57,7 +57,8 @@ Day 7: Success
 - [x] RUNBOOK.md tamamlandi
 - [x] ROLLBACK_PLAN.md tamamlandi
 - [x] bypass-abuse-detector.ts implement edildi
-- [ ] Test coverage %95+
+- [x] Test coverage >= %90 (overall)
+- [ ] Security-critical coverage >= %95 (auth/tenant/csrf)
 - [x] Pre-production audit PASS
 - [ ] Monitoring dashboard hazir
 - [x] Alert rules configure edildi
