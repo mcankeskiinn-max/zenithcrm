@@ -34,6 +34,7 @@ const LandingPage = () => {
     };
 
     const FEATURES = [
+
         {
             icon: <Zap className="w-8 h-8 text-emerald-600" />,
             title: "Hız ve Verimlilik",
@@ -78,6 +79,10 @@ const LandingPage = () => {
             icon: <Cpu className="w-8 h-8 text-emerald-600" />,
             title: "Hızlı Kurulum",
             description: "Self-servis kayıt olun ve acentenizin branşlarını saniyeler içinde otomatik yapılandırın."
+        },        {
+            icon: <Shield className="w-8 h-8 text-emerald-600" />,
+            title: "Guvenlik ve Izleme",
+            description: "Tenant izolasyonu, audit logging ve Sentry izleme ile verileriniz her an kontrol altinda."
         }
     ];
 
@@ -406,6 +411,59 @@ const LandingPage = () => {
                 </div>
             </section>
 
+            <section className="py-24 bg-emerald-950 text-emerald-50 relative overflow-hidden">
+                <div className="absolute -top-24 right-0 w-72 h-72 bg-emerald-600/20 rounded-full blur-[120px]" />
+                <div className="absolute bottom-0 left-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-[120px]" />
+
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-emerald-300 font-bold uppercase tracking-widest text-sm mb-4">Security First</h2>
+                        <p className="text-3xl md:text-5xl font-black text-white">Pilot icin Guvenlik Hazirligi</p>
+                        <p className="text-emerald-200/70 max-w-3xl mx-auto mt-4">
+                            Pilot kullanicilar icin guvenlik katmanlari, izleme ve geri donus prosedurleri tamamlandi.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6">
+                        <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
+                            <p className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-2">Kritik Katman</p>
+                            <h3 className="text-xl font-black text-white mb-3">Tenant Izolasyonu</h3>
+                            <p className="text-emerald-200/70">Okuma yazma iliskileri tenant bazli ve fail closed calisir.</p>
+                        </div>
+                        <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
+                            <p className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-2">Gozlem</p>
+                            <h3 className="text-xl font-black text-white mb-3">Sentry ve Dashboard</h3>
+                            <p className="text-emerald-200/70">Prod test gecerli. Izleme panosu aktif.</p>
+                        </div>
+                        <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
+                            <p className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-2">Operasyon</p>
+                            <h3 className="text-xl font-black text-white mb-3">Runbook ve Rollback</h3>
+                            <p className="text-emerald-200/70">Acil durum prosedurleri ve geri donus plani hazir.</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-12 grid md:grid-cols-2 gap-6">
+                        <div className="bg-white/5 border border-emerald-800/60 rounded-2xl p-6">
+                            <h4 className="text-lg font-black text-white mb-2">Son Guncellemeler</h4>
+                            <ul className="text-emerald-200/80 space-y-2">
+                                <li>Go Live Ready raporu yayinlandi</li>
+                                <li>Security Architecture v2.0 tamamlandi</li>
+                                <li>Monitoring dashboard tanimlandi</li>
+                                <li>On call egitim plani hazirlandi</li>
+                            </ul>
+                        </div>
+                        <div className="bg-white/5 border border-emerald-800/60 rounded-2xl p-6">
+                            <h4 className="text-lg font-black text-white mb-2">Pilot Guvencesi</h4>
+                            <ul className="text-emerald-200/80 space-y-2">
+                                <li>Security critical coverage yuzde 95 ustu</li>
+                                <li>Alert kurallari aktif</li>
+                                <li>Tenant izolasyonu otomatik testlerle dogrulandi</li>
+                                <li>Rollback proseduru 15 dakika icinde calistirilabilir</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
             {/* FAQ Section */}
             <section className="py-24 bg-white dark:bg-emerald-950 bg-mesh transition-colors">
                 <div className="max-w-3xl mx-auto px-4">
@@ -515,4 +573,7 @@ const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, titl
 );
 
 export default LandingPage;
+
+
+
 
