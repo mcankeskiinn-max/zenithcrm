@@ -37,6 +37,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            server/package-lock.json
+            client/package-lock.json
       - name: Server npm audit (high+)
         id: server-audit
         working-directory: server
