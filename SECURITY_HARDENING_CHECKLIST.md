@@ -7,6 +7,7 @@
 - Configure `CORS_ORIGIN` and `CLIENT_URL` to the exact frontend URL.
 - Ensure `TRUST_PROXY` matches the real proxy chain (avoid `true` unless you know what you’re doing).
 - Document all production secrets in `PRODUCTION_READINESS.md`.
+- [DONE 2026-02-09] Prod JWT secrets set in Railway (64+ chars, unique).
 
 ## Auth & Session
 - Auth uses httpOnly cookies with `Secure` + `SameSite=None` in production.
@@ -35,6 +36,7 @@
 - Avoid logging sensitive data (passwords, tokens, PII).
 - Add error monitoring (Sentry or platform logs) for production.
 - Add alerting for spikes in 4xx/5xx and rate-limit events.
+- [DONE 2026-02-09] Sentry email alert active (new issue + issue spike) and test event verified.
 
 ## Dependencies
 - Run `npm audit` regularly and address high severity issues.

@@ -26,7 +26,7 @@ const DEFAULT_TENANT_FILES = [
 ];
 
 const REQUIRED_SECRETS = ["JWT_SECRET", "JWT_REFRESH_SECRET"];
-const MIN_SECRET_LENGTH = 48;
+const MIN_SECRET_LENGTH = 64;
 
 const WARN = "WARN" as const;
 const PASS = "PASS" as const;

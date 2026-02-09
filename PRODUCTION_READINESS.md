@@ -18,12 +18,14 @@
 ## Secrets Management
 - Store secrets in Railway/Vercel/Supabase secret manager (never in repo).
 - Rotate JWT secrets on schedule and after incidents.
+- [DONE 2026-02-09] Prod JWT_SECRET/JWT_REFRESH_SECRET set in Railway (64+ chars, unique).
 
 ## Logging & Monitoring
 - Capture server errors (platform logs or Sentry).
 - Alert on login failures, rate-limit spikes, and 5xx errors.
 - Ensure no sensitive data is logged (tokens, passwords, PII).
 - Sentry Issues aktif, en az bir test event gorunur.
+- [DONE 2026-02-09] Sentry email alert configured (new issue + issue spike) and test event verified.
 
 ## Backups & Recovery
 - Enable scheduled Supabase backups.
@@ -69,7 +71,7 @@
 
 <!-- TENANT_AUDIT_START -->
 ## Son Tarama Durumu
-- Tarih: 2026-02-08T21:11:01.312Z
+- Tarih: 2026-02-09T12:05:07.429Z
 - Sonuc: READY
 - PASS: 7
 - WARN: 1

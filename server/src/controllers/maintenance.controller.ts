@@ -94,10 +94,16 @@ export const cleanupTestData = async (req: Request, res: Response) => {
     }
 };
 
-export const sentryTest = async (_req: Request, res: Response) => {
+export const sentryTest = async (req: Request, res: Response) => {
     try {
-        const eventId = Sentry.captureMessage('Sentry test message from maintenance endpoint');
-        return res.json({ ok: true, eventId });
+        if (process.env.NODE_ENV === 'production') {
+            return res.status(404).json({ ok: false, error: 'Not found' });
+        }
+        const rawLevel = String(req.query.level || '').toLowerCase();
+        const allowedLevels = new Set(['fatal', 'error', 'warning', 'info', 'debug']);
+        const level = allowedLevels.has(rawLevel) ? rawLevel : 'info';
+        const eventId = Sentry.captureMessage('Sentry test message from maintenance endpoint', level as any);
+        return res.json({ ok: true, eventId, level });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ ok: false, error: 'Sentry test failed' });

@@ -6,6 +6,20 @@ on:
   pull_request:
 
 jobs:
+  pr-checklist:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce PR Security Checklist
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+            const required = '- [x] Security checklist completed (see `SECURITY_PR_CHECKLIST.md`)';
+            if (!body.includes(required)) {
+              core.setFailed('PR must confirm: "Security checklist completed" in the template.');
+            }
+
   security-audit:
     runs-on: ubuntu-latest
     outputs:

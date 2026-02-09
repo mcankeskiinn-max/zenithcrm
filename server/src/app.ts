@@ -53,6 +53,17 @@ if (isProduction) {
     if (missing.length > 0) {
         throw new Error(`Missing required env vars: ${missing.join(', ')}`);
     }
+
+    const minSecretLength = 64;
+    const jwtSecrets = ['JWT_SECRET', 'JWT_REFRESH_SECRET'] as const;
+    const tooShort = jwtSecrets.filter((key) => (process.env[key] || '').length < minSecretLength);
+    if (tooShort.length > 0) {
+        throw new Error(`JWT secrets too short (<${minSecretLength}): ${tooShort.join(', ')}`);
+    }
+
+    if (process.env.JWT_SECRET === process.env.JWT_REFRESH_SECRET) {
+        throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be different');
+    }
 }
 
 // Security middleware
@@ -133,14 +144,6 @@ app.use(cors({
 }));
 
 const sentryDsn = process.env.SENTRY_DSN;
-if (sentryDsn) {
-    Sentry.init({
-        dsn: sentryDsn,
-        environment: process.env.NODE_ENV || 'development',
-        tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE || 0.1),
-        integrations: [Sentry.httpIntegration(), Sentry.expressIntegration()]
-    });
-}
 
 if (isProduction) {
     app.use(morgan('combined'));
