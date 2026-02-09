@@ -27,10 +27,10 @@ Week 1:
 Referans: `docs/ONBOARDING_SECURITY.md`, `docs/TRAINING_TENANT_ISOLATION.md`, `docs/SECURITY_QUIZ.md`
 
 ## 4) Quarterly Review
-- [ ] Threat model guncelleme
-- [ ] Alert threshold optimization
-- [ ] Yeni attack vector arastirma
-- [ ] External audit findings integration
+- [x] Threat model guncelleme
+- [x] Alert threshold optimization
+- [x] Yeni attack vector arastirma
+- [x] External audit findings integration
 Referans: `docs/QUARTERLY_SECURITY_REVIEW.md`
 
 ## 5) Go-Live Stratejisi
