@@ -417,10 +417,11 @@ const LandingPage = () => {
 
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center mb-12">
-                        <h2 className="text-emerald-300 font-bold uppercase tracking-widest text-sm mb-4">Security First</h2>
-                        <p className="text-3xl md:text-5xl font-black text-white">Pilot icin Guvenlik Hazirligi</p>
+                        <p className="text-2xl md:text-4xl font-black text-white">
+                            Yuksek guvenlik kontrolleri ile pilot boyunca verileriniz koruma altinda.
+                        </p>
                         <p className="text-emerald-200/70 max-w-3xl mx-auto mt-4">
-                            Pilot kullanicilar icin guvenlik katmanlari, izleme ve geri donus prosedurleri tamamlandi.
+                            Sorun yasadiginizda aninda AI destekli teknik destek ile yaninizdayiz.
                         </p>
                     </div>
 
