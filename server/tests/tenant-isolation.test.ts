@@ -1,6 +1,13 @@
 import { TenantAccessDeniedError, TenantBypassError, TenantMismatchError } from '../src/utils/tenant-errors';
 import { runWithTenant, getTenantId, requireTenantId } from '../src/utils/tenant-context';
 import { runWithBypass, isBypassEnabled, getBypassContext } from '../src/utils/tenant-bypass';
+
+jest.mock('../src/monitoring/bypass-abuse-detector', () => ({
+    bypassAbuseDetector: {
+        register: jest.fn(),
+        checkAbuse: jest.fn().mockResolvedValue(null)
+    }
+}));
 import { applyTenantIsolation } from '../src/lib/prisma-tenant-middleware';
 
 jest.mock('../src/utils/audit.util', () => ({
@@ -59,6 +66,7 @@ describe('Tenant isolation (critical coverage)', () => {
 
     it('bypass context allows admin role and exposes context', async () => {
         mockedIsBypassEnabled.mockReturnValue(true);
+        process.env.BYPASS_ABUSE_DETECTOR_ENABLED = 'true';
         const result = await runWithBypass(
             { actorId: 'admin-1', actorRole: 'ADMIN', reason: 'report' },
             async () => {
@@ -71,6 +79,7 @@ describe('Tenant isolation (critical coverage)', () => {
     });
 
     it('bypass context denies non-admin role', async () => {
+        process.env.BYPASS_ABUSE_DETECTOR_ENABLED = 'true';
         await expect(
             runWithBypass(
                 { actorId: 'user-1', actorRole: 'USER', reason: 'test' },

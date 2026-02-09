@@ -9,7 +9,7 @@
 - [ ] Acil durum proseduru walkthrough (15 dk)
 
 ## 2) Dokumantasyon Yayini
-- [ ] Confluence: Security → Architecture → Tenant Isolation
+- [ ] Confluence: Security -> Architecture -> Tenant Isolation
 - [ ] GitHub Wiki: /docs/security/SECURITY_ARCHITECTURE.md
 - [ ] Internal docs: security.zenithcrm.com/architecture
 
@@ -52,13 +52,14 @@ Day 7: Success
 - [ ] Post-mortem ve ogrenimler
 
 ## 6) Pre-Production Checklist
-- [ ] SECURITY_ARCHITECTURE.md tamamlandi
-- [ ] TENANT_ISOLATION_PRD.md tamamlandi
-- [ ] RUNBOOK.md tamamlandi
-- [ ] ROLLBACK_PLAN.md tamamlandi
-- [ ] bypass-abuse-detector.ts implement edildi
+- [x] SECURITY_ARCHITECTURE.md tamamlandi
+- [x] TENANT_ISOLATION_PRD.md tamamlandi
+- [x] RUNBOOK.md tamamlandi
+- [x] ROLLBACK_PLAN.md tamamlandi
+- [x] bypass-abuse-detector.ts implement edildi
 - [ ] Test coverage %95+
-- [ ] Pre-production audit PASS
+- [x] Pre-production audit PASS
 - [ ] Monitoring dashboard hazir
-- [ ] Alert rules configure edildi
+- [x] Alert rules configure edildi
 - [ ] On-call team egitildi
+

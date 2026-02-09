@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { logAudit } from './audit.util';
 import { TenantBypassError } from './tenant-errors';
+import { bypassAbuseDetector } from '../monitoring/bypass-abuse-detector';
 
 type BypassContext = {
     enabled: boolean;
@@ -36,6 +37,15 @@ export const runWithBypass = async <T>(
     const allowedRoles = parseAllowedRoles();
     const actorRole = options.actorRole?.toUpperCase();
     if (!allowedRoles.includes(actorRole)) {
+        if (process.env.BYPASS_ABUSE_DETECTOR_ENABLED === 'true') {
+            bypassAbuseDetector.register({
+                userId: options.actorId,
+                allowed: false,
+                reason: options.reason,
+                permission: actorRole as any,
+                timestamp: Date.now()
+            });
+        }
         throw new TenantBypassError('Tenant bypass denied for role', {
             role: options.actorRole,
             allowedRoles
@@ -61,6 +71,28 @@ export const runWithBypass = async <T>(
             role: options.actorRole
         }
     });
+
+    if (process.env.BYPASS_ABUSE_DETECTOR_ENABLED === 'true') {
+        bypassAbuseDetector.register({
+            userId: options.actorId,
+            allowed: true,
+            reason: options.reason,
+            permission: actorRole as any,
+            timestamp: Date.now()
+        });
+        const alert = await bypassAbuseDetector.checkAbuse(options.actorId, options.reason);
+        if (alert) {
+            await logAudit({
+                action: 'BYPASS_ABUSE',
+                resource: 'TenantIsolation',
+                resourceId: options.actorId,
+                userId: options.actorId,
+                tenantId: options.tenantId,
+                details: alert
+            });
+            console.warn('Bypass abuse detected', alert);
+        }
+    }
 
     return await bypassStore.run(context, fn);
 };

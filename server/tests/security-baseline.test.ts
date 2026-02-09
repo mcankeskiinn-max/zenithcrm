@@ -1,6 +1,6 @@
 import { loginValidation } from '../src/controllers/auth.controller';
 import { validateRequest } from '../src/middleware/validate.middleware';
-import { csrfProtection } from '../src/middleware/csrf.middleware';
+import { csrfProtection, getCsrfCookieName } from '../src/middleware/csrf.middleware';
 import { authorize } from '../src/middleware/auth.middleware';
 import { Role } from '../src/utils/constants';
 
@@ -74,6 +74,48 @@ describe('security baseline (auth + csrf)', () => {
         csrfProtection(req as any, res as any, next as any);
 
         expect(next).toHaveBeenCalled();
+    });
+
+    it('csrf allows safe methods', () => {
+        process.env.NODE_ENV = 'production';
+        const req: any = { method: 'GET', path: '/api/customers', cookies: {}, headers: {} };
+        const res = makeRes();
+        const next = jest.fn();
+
+        csrfProtection(req as any, res as any, next as any);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('csrf skips auth endpoints', () => {
+        process.env.NODE_ENV = 'production';
+        const req: any = { method: 'POST', path: '/api/auth/login', cookies: {}, headers: {} };
+        const res = makeRes();
+        const next = jest.fn();
+
+        csrfProtection(req as any, res as any, next as any);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('csrf allows matching cookie/header token', () => {
+        process.env.NODE_ENV = 'production';
+        const req: any = {
+            method: 'POST',
+            path: '/api/customers',
+            cookies: { 'XSRF-TOKEN': 't1' },
+            headers: { 'x-csrf-token': 't1' }
+        };
+        const res = makeRes();
+        const next = jest.fn();
+
+        csrfProtection(req as any, res as any, next as any);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('exposes csrf cookie name', () => {
+        expect(getCsrfCookieName()).toBe('XSRF-TOKEN');
     });
 
     it('authorize rejects when role not allowed', () => {

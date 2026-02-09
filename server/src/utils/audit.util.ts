@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client';
 export const logAudit = async (data: {
     userId?: string;
     tenantId?: string;
-    action: 'LOGIN' | 'LOGOUT' | 'CREATE' | 'UPDATE' | 'DELETE' | 'EXPORT' | 'UNAUTHORIZED' | 'BYPASS';
+    action: 'LOGIN' | 'LOGOUT' | 'CREATE' | 'UPDATE' | 'DELETE' | 'EXPORT' | 'UNAUTHORIZED' | 'BYPASS' | 'BYPASS_ABUSE';
     resource: string;
     resourceId?: string;
     details?: Prisma.InputJsonValue;
