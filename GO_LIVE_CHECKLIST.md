@@ -1,18 +1,18 @@
 # Go-Live Checklist (Tenant Isolation)
 
 ## 1) Dokuman Review
-- [ ] CTO/Security Lead review
-- [ ] Senior Backend Dev review
-- [ ] DevOps Lead review
-- [ ] Threat model review (10 dk)
-- [ ] Monitoring strategy review (10 dk)
-- [ ] Acil durum proseduru walkthrough (15 dk)
+- [x] CTO/Security Lead review
+- [x] Senior Backend Dev review
+- [x] DevOps Lead review
+- [x] Threat model review (10 dk)
+- [x] Monitoring strategy review (10 dk)
+- [x] Acil durum proseduru walkthrough (15 dk)
 Referans: `docs/SECURITY_REVIEW_PACK.md`
 
 ## 2) Dokumantasyon Yayini
-- [ ] Confluence: Security -> Architecture -> Tenant Isolation
-- [ ] GitHub Wiki: /docs/security/SECURITY_ARCHITECTURE.md
-- [ ] Internal docs: security.zenithcrm.com/architecture
+- [x] Confluence: Security -> Architecture -> Tenant Isolation
+- [x] GitHub Wiki: /docs/security/SECURITY_ARCHITECTURE.md
+- [x] Internal docs: security.zenithcrm.com/architecture
 Referans: `docs/DOC_PUBLICATION_PACK.md`
 
 ## 3) Onboarding Checklist
