@@ -31,6 +31,7 @@ Referans: `docs/ONBOARDING_SECURITY.md`, `docs/TRAINING_TENANT_ISOLATION.md`, `d
 - [ ] Alert threshold optimization
 - [ ] Yeni attack vector arastirma
 - [ ] External audit findings integration
+Referans: `docs/QUARTERLY_SECURITY_REVIEW.md`
 
 ## 5) Go-Live Stratejisi
 Day 0 (Cuma aksami): Dark launch
