@@ -418,49 +418,25 @@ const LandingPage = () => {
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center mb-12">
                         <p className="text-2xl md:text-4xl font-black text-white">
-                            Yuksek guvenlik kontrolleri ile pilot boyunca verileriniz koruma altinda.
+                            Verileriniz guvende. Sadece siz ve ekibiniz gorur.
                         </p>
                         <p className="text-emerald-200/70 max-w-3xl mx-auto mt-4">
-                            Sorun yasadiginizda aninda AI destekli teknik destek ile yaninizdayiz.
+                            Pilot boyunca kontrol bizde, destek her an yaninizda.
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-6">
                         <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
-                            <p className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-2">Kritik Katman</p>
-                            <h3 className="text-xl font-black text-white mb-3">Tenant Izolasyonu</h3>
-                            <p className="text-emerald-200/70">Okuma yazma iliskileri tenant bazli ve fail closed calisir.</p>
+                            <h3 className="text-xl font-black text-white mb-3">Sizin veriniz, sizin kontrolunuz</h3>
+                            <p className="text-emerald-200/70">Her acente kendi verisini gorur. Baskasinin verisi size acik olmaz.</p>
                         </div>
                         <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
-                            <p className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-2">Gozlem</p>
-                            <h3 className="text-xl font-black text-white mb-3">Sentry ve Dashboard</h3>
-                            <p className="text-emerald-200/70">Prod test gecerli. Izleme panosu aktif.</p>
+                            <h3 className="text-xl font-black text-white mb-3">Guvenli giris</h3>
+                            <p className="text-emerald-200/70">Yetkisiz girisleri otomatik engeller, supheli durumlarda uyarir.</p>
                         </div>
                         <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
-                            <p className="text-xs uppercase tracking-widest text-emerald-300 font-bold mb-2">Operasyon</p>
-                            <h3 className="text-xl font-black text-white mb-3">Runbook ve Rollback</h3>
-                            <p className="text-emerald-200/70">Acil durum prosedurleri ve geri donus plani hazir.</p>
-                        </div>
-                    </div>
-
-                    <div className="mt-12 grid md:grid-cols-2 gap-6">
-                        <div className="bg-white/5 border border-emerald-800/60 rounded-2xl p-6">
-                            <h4 className="text-lg font-black text-white mb-2">Son Guncellemeler</h4>
-                            <ul className="text-emerald-200/80 space-y-2">
-                                <li>Go Live Ready raporu yayinlandi</li>
-                                <li>Security Architecture v2.0 tamamlandi</li>
-                                <li>Monitoring dashboard tanimlandi</li>
-                                <li>On call egitim plani hazirlandi</li>
-                            </ul>
-                        </div>
-                        <div className="bg-white/5 border border-emerald-800/60 rounded-2xl p-6">
-                            <h4 className="text-lg font-black text-white mb-2">Pilot Guvencesi</h4>
-                            <ul className="text-emerald-200/80 space-y-2">
-                                <li>Security critical coverage yuzde 95 ustu</li>
-                                <li>Alert kurallari aktif</li>
-                                <li>Tenant izolasyonu otomatik testlerle dogrulandi</li>
-                                <li>Rollback proseduru 15 dakika icinde calistirilabilir</li>
-                            </ul>
+                            <h3 className="text-xl font-black text-white mb-3">Aninda destek</h3>
+                            <p className="text-emerald-200/70">Bir sorun olursa teknik destek ve AI yardim hemen devrede.</p>
                         </div>
                     </div>
                 </div>
