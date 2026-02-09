@@ -49,3 +49,14 @@
 ## Sign-off
 - [ ] Security review completed for this release.
 - [ ] Findings recorded in `SECURITY_REVIEW_TEMPLATE.md` (or linked).
+
+<!-- AUTO_SECURITY_REPORT_START -->
+## Otomatik Guvenlik Raporu
+- Tarih: 2026-02-09T12:05:07.431Z
+- Audit Sonucu: READY
+- PASS: 7
+- WARN: 1
+- FAIL: 0
+- Coverage: Tenant-critical coverage 89.25%
+- Semgrep: rapor bulunamadi
+<!-- AUTO_SECURITY_REPORT_END -->

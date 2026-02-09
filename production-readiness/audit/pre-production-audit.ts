@@ -15,6 +15,7 @@ const prisma = new PrismaClient();
 const ROOT_DIR = path.resolve(__dirname, "..", "..");
 const SERVER_DIR = path.join(ROOT_DIR, "server");
 const PRD_PATH = path.join(ROOT_DIR, "PRODUCTION_READINESS.md");
+const CHECKLIST_PATH = path.join(ROOT_DIR, "SECURITY_HARDENING_CHECKLIST.md");
 
 const DEFAULT_TENANT_FILES = [
   "server/src/lib/prisma-tenant-middleware.ts",
@@ -431,6 +432,44 @@ const writeAuditToPRD = (report: AuditReport) => {
   }
 };
 
+const updateSecurityChecklist = (report: AuditReport) => {
+  if (!fs.existsSync(CHECKLIST_PATH)) {
+    return;
+  }
+
+  const startMarker = "<!-- AUTO_SECURITY_REPORT_START -->";
+  const endMarker = "<!-- AUTO_SECURITY_REPORT_END -->";
+
+  const semgrepPath = path.join(ROOT_DIR, "semgrep.json");
+  let semgrepCount = null as number | null;
+  if (fs.existsSync(semgrepPath)) {
+    try {
+      const semgrep = JSON.parse(fs.readFileSync(semgrepPath, "utf8"));
+      semgrepCount = Array.isArray(semgrep?.results) ? semgrep.results.length : 0;
+    } catch {
+      semgrepCount = null;
+    }
+  }
+
+  const coverageResult = report.results.find((item) => item.category === "coverage");
+  const coverageLine = coverageResult
+    ? `- Coverage: ${coverageResult.message}`
+    : "- Coverage: n/a";
+
+  const semgrepLine =
+    semgrepCount === null ? "- Semgrep: rapor bulunamadi" : `- Semgrep: ${semgrepCount} issue`;
+
+  const block = `\n${startMarker}\n## Otomatik Guvenlik Raporu\n- Tarih: ${new Date().toISOString()}\n- Audit Sonucu: ${report.passed ? "READY" : "BLOCKED"}\n- PASS: ${report.summary.passed}\n- WARN: ${report.summary.warned}\n- FAIL: ${report.summary.failed}\n${coverageLine}\n${semgrepLine}\n${endMarker}\n`;
+
+  const current = fs.readFileSync(CHECKLIST_PATH, "utf8");
+  if (current.includes(startMarker) && current.includes(endMarker)) {
+    const updated = current.replace(new RegExp(`${startMarker}[\\s\\S]*?${endMarker}`), block.trim());
+    fs.writeFileSync(CHECKLIST_PATH, updated);
+  } else {
+    fs.writeFileSync(CHECKLIST_PATH, `${current.trim()}\n\n${block}`);
+  }
+};
+
 const runPreProductionAudit = async (): Promise<AuditReport> => {
   const results: AuditResult[] = [];
 
@@ -482,6 +521,7 @@ const main = async () => {
   console.log("?? Report saved to audit-report.html");
 
   writeAuditToPRD(report);
+  updateSecurityChecklist(report);
 
   await prisma.$disconnect();
 
