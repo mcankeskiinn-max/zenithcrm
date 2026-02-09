@@ -24,6 +24,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Create non-root user
+RUN addgroup -S app && adduser -S app -G app
+
 # Copy dependencies from builder
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
@@ -34,6 +37,9 @@ COPY server/package*.json ./
 
 # Expose port
 EXPOSE 3000
+
+# Drop privileges
+USER app
 
 # Run migrations and start server
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
