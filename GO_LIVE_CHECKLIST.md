@@ -18,12 +18,13 @@ Referans: `docs/DOC_PUBLICATION_PACK.md`
 ## 3) Onboarding Checklist
 Day 1:
 - [ ] Read SECURITY_ARCHITECTURE.md
-- [ ] Tenant Isolation Training Video (15 min)
+- [ ] Tenant Isolation Training (15 min)
 - [ ] Security basics quiz (10 questions)
 
 Week 1:
 - [ ] Code review: tenant isolation pattern tanimlama
 - [ ] Hands-on: simulated tenant leak bug fix
+Referans: `docs/ONBOARDING_SECURITY.md`, `docs/TRAINING_TENANT_ISOLATION.md`, `docs/SECURITY_QUIZ.md`
 
 ## 4) Quarterly Review
 - [ ] Threat model guncelleme
