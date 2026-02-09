@@ -107,6 +107,39 @@ describe('Tenant isolation (critical coverage)', () => {
         expect(next).toHaveBeenCalled();
     });
 
+    it('prisma middleware scopes findUnique when where is missing', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Customer', action: 'findUnique', args: {} };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+
+        expect(params.args.where.tenantId).toBe('tenant-1');
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware scopes findUniqueOrThrow to findFirstOrThrow', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Customer',
+            action: 'findUniqueOrThrow',
+            args: { where: { id: 'c1' } }
+        };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+
+        expect(params.action).toBe('findFirstOrThrow');
+        expect(params.args.where.tenantId).toBe('tenant-1');
+        expect(next).toHaveBeenCalled();
+    });
+
     it('prisma middleware blocks mismatched where tenantId', async () => {
         let handler: any;
         const prisma = { $use: (fn: any) => (handler = fn) };
@@ -117,6 +150,31 @@ describe('Tenant isolation (critical coverage)', () => {
         await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantMismatchError);
     });
 
+    it('prisma middleware falls through when tenantId missing', async () => {
+        mockedGetTenantId.mockReturnValue(undefined);
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Customer', action: 'findMany', args: { where: {} } };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware falls through for non-tenant models', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'UnscopedModel', action: 'findMany', args: { where: {} } };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
     it('prisma middleware blocks create with tenant mismatch', async () => {
         let handler: any;
         const prisma = { $use: (fn: any) => (handler = fn) };
@@ -125,6 +183,32 @@ describe('Tenant isolation (critical coverage)', () => {
 
         const params: any = { model: 'Customer', action: 'create', args: { data: { tenantId: 'other' } } };
         await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantMismatchError);
+    });
+
+    it('prisma middleware allows create and injects tenantId', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Customer', action: 'create', args: { data: { name: 'Acme' } } };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(params.args.data.tenantId).toBe('tenant-1');
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware allows create when data missing', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Customer', action: 'create', args: {} };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(params.args.data.tenantId).toBe('tenant-1');
+        expect(next).toHaveBeenCalled();
     });
 
     it('prisma middleware enforces relation tenant consistency', async () => {
@@ -143,6 +227,52 @@ describe('Tenant isolation (critical coverage)', () => {
         await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantMismatchError);
     });
 
+    it('prisma middleware handles models without relation checks', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'AuditLog', action: 'create', args: { data: { action: 'x' } } };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware resolves relation connect ids', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {
+            customer: { findFirst: jest.fn().mockResolvedValue({ id: 'c1' }) }
+        };
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Sale',
+            action: 'create',
+            args: { data: { customer: { connect: { id: 'c1' } } } }
+        };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware skips relation checks when client missing', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Sale',
+            action: 'create',
+            args: { data: { customerId: 'c1' } }
+        };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
     it('prisma middleware blocks update when record not found in tenant', async () => {
         let handler: any;
         const prisma = { $use: (fn: any) => (handler = fn) };
@@ -153,6 +283,20 @@ describe('Tenant isolation (critical coverage)', () => {
 
         const params: any = { model: 'Sale', action: 'update', args: { where: { id: 's1' }, data: {} } };
         await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantAccessDeniedError);
+    });
+
+    it('prisma middleware allows delete when record exists in tenant', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {
+            sale: { findFirst: jest.fn().mockResolvedValue({ id: 's1' }) }
+        };
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Sale', action: 'delete', args: { where: { id: 's1' } } };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
     });
 
     it('prisma middleware adds tenantId for createMany', async () => {
@@ -173,6 +317,37 @@ describe('Tenant isolation (critical coverage)', () => {
         expect(params.args.data[0].tenantId).toBe('tenant-1');
     });
 
+    it('prisma middleware handles createMany with non-array payload', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Customer',
+            action: 'createMany',
+            args: { data: { name: 'Acme' } }
+        };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(Array.isArray(params.args.data)).toBe(true);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware blocks createMany with tenant mismatch', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Customer',
+            action: 'createMany',
+            args: { data: [{ tenantId: 'other' }] }
+        };
+        await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantMismatchError);
+    });
+
     it('prisma middleware enforces tenantId mismatch on update', async () => {
         let handler: any;
         const prisma = { $use: (fn: any) => (handler = fn) };
@@ -187,6 +362,37 @@ describe('Tenant isolation (critical coverage)', () => {
             args: { where: { id: 's1' }, data: { tenantId: 'other' } }
         };
         await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantMismatchError);
+    });
+
+    it('prisma middleware allows update with tenant-consistent relations', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {
+            sale: { findFirst: jest.fn().mockResolvedValue({ id: 's1' }) },
+            customer: { findFirst: jest.fn().mockResolvedValue({ id: 'c1' }) }
+        };
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Sale',
+            action: 'update',
+            args: { where: { id: 's1' }, data: { customerId: 'c1' } }
+        };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware allows update when data missing and client missing', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Sale', action: 'update', args: { where: { id: 's1' } } };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
     });
 
     it('prisma middleware handles upsert tenant checks', async () => {
@@ -212,6 +418,58 @@ describe('Tenant isolation (critical coverage)', () => {
         expect(next).toHaveBeenCalled();
     });
 
+    it('prisma middleware allows upsert when create/update missing', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Customer',
+            action: 'upsert',
+            args: { where: { id: 'c1' } }
+        };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(params.args.create.tenantId).toBe('tenant-1');
+        expect(next).toHaveBeenCalled();
+    });
+    it('prisma middleware blocks upsert when create tenant mismatches', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Sale',
+            action: 'upsert',
+            args: {
+                where: { id: 's1' },
+                create: { tenantId: 'other' },
+                update: { customerId: 'c1' }
+            }
+        };
+        await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantMismatchError);
+    });
+
+    it('prisma middleware blocks upsert when update tenant mismatches', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = {
+            model: 'Sale',
+            action: 'upsert',
+            args: {
+                where: { id: 's1' },
+                create: { customerId: 'c1' },
+                update: { tenantId: 'other' }
+            }
+        };
+        await expect(handler(params, jest.fn())).rejects.toBeInstanceOf(TenantMismatchError);
+    });
+
     it('prisma middleware skips isolation when bypass enabled', async () => {
         mockedIsBypassEnabled.mockReturnValue(true);
         let handler: any;
@@ -222,6 +480,44 @@ describe('Tenant isolation (critical coverage)', () => {
         const params: any = { model: 'Customer', action: 'findMany', args: { where: {} } };
         const next = jest.fn().mockResolvedValue('ok');
         await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware falls through for non-scoped actions', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Customer', action: 'executeRaw', args: {} };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware scopes groupBy with tenantId', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Customer', action: 'groupBy', args: { where: {} } };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(params.args.where.tenantId).toBe('tenant-1');
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('prisma middleware scopes deleteMany with tenantId and args default', async () => {
+        let handler: any;
+        const prisma = { $use: (fn: any) => (handler = fn) };
+        const prismaInternal: any = {};
+        applyTenantIsolation(prisma as any, prismaInternal as any);
+
+        const params: any = { model: 'Customer', action: 'deleteMany' };
+        const next = jest.fn().mockResolvedValue('ok');
+        await handler(params, next);
+        expect(params.args.where.tenantId).toBe('tenant-1');
         expect(next).toHaveBeenCalled();
     });
 });

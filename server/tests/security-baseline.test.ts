@@ -87,6 +87,21 @@ describe('security baseline (auth + csrf)', () => {
         expect(next).toHaveBeenCalled();
     });
 
+    it('csrf allows HEAD and OPTIONS methods', () => {
+        process.env.NODE_ENV = 'production';
+        const res = makeRes();
+        const next = jest.fn();
+
+        const headReq: any = { method: 'HEAD', path: '/api/customers', cookies: {}, headers: {} };
+        csrfProtection(headReq as any, res as any, next as any);
+        expect(next).toHaveBeenCalled();
+
+        next.mockClear();
+        const optReq: any = { method: 'OPTIONS', path: '/api/customers', cookies: {}, headers: {} };
+        csrfProtection(optReq as any, res as any, next as any);
+        expect(next).toHaveBeenCalled();
+    });
+
     it('csrf skips auth endpoints', () => {
         process.env.NODE_ENV = 'production';
         const req: any = { method: 'POST', path: '/api/auth/login', cookies: {}, headers: {} };
@@ -98,6 +113,26 @@ describe('security baseline (auth + csrf)', () => {
         expect(next).toHaveBeenCalled();
     });
 
+    it('csrf skips other auth endpoints', () => {
+        process.env.NODE_ENV = 'production';
+        const res = makeRes();
+        const next = jest.fn();
+
+        const endpoints = [
+            '/api/auth/register',
+            '/api/auth/forgot-password',
+            '/api/auth/reset-password',
+            '/api/auth/refresh'
+        ];
+
+        for (const path of endpoints) {
+            const req: any = { method: 'POST', path, cookies: {}, headers: {} };
+            csrfProtection(req as any, res as any, next as any);
+            expect(next).toHaveBeenCalled();
+            next.mockClear();
+        }
+    });
+
     it('csrf allows matching cookie/header token', () => {
         process.env.NODE_ENV = 'production';
         const req: any = {
@@ -106,6 +141,34 @@ describe('security baseline (auth + csrf)', () => {
             cookies: { 'XSRF-TOKEN': 't1' },
             headers: { 'x-csrf-token': 't1' }
         };
+        const res = makeRes();
+        const next = jest.fn();
+
+        csrfProtection(req as any, res as any, next as any);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it('csrf blocks when cookie/header mismatch', () => {
+        process.env.NODE_ENV = 'production';
+        const req: any = {
+            method: 'POST',
+            path: '/api/customers',
+            cookies: { 'XSRF-TOKEN': 't1' },
+            headers: { 'x-csrf-token': 't2' }
+        };
+        const res = makeRes();
+        const next = jest.fn();
+
+        csrfProtection(req as any, res as any, next as any);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it('csrf bypasses when NODE_ENV is test', () => {
+        process.env.NODE_ENV = 'test';
+        const req: any = { method: 'POST', path: '/api/customers', cookies: {}, headers: {} };
         const res = makeRes();
         const next = jest.fn();
 

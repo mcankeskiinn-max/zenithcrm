@@ -63,7 +63,7 @@ Referans: `docs/GO_LIVE_STRATEGY.md`
 - [x] ROLLBACK_PLAN.md tamamlandi
 - [x] bypass-abuse-detector.ts implement edildi
 - [x] Test coverage >= %90 (overall)
-- [ ] Security-critical coverage >= %95 (auth/tenant/csrf)
+- [x] Security-critical coverage >= %95 (auth/tenant/csrf)
 - [x] Pre-production audit PASS
 - [ ] Monitoring dashboard hazir
 - [x] Alert rules configure edildi
