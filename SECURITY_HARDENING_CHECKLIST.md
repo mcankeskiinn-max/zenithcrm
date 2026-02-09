@@ -37,6 +37,8 @@
 - Add error monitoring (Sentry or platform logs) for production.
 - Add alerting for spikes in 4xx/5xx and rate-limit events.
 - [DONE 2026-02-09] Sentry email alert active (new issue + issue spike) and test event verified.
+- [BACKLOG] Metrics/Performance ile gercek 5xx spike alert (Sentry SDK upgrade gerekir).
+- [BACKLOG] Sentry "express is not instrumented" uyarisini kaldirma (instrumentation duzenleme).
 
 ## Dependencies
 - Run `npm audit` regularly and address high severity issues.

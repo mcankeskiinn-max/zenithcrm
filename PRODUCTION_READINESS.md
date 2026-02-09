@@ -26,6 +26,8 @@
 - Ensure no sensitive data is logged (tokens, passwords, PII).
 - Sentry Issues aktif, en az bir test event gorunur.
 - [DONE 2026-02-09] Sentry email alert configured (new issue + issue spike) and test event verified.
+- [BACKLOG] Metrics/Performance ile gercek 5xx spike alert (Sentry SDK upgrade gerekir).
+- [BACKLOG] Sentry "express is not instrumented" uyarisini kaldirma (instrumentation duzenleme).
 
 ## Backups & Recovery
 - Enable scheduled Supabase backups.
