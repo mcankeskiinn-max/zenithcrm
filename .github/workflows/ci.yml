@@ -81,6 +81,12 @@ jobs:
             echo "result=passed" >> $GITHUB_OUTPUT
           fi
           echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+      - name: Upload Semgrep Report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: semgrep.json
 
   server-tests:
     runs-on: ubuntu-latest
@@ -238,3 +244,21 @@ jobs:
           if [ "${{ needs.ui-flow.outputs.skipped }}" = "true" ]; then
             echo "Release gate warning: ui-flow skipped (missing CRM secrets)."
           fi
+
+      - name: Update Security Checklist (CI Summary)
+        uses: actions/checkout@v4
+      - name: Append CI SAST Summary
+        run: |
+          SUMMARY_FILE="SECURITY_HARDENING_CHECKLIST.md"
+          echo "" >> "$SUMMARY_FILE"
+          echo "<!-- CI_SAST_REPORT_START -->" >> "$SUMMARY_FILE"
+          echo "## CI SAST Ozeti" >> "$SUMMARY_FILE"
+          echo "- Tarih: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$SUMMARY_FILE"
+          echo "- Semgrep errors: ${{ needs.security-audit.outputs.semgrep_errors }}" >> "$SUMMARY_FILE"
+          echo "- Semgrep status: ${{ needs.security-audit.outputs.semgrep_result }}" >> "$SUMMARY_FILE"
+          echo "<!-- CI_SAST_REPORT_END -->" >> "$SUMMARY_FILE"
+      - name: Upload Checklist
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-checklist
+          path: SECURITY_HARDENING_CHECKLIST.md
