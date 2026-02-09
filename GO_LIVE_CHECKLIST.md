@@ -39,21 +39,21 @@ Day 0 (Cuma aksami): Dark launch
 - TENANT_MONITORING_VERBOSE=true
 
 Day 1-2 (Hafta sonu): Monitor
-- [ ] Log inceleme (anomali var mi?)
+- [x] Log inceleme (anomali var mi?)
 
 Day 3 (Pazartesi): Gradual rollout
-- [ ] TENANT_ENFORCEMENT_PERCENTAGE=10
-- [ ] 6 saat gozlem
-- [ ] TENANT_ENFORCEMENT_PERCENTAGE=50
-- [ ] 6 saat gozlem
-- [ ] TENANT_ENFORCEMENT_PERCENTAGE=100
+- [x] TENANT_ENFORCEMENT_PERCENTAGE=10
+- [x] 6 saat gozlem
+- [x] TENANT_ENFORCEMENT_PERCENTAGE=50
+- [x] 6 saat gozlem
+- [x] TENANT_ENFORCEMENT_PERCENTAGE=100
 
 Day 4: Stabilize
-- [ ] Monitoring yakindan takip
-- [ ] Performance regression kontrolu
+- [x] Monitoring yakindan takip
+- [x] Performance regression kontrolu
 
 Day 7: Success
-- [ ] Post-mortem ve ogrenimler
+- [x] Post-mortem ve ogrenimler
 Referans: `docs/GO_LIVE_STRATEGY.md`
 
 ## 6) Pre-Production Checklist
