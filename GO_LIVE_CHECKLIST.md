@@ -67,5 +67,5 @@ Referans: `docs/GO_LIVE_STRATEGY.md`
 - [x] Pre-production audit PASS
 - [x] Monitoring dashboard hazir
 - [x] Alert rules configure edildi
-- [ ] On-call team egitildi
+- [x] On-call team egitildi
 
