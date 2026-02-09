@@ -7,11 +7,13 @@
 - [ ] Threat model review (10 dk)
 - [ ] Monitoring strategy review (10 dk)
 - [ ] Acil durum proseduru walkthrough (15 dk)
+Referans: `docs/SECURITY_REVIEW_PACK.md`
 
 ## 2) Dokumantasyon Yayini
 - [ ] Confluence: Security -> Architecture -> Tenant Isolation
 - [ ] GitHub Wiki: /docs/security/SECURITY_ARCHITECTURE.md
 - [ ] Internal docs: security.zenithcrm.com/architecture
+Referans: `docs/DOC_PUBLICATION_PACK.md`
 
 ## 3) Onboarding Checklist
 Day 1:
