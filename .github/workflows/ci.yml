@@ -217,7 +217,8 @@ jobs:
             echo "Release gate warning: client depcheck found missing dependencies."
           fi
           if [ "${{ needs.security-audit.outputs.semgrep_result }}" = "failed" ]; then
-            echo "Release gate warning: semgrep found ERROR-level issues."
+            echo "Release gate failed: semgrep found ERROR-level issues."
+            exit 1
           fi
           if [ "${{ needs.server-tests.result }}" = "failure" ]; then
             echo "Release gate failed: server-tests failed."
