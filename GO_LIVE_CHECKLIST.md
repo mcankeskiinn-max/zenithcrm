@@ -54,6 +54,7 @@ Day 4: Stabilize
 
 Day 7: Success
 - [ ] Post-mortem ve ogrenimler
+Referans: `docs/GO_LIVE_STRATEGY.md`
 
 ## 6) Pre-Production Checklist
 - [x] SECURITY_ARCHITECTURE.md tamamlandi
