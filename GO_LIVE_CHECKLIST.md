@@ -65,7 +65,7 @@ Referans: `docs/GO_LIVE_STRATEGY.md`
 - [x] Test coverage >= %90 (overall)
 - [x] Security-critical coverage >= %95 (auth/tenant/csrf)
 - [x] Pre-production audit PASS
-- [ ] Monitoring dashboard hazir
+- [x] Monitoring dashboard hazir
 - [x] Alert rules configure edildi
 - [ ] On-call team egitildi
 
