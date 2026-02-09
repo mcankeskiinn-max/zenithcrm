@@ -20,6 +20,12 @@ const runValidationChain = async (req: any, res: any, next: jest.Mock) => {
 };
 
 describe('security baseline (auth + csrf)', () => {
+    const originalEnv = process.env.NODE_ENV;
+
+    afterEach(() => {
+        process.env.NODE_ENV = originalEnv;
+    });
+
     it('validation rejects missing email/password', async () => {
         const req: any = { body: { email: '', password: '' } };
         const res = makeRes();
@@ -43,6 +49,7 @@ describe('security baseline (auth + csrf)', () => {
     });
 
     it('csrf blocks state-changing requests without token', () => {
+        process.env.NODE_ENV = 'production';
         const req: any = { method: 'POST', path: '/api/customers', cookies: {}, headers: {} };
         const res = makeRes();
         const next = jest.fn();
@@ -54,6 +61,7 @@ describe('security baseline (auth + csrf)', () => {
     });
 
     it('csrf allows bearer auth without csrf token', () => {
+        process.env.NODE_ENV = 'production';
         const req: any = {
             method: 'POST',
             path: '/api/customers',
