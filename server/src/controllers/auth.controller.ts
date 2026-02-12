@@ -458,6 +458,7 @@ export const getMe = async (req: Request, res: Response) => {
                 email: user.email,
                 name: user.name,
                 role: user.role,
+                tenantId: user.tenantId,
                 branchId: user.branchId,
                 passwordChangedAt: user.passwordChangedAt,
                 branch: user.branch ? {
@@ -465,6 +466,8 @@ export const getMe = async (req: Request, res: Response) => {
                     name: user.branch.name
                 } : null,
                 tenant: {
+                    id: (user.tenant as any).id,
+                    slug: (user.tenant as any).slug,
                     name: (user.tenant as any).name,
                     logo: (user.tenant as any).logo
                 }
