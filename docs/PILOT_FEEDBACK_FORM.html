@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pilot Feedback Formu</title>
+  <style>
+    :root { --ink:#0f172a; --muted:#475569; --line:#cbd5e1; --bg:#ffffff; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 820px; margin: 28px auto; padding: 0 24px 32px; }
+    h1 { font-size: 28px; margin: 0 0 8px; }
+    h2 { font-size: 20px; margin: 26px 0 10px; border-top: 1px solid var(--line); padding-top: 14px; }
+    p { margin: 8px 0 12px; color: var(--muted); }
+    ul { margin: 8px 0 0 18px; padding: 0; }
+    li { margin: 8px 0; }
+    .sub { margin-top: 12px; font-weight: 700; }
+    .line {
+      display: inline-block;
+      border-bottom: 1px solid var(--line);
+      min-width: 280px;
+      height: 18px;
+      vertical-align: middle;
+    }
+    .line.long { min-width: 520px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Pilot Feedback - Kullanıcı Şablonu</h1>
+    <p>Bu formu pilot kullanıcıya gönderip doldurmasını isteyebilirsin.</p>
+
+    <h2>1) Genel Durum</h2>
+    <ul>
+      <li>Kayıt / giriş sorunsuz mu? (Evet/Hayır): <span class="line"></span></li>
+      <li>En sık kullandığın sayfalar: <span class="line long"></span></li>
+      <li>İlk izlenimin (1-2 cümle): <span class="line long"></span></li>
+    </ul>
+
+    <h2>2) Kritik Akışlar</h2>
+    <p class="sub">A) Satış ekleme</p>
+    <ul>
+      <li>Sorun var mı? <span class="line"></span></li>
+      <li>Süreç net mi? <span class="line"></span></li>
+    </ul>
+
+    <p class="sub">B) Müşteri / Portföy</p>
+    <ul>
+      <li>Sorun var mı? <span class="line"></span></li>
+      <li>Arama / filtreleme yeterli mi? <span class="line"></span></li>
+    </ul>
+
+    <p class="sub">C) Komisyon & Yenileme</p>
+    <ul>
+      <li>Sorun var mı? <span class="line"></span></li>
+      <li>Bilgi netliği nasıl? <span class="line"></span></li>
+    </ul>
+
+    <h2>3) En Çok Beğendiğin Şey</h2>
+    <p><span class="line long"></span></p>
+
+    <h2>4) En Zorlandığın Şey</h2>
+    <p><span class="line long"></span></p>
+
+    <h2>5) 1 Numara Geliştirme İsteği</h2>
+    <p><span class="line long"></span></p>
+
+    <h2>6) Bug / Hata (varsa)</h2>
+    <ul>
+      <li>Hata mesajı: <span class="line long"></span></li>
+      <li>Hangi sayfa: <span class="line"></span></li>
+      <li>Ne yaparken oldu: <span class="line long"></span></li>
+    </ul>
+
+    <h2>7) Son Not</h2>
+    <ul>
+      <li>Pilot devam etmeli mi? (Evet/Hayır): <span class="line"></span></li>
+      <li>1-10 skor: <span class="line"></span></li>
+    </ul>
+  </div>
+</body>
+</html>
