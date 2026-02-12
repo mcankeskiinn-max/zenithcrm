@@ -418,25 +418,25 @@ const LandingPage = () => {
                 <div className="max-w-6xl mx-auto px-4">
                     <div className="text-center mb-12">
                         <p className="text-2xl md:text-4xl font-black text-white">
-                            Verileriniz guvende. Sadece siz ve ekibiniz gorur.
+                            Yüksek güvenlik kontrolleri ile pilot boyunca verileriniz koruma altında.
                         </p>
                         <p className="text-emerald-200/70 max-w-3xl mx-auto mt-4">
-                            Pilot boyunca kontrol bizde, destek her an yaninizda.
+                            Sorun yaşadığınızda anında AI destekli teknik destek ile yanınızdayız.
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-6">
                         <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
-                            <h3 className="text-xl font-black text-white mb-3">Sizin veriniz, sizin kontrolunuz</h3>
-                            <p className="text-emerald-200/70">Her acente kendi verisini gorur. Baskasinin verisi size acik olmaz.</p>
+                            <h3 className="text-xl font-black text-white mb-3">Acentenizin Verileri Kontrol Altında</h3>
+                            <p className="text-emerald-200/70">Ekranda sadece sizin acentenize ait veriler görünür.</p>
                         </div>
                         <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
-                            <h3 className="text-xl font-black text-white mb-3">Guvenli giris</h3>
-                            <p className="text-emerald-200/70">Yetkisiz girisleri otomatik engeller, supheli durumlarda uyarir.</p>
+                            <h3 className="text-xl font-black text-white mb-3">Güvenli Giriş</h3>
+                            <p className="text-emerald-200/70">Yetkisiz giriş denemeleri otomatik olarak engellenir.</p>
                         </div>
                         <div className="bg-emerald-900/40 border border-emerald-800/60 rounded-2xl p-6">
-                            <h3 className="text-xl font-black text-white mb-3">Aninda destek</h3>
-                            <p className="text-emerald-200/70">Bir sorun olursa teknik destek ve AI yardim hemen devrede.</p>
+                            <h3 className="text-xl font-black text-white mb-3">Anında Destek</h3>
+                            <p className="text-emerald-200/70">Sorun yaşadığınızda teknik ekip ve AI destek hemen devreye girer.</p>
                         </div>
                     </div>
                 </div>
