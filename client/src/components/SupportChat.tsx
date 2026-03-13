@@ -10,7 +10,7 @@ interface Message {
     createdAt: string;
 }
 
-export const SupportChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+export const SupportChat: React.FC<{ onClose: () => void; showClose?: boolean }> = ({ onClose, showClose = true }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -118,12 +118,14 @@ export const SupportChat: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         <p className="text-[10px] opacity-80">Genellikle anında yanıt verir</p>
                     </div>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                    <X size={20} />
-                </button>
+                {showClose && (
+                    <button
+                        onClick={onClose}
+                        className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                    >
+                        <X size={20} />
+                    </button>
+                )}
             </div>
 
             {/* Messages */}

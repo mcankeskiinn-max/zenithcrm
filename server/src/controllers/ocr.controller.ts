@@ -47,3 +47,38 @@ export const scanPolicy = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Belge taranırken bir hata oluştu.' });
     }
 };
+
+export const scanTaxPlate = async (req: Request, res: Response) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Lutfen bir dosya yukleyin.' });
+        }
+
+        const result = await OCRService.scanTaxPlate(req.file.path);
+
+        if (!result.extractedData.naceCode) {
+            return res.status(422).json({
+                success: false,
+                error: 'NACE kodu tespit edilemedi. Kodu manuel girin veya daha net bir vergi levhasi yukleyin.',
+                rawText: result.text
+            });
+        }
+
+        return res.json({
+            success: true,
+            data: result.extractedData,
+            rawText: result.text
+        });
+    } catch (error) {
+        if (req.file && fs.existsSync(req.file.path)) {
+            try {
+                fs.unlinkSync(req.file.path);
+            } catch (e) {
+                console.error('Failed to cleanup file after error:', e);
+            }
+        }
+
+        console.error('OCR Tax Plate Controller Error:', error);
+        return res.status(500).json({ error: 'Vergi levhasi taranirken bir hata olustu.' });
+    }
+};

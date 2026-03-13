@@ -78,6 +78,9 @@ model Document {
   path       String
   mimetype   String
   size       Int
+  accountCode String?
+  accountTitle String?
+  accountConfidence String?
   saleId     String?
   tenantId   String
   uploadedAt DateTime  @default(now())
@@ -128,6 +131,7 @@ model Customer {
   email       String?
   phone       String?
   identityNo  String?
+  naceCode    String?
   birthDate   DateTime?
   gender      String?
   address     String?
@@ -144,6 +148,7 @@ model Customer {
   @@index([email])
   @@index([phone])
   @@index([identityNo])
+  @@index([naceCode])
   @@map("customers")
 }
 

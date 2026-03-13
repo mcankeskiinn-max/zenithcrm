@@ -1,9 +1,21 @@
-
-import Tesseract from 'tesseract.js';
-import path from 'path';
+﻿import Tesseract from 'tesseract.js';
 import fs from 'fs';
 
 export class OCRService {
+    private static async recognizeText(filePath: string): Promise<string> {
+        const { data: { text } } = await Tesseract.recognize(filePath, 'tur');
+        return text;
+    }
+
+    private static cleanupFile(filePath: string) {
+        try {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        } catch (err) {
+            console.error('Failed to delete temp file:', err);
+        }
+    }
 
     /**
      * Extracts text from an image file and parses for policy details.
@@ -19,68 +31,98 @@ export class OCRService {
             startDate: string | null;
             endDate: string | null;
             policyTypeKey: string | null;
-        }
+        };
     }> {
         try {
-            // Perform OCR
-            const { data: { text } } = await Tesseract.recognize(
-                filePath,
-                'tur', // Turkish language support
-            );
-
-            // Normalize text slightly for easier matching
-            // const normalizedText = text.replace(/İ/g, 'i').replace(/I/g, 'ı').toLowerCase();
-
-            // Clean up file after processing
-            try {
-                if (fs.existsSync(filePath)) {
-                    fs.unlinkSync(filePath);
-                }
-            } catch (err) {
-                console.error('Failed to delete temp file:', err);
-            }
+            const text = await this.recognizeText(filePath);
+            this.cleanupFile(filePath);
 
             return {
                 text,
                 extractedData: this.parsePolicyText(text)
             };
-
         } catch (error) {
             console.error('OCR Error:', error);
-            throw new Error('Belge tarama işlemi başarısız oldu.');
+            throw new Error('Belge tarama islemi basarisiz oldu.');
         }
+    }
+
+    static async scanTaxPlate(filePath: string): Promise<{
+        text: string;
+        extractedData: {
+            companyName: string | null;
+            taxNumber: string | null;
+            naceCode: string | null;
+        };
+    }> {
+        try {
+            const text = await this.recognizeText(filePath);
+            this.cleanupFile(filePath);
+
+            return {
+                text,
+                extractedData: this.parseTaxPlateText(text)
+            };
+        } catch (error) {
+            console.error('OCR Tax Plate Error:', error);
+            throw new Error('Vergi levhasi tarama islemi basarisiz oldu.');
+        }
+    }
+
+    private static normalizeNaceCode(raw: string): string | null {
+        const digitsOnly = raw.replace(/\D/g, '');
+        if (digitsOnly.length < 4) return null;
+
+        const normalized = digitsOnly.length >= 6 ? digitsOnly.slice(0, 6) : digitsOnly.padEnd(6, '0');
+        return `${normalized.slice(0, 2)}.${normalized.slice(2, 4)}.${normalized.slice(4, 6)}`;
+    }
+
+    private static parseTaxPlateText(text: string) {
+        const normalized = text
+            .replace(/\s+/g, ' ')
+            .replace(/[|]/g, ' ')
+            .trim();
+
+        const nacePatterns = [
+            /nace\s*(?:kodu|kodu\/faaliyet\s*kodu|ana\s*faaliyet\s*kodu)?\s*[:\-]?\s*([0-9][0-9.\-\s]{3,15})/i,
+            /ana\s*faaliyet\s*(?:kodu)?\s*[:\-]?\s*([0-9][0-9.\-\s]{3,15})/i,
+            /faaliyet\s*kodu\s*[:\-]?\s*([0-9][0-9.\-\s]{3,15})/i
+        ];
+
+        let naceCode: string | null = null;
+        for (const pattern of nacePatterns) {
+            const match = normalized.match(pattern);
+            if (match?.[1]) {
+                naceCode = this.normalizeNaceCode(match[1]);
+                if (naceCode) break;
+            }
+        }
+
+        const taxNumberMatch = normalized.match(/(?:vergi\s*kimlik\s*no|vkn|vergi\s*no)\s*[:\-]?\s*(\d{10})/i);
+        const companyNameMatch = normalized.match(/(?:m[üu]kellef(?:in)?\s*ad[ıi]\s*soyad[ıi]\s*\/?\s*unvan[ıi]?|unvan[ıi]?)\s*[:\-]?\s*([A-ZÇĞİÖŞÜ0-9 .,&-]{3,80})/i);
+
+        return {
+            companyName: companyNameMatch?.[1]?.trim() || null,
+            taxNumber: taxNumberMatch?.[1] || null,
+            naceCode
+        };
     }
 
     /**
      * Regex based parser for Turkish Insurance Policies
      */
     private static parsePolicyText(text: string) {
-        // Cleaning common OCR noise
         const cleanText = text
-            .replace(/\|/g, '') // Remove pipe artifacts
-            .replace(/\s+/g, ' '); // Normalize whitespace
+            .replace(/\|/g, '')
+            .replace(/\s+/g, ' ');
 
-        // Improved Regex Patterns (Verified with Test Script)
         const patterns = {
-            // Policy No: Explicitly look for "Müşteri No" as fallback since "Poliçe No" is missing in some docs
             policyNumber: /(?:poliçe\s*no|ref\s*no|müşteri\s*no|teklif\s*no)\s*[:.]?\s*([0-9A-Z-\/]{5,25})/i,
-
-            // Amount: Prioritize "Net Prim", "Toplam Tutar" to avoid partial matches
             amount: /(?:net\s+prim|brüt\s+prim|toplam\s+tutar|ödenecek\s+tutar|genel\s+toplam|tutar|bedel)[:\s]*([\d.,]+)\s*(?:TL|TRY|₺)/i,
-
-            // TCKN/VKN: 10 or 11 digits
             identityNo: /(?:t\.?c\.?\s*kimlik|v\.?k\.?n?|vergi)\s*[:.]?\s*(\d{10,11})/i,
-
-            // Dates: DD.MM.YYYY
             dates: /(\d{2})[.\/-](\d{2})[.\/-](\d{4})/g,
-
-            // Policy Types: Keywords
             policyType: /(kasko|trafik|dask|konut|sağlık|ferdi kaza|işyeri|yangın)/i,
-
-            // Matches: Sigortalı: Ahmet Müşteri
             customerName: /(?:sigortalı|müşteri|unvanı?|ad(?:ı)?\s*soy(?:adı)?)\s*[:.]?\s*([A-ZİĞÜŞÖÇ\s]{3,40})(?:\s+T\.?C\.?|\s+Vergi|\n|$)/i,
-
-            // Matches: 34 AB 1234, 06 XYZ 99
             plateNumber: /(?:plaka|araç)\s*[:.]?\s*(\d{2}\s*[A-Z]{1,3}\s*\d{2,5})/i
         };
 
@@ -95,50 +137,39 @@ export class OCRService {
             policyTypeKey: null as string | null
         };
 
-        // Policy Number
         const polMatch = cleanText.match(patterns.policyNumber);
         if (polMatch) {
             extracted.policyNumber = polMatch[1].trim();
         }
 
-        // Amount
         const amountMatch = cleanText.match(patterns.amount);
         if (amountMatch) {
-            // Turkish format: 1.250,50 -> remove dot, replace comma with dot
-            // OR Simple format: 1250.50
             let raw = amountMatch[1];
             if (raw.includes(',') && raw.includes('.')) {
-                // Determine which is decimal separator. Usually last one.
                 const lastDot = raw.lastIndexOf('.');
                 const lastComma = raw.lastIndexOf(',');
                 if (lastDot > lastComma) {
-                    // 1,250.50 format (US/English style sometimes used)
                     raw = raw.replace(/,/g, '');
                 } else {
-                    // 1.250,50 format (TR standard)
                     raw = raw.replace(/\./g, '').replace(',', '.');
                 }
             } else if (raw.includes(',')) {
-                // 1250,50
                 raw = raw.replace(',', '.');
             }
-            // else 1250 or 1250.50 -> logic auto handles
 
             extracted.amount = parseFloat(raw);
         }
 
-        // Identity No
         const identityMatch = cleanText.match(patterns.identityNo);
         if (identityMatch) {
             extracted.identityNo = identityMatch[1].trim();
         }
 
-        // Dates: Collect all dates and pick earliest/latest for start/end
         const dateMatches = Array.from(cleanText.matchAll(patterns.dates));
         if (dateMatches.length >= 1) {
             const parsedDates = dateMatches.map(m => {
-                const [_, d, m_str, y] = m;
-                return new Date(`${y}-${m_str}-${d}`);
+                const [_, d, month, y] = m;
+                return new Date(`${y}-${month}-${d}`);
             }).filter(d => !isNaN(d.getTime())).sort((a, b) => a.getTime() - b.getTime());
 
             if (parsedDates.length > 0) {
@@ -149,34 +180,22 @@ export class OCRService {
             }
         }
 
-        // Policy Type Key
         const typeMatch = cleanText.match(patterns.policyType);
         if (typeMatch) {
             extracted.policyTypeKey = typeMatch[1].toLowerCase();
         }
 
-        // Customer Name
         const nameMatch = cleanText.match(patterns.customerName);
         if (nameMatch) {
-            let rawName = nameMatch[1].trim();
+            const rawName = nameMatch[1].trim();
             if (rawName.length > 3) {
                 extracted.customerName = rawName;
             }
         }
 
-        // Plate
         const plateMatch = cleanText.match(patterns.plateNumber);
         if (plateMatch) {
             extracted.plateNumber = plateMatch[1].replace(/\s+/g, ' ').toUpperCase();
-        }
-
-        // Validation: If no critical fields are found, throw error or return empty with flag
-        const hasData = extracted.policyNumber || extracted.customerName || extracted.identityNo;
-        if (!hasData) {
-            // Check if text exists but nothing matched
-            if (text.length > 50) {
-                // Return partial if we have something, but we really want user to know it failed
-            }
         }
 
         return extracted;

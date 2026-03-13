@@ -29,6 +29,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import BranchKpiPage from './pages/BranchKpiPage';
 import ApprovalsPage from './pages/ApprovalsPage';
 import RenewalsPage from './pages/RenewalsPage';
+import AiAssistantPage from './pages/AiAssistantPage';
 import { NotificationProvider } from './contexts/NotificationContext';
 import axios from 'axios';
 
@@ -80,6 +81,7 @@ function App() {
               <Route path="payroll" element={<PayrollPage />} />
               <Route path="quotes/compare" element={<QuoteComparisonPage />} />
               <Route path="revenue" element={<RevenuePage />} />
+              <Route path="ai-assistant" element={<AiAssistantPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Routes>

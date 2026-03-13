@@ -492,3 +492,24 @@ Yeni bir sorun tespit edildiğinde:
 - Backend: [İsim]
 - Frontend: [İsim]
 - Database: [İsim]
+
+---
+
+## 12. Login Failed - Backend Still Pointing to Supabase
+
+### Symptom
+- Login shows 'Login failed' and response mentions Supabase host (db.vdbcoxahsgmvwubuwnqp.supabase.co:5432).
+
+### Cause
+- Backend was still using Supabase DATABASE_URL instead of local Postgres.
+
+### Fix (Short)
+1. Ensure local Postgres is running (docker compose).
+2. Update env files to local DB (port 5433):
+   - server/.env and ai_system/.env -> postgresql://sigorta_admin:sigorta_2024_secure_pass@localhost:5433/sigorta_crm?schema=public
+3. Restart backend.
+4. Seed database: npm run seed
+
+### Notes
+- If port 5432 is already used, map container to 5433 in docker-compose.
+- If Prisma reports EPERM on generate, rerun or restart backend after db push.

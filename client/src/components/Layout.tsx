@@ -36,6 +36,7 @@ export default function Layout() {
             '/app/commission-rules': 'Komisyon Motoru',
             '/app/messaging': 'İç İletişim & Mesajlar',
             '/app/audit': 'Sistem Günlükleri',
+            '/app/ai-assistant': 'AI Asistan',
             '/app/settings': 'Ayarlar'
         };
         setPageTitle(titles[location.pathname] || 'ZenithCRM');

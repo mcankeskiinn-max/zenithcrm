@@ -3,6 +3,7 @@ import prisma from '../prisma';
 import path from 'path';
 import fs from 'fs';
 import { canAccessSale } from '../utils/access.util';
+import { getNaceAccountSuggestions } from '../services/nace-account-suggestion.service';
 
 const isAllowedSignature = (filePath: string, mimetype: string) => {
     try {
@@ -33,7 +34,7 @@ export const uploadDocument = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        const { saleId } = req.body;
+        const { saleId, accountCode } = req.body;
         if (!saleId) {
             console.error('[UPLOAD] saleId missing in request body');
             // Clean up file if no saleId
@@ -50,7 +51,12 @@ export const uploadDocument = async (req: Request, res: Response) => {
             select: {
                 id: true,
                 branchId: true,
-                employeeId: true
+                employeeId: true,
+                customer: {
+                    select: {
+                        naceCode: true
+                    }
+                }
             }
         });
 
@@ -79,6 +85,9 @@ export const uploadDocument = async (req: Request, res: Response) => {
         fs.renameSync(req.file.path, finalPath);
         const storedPath = path.join(currentUser.tenantId, req.file.filename);
 
+        const suggestions = getNaceAccountSuggestions(sale.customer?.naceCode || null);
+        const selectedSuggestion = suggestions.find((s) => s.code === String(accountCode || '').trim()) || suggestions[0] || null;
+
         console.log('[UPLOAD] Creating database record for:', req.file.originalname);
         const document = await prisma.document.create({
             data: {
@@ -87,7 +96,10 @@ export const uploadDocument = async (req: Request, res: Response) => {
                 mimetype: req.file.mimetype,
                 size: req.file.size,
                 saleId,
-                tenantId: currentUser.tenantId
+                tenantId: currentUser.tenantId,
+                accountCode: selectedSuggestion?.code || null,
+                accountTitle: selectedSuggestion?.title || null,
+                accountConfidence: selectedSuggestion?.confidence || null
             }
         });
 
@@ -151,6 +163,43 @@ export const getDocuments = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Get documents error:', error);
         res.status(500).json({ error: 'Failed to fetch documents' });
+    }
+};
+
+export const getDocumentAccountSuggestions = async (req: Request, res: Response) => {
+    try {
+        const { saleId } = req.params;
+        const currentUser = req.user!;
+
+        const sale = await prisma.sale.findFirst({
+            where: { id: saleId, tenantId: currentUser.tenantId },
+            include: {
+                customer: {
+                    select: { id: true, firstName: true, lastName: true, naceCode: true }
+                }
+            }
+        });
+
+        if (!sale) {
+            return res.status(404).json({ error: 'Sale not found' });
+        }
+
+        if (!canAccessSale(currentUser, sale)) {
+            return res.status(403).json({ error: 'Insufficient permissions' });
+        }
+
+        const suggestions = getNaceAccountSuggestions(sale.customer?.naceCode || null);
+        return res.json({
+            saleId: sale.id,
+            customerId: sale.customer?.id || null,
+            customerName: sale.customer ? `${sale.customer.firstName} ${sale.customer.lastName}`.trim() : null,
+            naceCode: sale.customer?.naceCode || null,
+            suggestedDefault: suggestions[0]?.code || null,
+            suggestions
+        });
+    } catch (error) {
+        console.error('Get document account suggestions error:', error);
+        return res.status(500).json({ error: 'Failed to fetch suggestions' });
     }
 };
 

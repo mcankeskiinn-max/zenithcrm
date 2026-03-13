@@ -1,11 +1,16 @@
 # Multi-stage build for optimized production image
-FROM node:20-alpine AS builder
+FROM node:20-bullseye-slim AS builder
 
 WORKDIR /app
 
+# System deps for Prisma engine detection
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
 # Copy package files
 COPY server/package*.json ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Copy prisma schema and generate client
 COPY server/prisma ./prisma
@@ -16,18 +21,19 @@ COPY server/src ./src
 COPY server/tsconfig.json ./
 
 # Build TypeScript
-RUN npm install -D typescript @types/node
 RUN npx tsc
 
 # Production stage
-FROM node:20-alpine
+FROM node:20-bullseye-slim
 
 WORKDIR /app
 
-# Create non-root user
-RUN addgroup -S app && adduser -S app -G app
+# System deps for Prisma engine usage at runtime
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
-# Copy dependencies from builder
+# Copy dependencies from builder (includes Prisma CLI/runtime)
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
@@ -37,9 +43,6 @@ COPY server/package*.json ./
 
 # Expose port
 EXPOSE 3000
-
-# Drop privileges
-USER app
 
 # Run migrations and start server
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -20,6 +20,7 @@ interface Customer {
     phone: string | null;
     email: string | null;
     identityNumber: string | null;
+    naceCode?: string | null;
     createdAt: string;
     _count: {
         sales: number;
@@ -37,14 +38,17 @@ export default function CustomersPage() {
         name: '',
         email: '',
         phone: '',
-        identityNumber: ''
+        identityNumber: '',
+        naceCode: ''
     });
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState('');
+    const [taxPlateFile, setTaxPlateFile] = useState<File | null>(null);
+    const [fillingFromTaxPlate, setFillingFromTaxPlate] = useState(false);
 
     const handleDelete = async (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
-        if (!window.confirm('Bu müşteri kaydını silmek istediğinize emin misiniz?')) return;
+        if (!window.confirm('Bu mÃ¼ÅŸteri kaydÄ±nÄ± silmek istediÄŸinize emin misiniz?')) return;
 
         try {
 await axios.delete(`/api/customers/${id}`, {
@@ -52,7 +56,7 @@ await axios.delete(`/api/customers/${id}`, {
             });
             setCustomers(prev => prev.filter(c => c.id !== id));
         } catch (error: any) {
-            alert(error.response?.data?.error || 'Müşteri silinirken bir hata oluştu.');
+            alert(error.response?.data?.error || 'MÃ¼ÅŸteri silinirken bir hata oluÅŸtu.');
         }
     };
 
@@ -78,9 +82,37 @@ const res = await axios.get('/api/customers', {
             name: '',
             email: '',
             phone: '',
-            identityNumber: ''
+            identityNumber: '',
+            naceCode: ''
         });
+        setTaxPlateFile(null);
         setCreateError('');
+    };
+
+    const handleTaxPlateAutofill = async () => {
+        if (!taxPlateFile) return;
+        setFillingFromTaxPlate(true);
+        setCreateError('');
+
+        const formData = new FormData();
+        formData.append('document', taxPlateFile);
+
+        try {
+            const response = await axios.post('/api/ocr/scan-tax-plate', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            const { companyName, taxNumber, naceCode } = response.data?.data || {};
+            setCreateForm((prev) => ({
+                ...prev,
+                name: prev.name || companyName || '',
+                identityNumber: prev.identityNumber || taxNumber || '',
+                naceCode: naceCode || prev.naceCode || ''
+            }));
+        } catch (error: any) {
+            setCreateError(error.response?.data?.error || 'Vergi levhasindan otomatik doldurma yapilamadi.');
+        } finally {
+            setFillingFromTaxPlate(false);
+        }
     };
 
     const handleCreateCustomer = async (e: React.FormEvent) => {
@@ -92,13 +124,14 @@ const res = await axios.get('/api/customers', {
                 name: createForm.name,
                 email: createForm.email || undefined,
                 phone: createForm.phone || undefined,
-                identityNumber: createForm.identityNumber || undefined
+                identityNumber: createForm.identityNumber || undefined,
+                naceCode: createForm.naceCode || undefined
             });
             setIsCreateOpen(false);
             resetCreateForm();
             fetchCustomers();
         } catch (error: any) {
-            setCreateError(error.response?.data?.error || 'M��teri olu�turulamad�.');
+            setCreateError(error.response?.data?.error || 'Müşteri oluşturulamadı.');
         } finally {
             setCreating(false);
         }
@@ -113,13 +146,13 @@ const res = await axios.get('/api/customers', {
         <div className="space-y-8 animate-in fade-in duration-700">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Müşteri Portföyü</h1>
-                    <p className="text-sm text-muted-foreground font-medium mt-1">Sistemdeki tüm müşteriler ve özet bilgileri</p>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight">MÃ¼ÅŸteri PortfÃ¶yÃ¼</h1>
+                    <p className="text-sm text-muted-foreground font-medium mt-1">Sistemdeki tÃ¼m mÃ¼ÅŸteriler ve Ã¶zet bilgileri</p>
                 </div>
 
                 <Button onClick={() => setIsCreateOpen(true)} className="h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5 active:translate-y-0 gap-2">
                     <UserPlus size={20} />
-                    Yeni Müşteri
+                    Yeni MÃ¼ÅŸteri
                 </Button>
             </div>
 
@@ -128,7 +161,7 @@ const res = await axios.get('/api/customers', {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="İsim, telefon veya e-posta ile ara..."
+                        placeholder="Ä°sim, telefon veya e-posta ile ara..."
                         className="w-full pl-11 pr-4 py-2.5 bg-muted border-none rounded-xl outline-none text-sm text-gray-700 focus:bg-card focus:ring-4 focus:ring-emerald-500/5 transition-all"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -156,8 +189,8 @@ const res = await axios.get('/api/customers', {
                 ) : filteredCustomers.length === 0 ? (
                     <div className="col-span-full py-20 flex flex-col items-center justify-center text-muted-foreground bg-card rounded-3xl border border-border border-dashed">
                         <SearchX size={48} className="mb-4 text-gray-200" />
-                        <p className="font-bold">Müşteri bulunamadı</p>
-                        <p className="text-sm">Farklı bir arama terimi deneyin veya yeni bir kayıt oluşturun.</p>
+                        <p className="font-bold">MÃ¼ÅŸteri bulunamadÄ±</p>
+                        <p className="text-sm">FarklÄ± bir arama terimi deneyin veya yeni bir kayÄ±t oluÅŸturun.</p>
                     </div>
                 ) : filteredCustomers.map((customer) => (
                     <div
@@ -172,14 +205,17 @@ const res = await axios.get('/api/customers', {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-foreground group-hover:text-emerald-600 transition-colors uppercase tracking-tight">{customer.name}</h3>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Müşteri ID: {customer.id.slice(0, 8)}</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">MÃ¼ÅŸteri ID: {customer.id.slice(0, 8)}</p>
+                                    {customer.naceCode && (
+                                        <p className="text-[10px] font-bold text-emerald-600 mt-1">NACE: {customer.naceCode}</p>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex gap-2">
                                 <button
                                     onClick={(e) => handleDelete(e, customer.id)}
                                     className="w-8 h-8 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all flex items-center justify-center"
-                                    title="Müşteriyi Sil"
+                                    title="MÃ¼ÅŸteriyi Sil"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -191,11 +227,11 @@ const res = await axios.get('/api/customers', {
 
                         <div className="grid grid-cols-2 gap-3 mb-6">
                             <div className="p-3 bg-muted rounded-2xl">
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Poliçe Sayısı</p>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">PoliÃ§e SayÄ±sÄ±</p>
                                 <p className="text-lg font-black text-foreground">{customer._count.sales}</p>
                             </div>
                             <div className="p-3 bg-muted rounded-2xl">
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Açık Görevler</p>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1">AÃ§Ä±k GÃ¶revler</p>
                                 <p className="text-lg font-black text-foreground">{customer._count.tasks}</p>
                             </div>
                         </div>
@@ -215,7 +251,7 @@ const res = await axios.get('/api/customers', {
                             )}
                             <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground pt-2">
                                 <Calendar size={12} />
-                                Kayıt: {new Date(customer.createdAt).toLocaleDateString('tr-TR')}
+                                KayÄ±t: {new Date(customer.createdAt).toLocaleDateString('tr-TR')}
                             </div>
                         </div>
                     </div>
@@ -229,14 +265,14 @@ const res = await axios.get('/api/customers', {
                 >
                     <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30">
                         <div>
-                            <h3 className="text-2xl font-bold text-foreground">Yeni M��teri</h3>
-                            <p className="text-sm text-muted-foreground">H�zl� m��teri kayd� olu�turun.</p>
+                            <h3 className="text-2xl font-bold text-foreground">Yeni Müşteri</h3>
+                            <p className="text-sm text-muted-foreground">Hızlı müşteri kaydı oluşturun.</p>
                         </div>
                         <button
                             onClick={() => { setIsCreateOpen(false); resetCreateForm(); }}
                             className="p-2 hover:bg-muted rounded-full transition-colors"
                         >
-                            �
+                            ×
                         </button>
                     </div>
 
@@ -277,6 +313,35 @@ const res = await axios.get('/api/customers', {
                                 onChange={(e) => setCreateForm({ ...createForm, identityNumber: e.target.value })}
                             />
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">NACE Kodu</label>
+                            <input
+                                className="w-full h-12 bg-muted border-none rounded-xl outline-none px-4 text-sm font-medium"
+                                placeholder="Orn: 69.20.01"
+                                value={createForm.naceCode}
+                                onChange={(e) => setCreateForm({ ...createForm, naceCode: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="space-y-3 rounded-2xl border border-border p-4 bg-muted/30">
+                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">
+                                Vergi Levhasindan Otomatik Doldur
+                            </label>
+                            <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                className="w-full text-xs"
+                                onChange={(e) => setTaxPlateFile(e.target.files?.[0] || null)}
+                            />
+                            <Button
+                                type="button"
+                                onClick={handleTaxPlateAutofill}
+                                disabled={!taxPlateFile || fillingFromTaxPlate}
+                                className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                            >
+                                {fillingFromTaxPlate ? 'Levha okunuyor...' : 'Levhadan NACE Doldur'}
+                            </Button>
+                        </div>
 
                         {createError && (
                             <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-xl border border-destructive/20">
@@ -291,14 +356,14 @@ const res = await axios.get('/api/customers', {
                                 className="flex-1 h-12 rounded-2xl font-bold text-muted-foreground hover:bg-muted border-border transition-all"
                                 onClick={() => { setIsCreateOpen(false); resetCreateForm(); }}
                             >
-                                Vazge�
+                                Vazgeç
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={creating}
                                 className="flex-[2] h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-lg shadow-emerald-200 transition-all"
                             >
-                                {creating ? 'Kaydediliyor...' : 'Kayd� Olu�tur'}
+                                {creating ? 'Kaydediliyor...' : 'Kaydı Oluştur'}
                             </Button>
                         </div>
                     </form>
@@ -308,6 +373,7 @@ const res = await axios.get('/api/customers', {
         </div>
     );
 }
+
 
 
 

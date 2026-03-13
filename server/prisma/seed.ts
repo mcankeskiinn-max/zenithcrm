@@ -115,7 +115,6 @@ async function main() {
     for (const s of sampleSales) {
         await prisma.sale.create({
             data: {
-                customerName: s.customer,
                 policyNumber: s.policy,
                 amount: s.amount,
                 status: s.status as any,

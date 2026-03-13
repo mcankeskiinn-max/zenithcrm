@@ -159,6 +159,35 @@ Notes:
 
 ---
 
+## 🧭 Recommended Free-Tier Stack
+
+These align with our current architecture and give the best cost/perf tradeoff for early stage.
+- App hosting: Railway
+- Database + Auth + Storage: Supabase
+- Media storage/transform: Cloudinary
+- Email (transactional): Brevo
+- Logs: Logtail
+- LLM observability: Langfuse
+- CDN (static): jsDelivr
+
+---
+
+## 🔐 AI / Storage Keys We Need
+
+Backend support bot:
+- `GOOGLE_AI_API_KEY`
+
+AI system (embeddings + pipeline):
+- `GEMINI_API_KEY`
+- `GCS_BUCKET`
+- `GOOGLE_APPLICATION_CREDENTIALS` (path to service account JSON)
+
+Observability (optional):
+- `SENTRY_DSN`
+- `SENTRY_TRACES_SAMPLE_RATE`
+
+---
+
 ## 📄 License
 
 MIT License - feel free to use this project for your own insurance agency!

@@ -22,6 +22,7 @@ import {
     ClipboardCheck,
     CalendarClock,
     BarChart3,
+    Sparkles,
     X
 } from 'lucide-react';
 
@@ -37,6 +38,7 @@ const menuItems = [
     { icon: Scale, label: 'Teklif Karşılaştırma', path: '/app/quotes/compare', section: 'MENÜ' },
     { icon: CheckSquare, label: 'Görevler', path: '/app/tasks', section: 'MENÜ' },
     { icon: MessageSquare, label: 'Mesajlar', path: '/app/messaging', section: 'MENÜ' },
+    { icon: Sparkles, label: 'AI Asistan', path: '/app/ai-assistant', section: 'MENÜ' },
     { icon: ClipboardCheck, label: 'Onaylar', path: '/app/approvals', section: 'YÖNETİM' },
     { icon: Users, label: 'Personel', path: '/app/users', section: 'YÖNETİM' },
     { icon: Building2, label: 'Şube Yönetimi', path: '/app/branches', section: 'YÖNETİM' },
@@ -84,7 +86,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const filteredMenuItems = menuItems.filter(item => {
         if (!user || !user.role) return false;
         if (user.role === 'EMPLOYEE') {
-            return ['Genel Bakış', 'Satış Analizi', 'İptal Analizi', 'Portföy Yönetimi', 'Müşteriler', 'Görevler', 'Mesajlar'].includes(item.label);
+            return ['Genel Bakış', 'Satış Analizi', 'İptal Analizi', 'Portföy Yönetimi', 'Müşteriler', 'Görevler', 'Mesajlar', 'AI Asistan'].includes(item.label);
         }
         if (user.role === 'MANAGER') {
             return !['Sistem Günlükleri'].includes(item.label);
@@ -231,3 +233,5 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </>
     );
 }
+
+
