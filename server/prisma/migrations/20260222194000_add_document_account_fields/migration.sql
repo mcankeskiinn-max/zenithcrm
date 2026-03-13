@@ -1,4 +1,4 @@
-﻿ALTER TABLE "documents"
+ALTER TABLE "documents"
 ADD COLUMN IF NOT EXISTS "accountCode" TEXT,
 ADD COLUMN IF NOT EXISTS "accountTitle" TEXT,
 ADD COLUMN IF NOT EXISTS "accountConfidence" TEXT;
