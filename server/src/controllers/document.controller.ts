@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { canAccessSale } from '../utils/access.util';
 import { getNaceAccountSuggestions } from '../services/nace-account-suggestion.service';
+import { uploadFile, deleteFile } from '../services/cloudinary.service';
 
 const isAllowedSignature = (filePath: string, mimetype: string) => {
     try {
@@ -83,7 +84,10 @@ export const uploadDocument = async (req: Request, res: Response) => {
 
         const finalPath = path.join(tenantDir, req.file.filename);
         fs.renameSync(req.file.path, finalPath);
-        const storedPath = path.join(currentUser.tenantId, req.file.filename);
+
+        // Upload to Cloudinary
+        const cloudinaryResult = await uploadFile(finalPath, req.file.mimetype, currentUser.tenantId);
+        const storedPath = cloudinaryResult.url;
 
         const suggestions = getNaceAccountSuggestions(sale.customer?.naceCode || null);
         const selectedSuggestion = suggestions.find((s) => s.code === String(accountCode || '').trim()) || suggestions[0] || null;
@@ -95,6 +99,8 @@ export const uploadDocument = async (req: Request, res: Response) => {
                 path: storedPath,
                 mimetype: req.file.mimetype,
                 size: req.file.size,
+                storageProvider: 'CLOUDINARY',
+                storageKey: cloudinaryResult.publicId,
                 saleId,
                 tenantId: currentUser.tenantId,
                 accountCode: selectedSuggestion?.code || null,
@@ -102,6 +108,11 @@ export const uploadDocument = async (req: Request, res: Response) => {
                 accountConfidence: selectedSuggestion?.confidence || null
             }
         });
+
+        // Cleanup local file after successful upload
+        if (fs.existsSync(finalPath)) {
+            fs.unlinkSync(finalPath);
+        }
 
         console.log('[UPLOAD] Success:', document.id);
         res.status(201).json(document);
@@ -231,6 +242,10 @@ export const downloadDocument = async (req: Request, res: Response) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
+        if (document.storageProvider === 'CLOUDINARY' || document.path.startsWith('http')) {
+            return res.redirect(document.path);
+        }
+
         const uploadDir = path.resolve(process.cwd(), 'uploads');
         const filePath = path.join(uploadDir, document.path);
         if (!fs.existsSync(filePath)) {
@@ -274,11 +289,20 @@ export const deleteDocument = async (req: Request, res: Response) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
-        // Delete from file system
-        const uploadDir = path.resolve(process.cwd(), 'uploads');
-        const filePath = path.join(uploadDir, document.path);
-        if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+        // Delete from Cloudinary if stored there
+        if (document.storageProvider === 'CLOUDINARY' && document.storageKey) {
+            try {
+                await deleteFile(document.storageKey, document.mimetype);
+            } catch (cloudErr) {
+                console.error('Cloudinary delete error:', cloudErr);
+            }
+        } else {
+            // Delete from file system
+            const uploadDir = path.resolve(process.cwd(), 'uploads');
+            const filePath = path.join(uploadDir, document.path);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
         }
 
         // Delete from DB
