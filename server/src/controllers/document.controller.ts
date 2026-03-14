@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { canAccessSale } from '../utils/access.util';
 import { getNaceAccountSuggestions } from '../services/nace-account-suggestion.service';
-import { uploadFile, deleteFile } from '../services/cloudinary.service';
+import { uploadToR2, deleteFromR2, getSignedDownloadUrl } from '../services/r2.service';
 
 const isAllowedSignature = (filePath: string, mimetype: string) => {
     try {
@@ -85,9 +85,9 @@ export const uploadDocument = async (req: Request, res: Response) => {
         const finalPath = path.join(tenantDir, req.file.filename);
         fs.renameSync(req.file.path, finalPath);
 
-        // Upload to Cloudinary
-        const cloudinaryResult = await uploadFile(finalPath, req.file.mimetype, currentUser.tenantId);
-        const storedPath = cloudinaryResult.url;
+        // Upload to R2
+        const r2Result = await uploadToR2(finalPath, req.file.mimetype, currentUser.tenantId, req.file.originalname);
+        const storedPath = r2Result.url || '';
 
         const suggestions = getNaceAccountSuggestions(sale.customer?.naceCode || null);
         const selectedSuggestion = suggestions.find((s) => s.code === String(accountCode || '').trim()) || suggestions[0] || null;
@@ -99,8 +99,8 @@ export const uploadDocument = async (req: Request, res: Response) => {
                 path: storedPath,
                 mimetype: req.file.mimetype,
                 size: req.file.size,
-                storageProvider: 'CLOUDINARY',
-                storageKey: cloudinaryResult.publicId,
+                storageProvider: 'R2',
+                storageKey: r2Result.key,
                 saleId,
                 tenantId: currentUser.tenantId,
                 accountCode: selectedSuggestion?.code || null,
@@ -242,7 +242,11 @@ export const downloadDocument = async (req: Request, res: Response) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
-        if (document.storageProvider === 'CLOUDINARY' || document.path.startsWith('http')) {
+        if (document.storageProvider === 'R2' && document.storageKey) {
+            const signedUrl = await getSignedDownloadUrl(document.storageKey);
+            return res.redirect(signedUrl);
+        }
+        if (document.path.startsWith('http')) {
             return res.redirect(document.path);
         }
 
@@ -289,12 +293,12 @@ export const deleteDocument = async (req: Request, res: Response) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
-        // Delete from Cloudinary if stored there
-        if (document.storageProvider === 'CLOUDINARY' && document.storageKey) {
+        // Delete from R2 if stored there
+        if (document.storageProvider === 'R2' && document.storageKey) {
             try {
-                await deleteFile(document.storageKey, document.mimetype);
-            } catch (cloudErr) {
-                console.error('Cloudinary delete error:', cloudErr);
+                await deleteFromR2(document.storageKey);
+            } catch (storageErr) {
+                console.error('R2 delete error:', storageErr);
             }
         } else {
             // Delete from file system
